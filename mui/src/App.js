@@ -1,0 +1,25 @@
+import React from "react";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import Modules from "./pages/Modules";
+import LPage from "./pages/Library";
+import TopBar from "./components/TopBar";
+import Search from "./pages/Search";
+import HomePage from "./pages/Home";
+
+function App() {
+  return (
+    <Router>
+      <div>
+        <TopBar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/library" element={<LPage />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/modules" element={<Modules />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;

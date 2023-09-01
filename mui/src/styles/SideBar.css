@@ -1,0 +1,44 @@
+.sidebar {
+  width: 45px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: fixed;
+  background-color: #212121;
+}
+
+.sidebar-button {
+  width: 45px;
+  height: 45px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.sidebar-button:hover {
+  background-color: #272c36;
+}
+
+.sidebar-button.active {
+  background-color: #444;
+}
+
+.sidebar-button.library {
+  background-image: url("../../../mui/public/assets/library.png");
+}
+
+.sidebar-button.home {
+  background-image: url("../../../mui/public/assets/home.png");
+}
+
+.sidebar-button.search {
+  background-image: url("../../../mui/public/assets/search.png");
+}
+
+.sidebar-button.modules {
+  background-image: url("../../../mui/public/assets/module.png");
+}

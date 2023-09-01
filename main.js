@@ -5,9 +5,9 @@ require('electron-reload')(__dirname)
 function createWindow() {
   const mainWindow = new BrowserWindow({
     title: "Manga Downloader",
-    width: 800,
+    width: 1000,
     height: 600,
-    frame: false,
+    //frame: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,

@@ -7,7 +7,7 @@ function createWindow() {
     title: "Manga Downloader",
     width: 1000,
     height: 600,
-    //frame: false,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,

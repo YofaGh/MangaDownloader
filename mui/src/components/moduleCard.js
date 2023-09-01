@@ -31,7 +31,7 @@ function MCard({ module }) {
       }}
     >
       <img
-        src={logo_url} //"./assets/fav.png"
+        src={(logo_url) ? logo_url : "./assets/module.png"}
         loading="lazy"
         alt=""
         style={{ borderRadius: "50%", width: 70, height: 70 }}

@@ -31,6 +31,7 @@ function MCard({ module }) {
       }}
     >
       <img
+        referrerPolicy="no-referrer"
         src={(logo_url) ? logo_url : "./assets/module.png"}
         loading="lazy"
         alt=""

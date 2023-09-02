@@ -34,6 +34,20 @@ async def get_logo(module):
 @app.get("/get_library/")
 async def get_library():
     from mangascraper.utils.assets import load_dict_from_file
-    library_dict = load_dict_from_file('library.json')
-    print(library_dict)
-    return ''
+    library_dict = load_dict_from_file('./../library.json')
+    mangas = []
+    for manga, detm in library_dict.items():
+        mangas.append({
+            'title': manga,
+            'status': detm['include'],
+            "domain": detm['domain'],
+            "url": detm['url'],
+            "last_downloaded_chapter": detm['last_downloaded_chapter']
+        })
+    return mangas
+
+@app.get("/info/{domain}/{url}/")
+async def get_info(domain, url):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(domain)
+    return module.get_info(url)

@@ -28,13 +28,15 @@
   mask-image: linear-gradient(to bottom, rgb(0, 0, 0) 0%, transparent 90%);
 }
 
-.img-front{
+.img-front {
   filter: blur(10px);
   width: 100%;
   height: 90%;
   border-radius: 20px;
   margin-top: 5px;
   transform: scaleX(-1);
+  position: relative;
+  z-index: 1;
   mask-image: linear-gradient(to bottom, rgb(0, 0, 0) 0%, transparent 90%);
 }
 
@@ -55,15 +57,9 @@
   -webkit-backface-visibility: hidden;
   border-radius: 5px;
   overflow: hidden;
-}
-
-.back, .backloaded {
-  width: 100%;
-  height: 100%;
   justify-content: center;
   display: flex;
   align-items: center;
-  overflow: hidden;
 }
 
 .back::before {
@@ -87,29 +83,30 @@
   animation: initial;
 }
 
-.back::after {
-  content: "";
+.front::before {
   position: absolute;
+  content: ' ';
+  display: block;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background: transparent;
-}
-
-.backloaded::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background: transparent;
+  width: 160px;
+  height: 10%;
+  background: linear-gradient(90deg, transparent, #009788, #009788, #009788, #009788, transparent);
+  animation: initial;
 }
 
 .back-content {
+  position: relative;
+  width: 98.5%;
+  height: 98.5%;
+  background-color: #212121;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.front-content {
   position: absolute;
   width: 98.5%;
   height: 98.5%;
@@ -138,16 +135,6 @@
 .front {
   transform: rotateY(180deg);
   color: white;
-}
-
-.front .front-content {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 .front-content .badge {
@@ -195,6 +182,7 @@
   float: center;
   margin: auto;
   margin-top: 50px;
+  z-index: 10;
 }
 
 @keyframes floating {

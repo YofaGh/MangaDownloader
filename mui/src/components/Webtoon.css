@@ -1,0 +1,29 @@
+.basic-info{
+    display: flex;
+    margin: 50px;
+    height: 100%;
+    padding-top: 50px;
+    color: #dfd9d9;
+}
+.fixed{
+    width: 200px;
+}
+.flex-item{
+    flex-grow: 1;
+    margin-left: 50px;
+}
+.rate{
+    color: rgb(255, 255, 0);
+}
+.title{
+    font-size:xx-large;
+}
+.alternatives{
+    font-size: large;
+}
+.summary-sec{
+    font-size: medium;
+}
+.info-sec{
+    font-size: small;
+}

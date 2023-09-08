@@ -34,7 +34,7 @@ function LPage() {
             <div key={index} className="card-row">
               {chunk.map((webtoon) => (
                 <div key={webtoon} className="card-wrapper">
-                  <Wcard webtoon_raw={webtoon} />
+                  <Wcard webtoon={webtoon} />
                 </div>
               ))}
             </div>

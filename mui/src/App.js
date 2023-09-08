@@ -5,6 +5,7 @@ import LPage from "./pages/Library";
 import TopBar from "./components/TopBar";
 import Search from "./pages/Search";
 import HomePage from "./pages/Home";
+import Webtoon from "./pages/Webtoon";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/library" element={<LPage />} />
           <Route path="/search" element={<Search />} />
           <Route path="/modules" element={<Modules />} />
+          <Route path="/:module/webtoon/:url" element={<Webtoon />} />
         </Routes>
       </div>
     </Router>

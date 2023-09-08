@@ -41,6 +41,7 @@ async def get_library():
             'status': detm['include'],
             "domain": detm['domain'],
             "url": detm['url'],
+            'cover': detm['cover'],
             "last_downloaded_chapter": detm['last_downloaded_chapter']
         })
     return mangas
@@ -50,3 +51,9 @@ async def get_info(domain, url):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(domain)
     return module.get_info(url)
+
+@app.get("/type/{domain}/")
+async def get_module_type(domain):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(domain)
+    return module.type

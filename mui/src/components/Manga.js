@@ -7,6 +7,8 @@ import get_info from "../api/get_info";
 const Manga = ({module, url}) => {
   const [webtoon, setWebtoon] = useState({});
   const [chaptersLoaded, setChaptersLoaded] = useState(false);
+  const [imageHeight, setImageHeight] = useState(0);
+  const imageWidth = 200;
 
   const loadChapters = () => {
     setChaptersLoaded(true);
@@ -21,11 +23,35 @@ const Manga = ({module, url}) => {
     fetchManga();
   }, [module, url]);
 
+  useEffect(() => {
+    const calculateImageHeight = () => {
+      const image = new Image();
+      image.src = webtoon.Cover;
+      image.onload = () => {
+        const aspectRatio = image.width / image.height;
+        const calculatedHeight = imageWidth / aspectRatio;
+        setImageHeight(calculatedHeight);
+      };
+    };
+
+    if (webtoon.Cover) {
+      calculateImageHeight();
+    }
+  }, [webtoon.Cover]);
+
+  const fixedStyle = {
+    width: `${imageWidth}px`,
+    height: `${imageHeight}px`,
+    backgroundImage: `url(${webtoon.Cover})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+
   return (
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
-          <img src={webtoon.Cover} alt="" />
+          <div className="fixed" style={fixedStyle}></div>
           {webtoon.Rating}
           <span className="fa fa-star checked rate"></span>
           <br />

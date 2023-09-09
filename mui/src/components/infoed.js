@@ -18,7 +18,12 @@ const Infoed = ({ title, info }) => {
     <></>
   ) : (
     <div>
-      {title} {info}
+      {title}{" "}
+      {typeof info === "object" ? (
+        info.map((minfo) => <span>{minfo} </span>)
+      ) : (
+        <span>{info}</span>
+      )}
     </div>
   );
 };

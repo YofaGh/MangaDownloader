@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import "./Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
+import FlipButton from "./FlipButton";
+import { getDate, getDateTime } from "./extras";
 
 const Manga = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
@@ -13,6 +15,28 @@ const Manga = ({ module, url }) => {
 
   const loadChapters = () => {
     setChaptersLoaded(true);
+  };
+
+  const filter = (webtoon) => {
+    const parsed = [
+      "Title",
+      "Alternative",
+      "Cover",
+      "Status",
+      "Summary",
+      "Rating",
+      "Posted On",
+      "Updated On",
+    ];
+    let gg = Object.keys(webtoon)
+      .filter((key) => !parsed.includes(key))
+      .reduce((obj, key) => {
+        return Object.assign(obj, {
+          [key]: webtoon[key],
+        });
+      }, {});
+    console.log(gg);
+    return gg;
   };
 
   useEffect(() => {
@@ -53,15 +77,17 @@ const Manga = ({ module, url }) => {
       <div className="basic-info">
         <div className="fixed">
           <div className="fixed" style={fixedStyle}></div>
-          <Infoed
-            title=""
-            info={
-              <>
-                {webtoon.Rating}
-                <span className="fa fa-star checked rate"></span>
-              </>
-            }
-          />
+          {webtoon.Rating ? (
+            <div style={{ display: "inline-flex" }}>
+              <Infoed title="" info={webtoon.Rating} />
+              <span
+                className="fa fa-star checked rate"
+                style={{ marginTop: "3px" }}
+              ></span>
+            </div>
+          ) : (
+            <></>
+          )}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>
         <div className="flex-item">
@@ -73,10 +99,31 @@ const Manga = ({ module, url }) => {
             <Infoed title="Summary:" info={webtoon.Summary} />
           </div>
           <div className="info-sec">
-            <Infoed title="Authors:" info={webtoon.Authors} />
-            <Infoed title="Artists:" info={webtoon.Artists} />
-            <Infoed title="Posted On:" info={webtoon["Posted On"]} />
-            <Infoed title="Updated On:" info={webtoon["Updated On"]} />
+            {Object.entries(filter(webtoon)).map(([key, value]) => (
+              <Infoed title={`${key}:`} info={value} />
+            ))}
+            <div style={{display: "inline-flex"}}>
+              <FlipButton
+                frontText={
+                  <div>
+                    Updated On:
+                    <br />
+                    {getDate(webtoon["Updated On"])}
+                  </div>
+                }
+                backText={getDateTime(webtoon["Updated On"])}
+              />
+              <FlipButton
+                frontText={
+                  <div>
+                    Posted On:
+                    <br />
+                    {getDate(webtoon["Posted On"])}
+                  </div>
+                }
+                backText={getDateTime(webtoon["Posted On"])}
+              />
+            </div>
           </div>
         </div>
       </div>

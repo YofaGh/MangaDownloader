@@ -18,7 +18,7 @@ const Infoed = ({ title, info }) => {
     <></>
   ) : (
     <div>
-      {title}: {info}
+      {title} {info}
     </div>
   );
 };

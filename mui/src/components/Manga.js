@@ -4,21 +4,22 @@ import "./Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 
-const Manga = ({module, url}) => {
+const Manga = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
+  const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [chaptersLoaded, setChaptersLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
   const imageWidth = 200;
 
   const loadChapters = () => {
     setChaptersLoaded(true);
-    return ;
-  }
+  };
 
   useEffect(() => {
     const fetchManga = async () => {
       const response = await get_info(module, url);
       setWebtoon(response);
+      setWebtoonLoaded(true);
     };
     fetchManga();
   }, [module, url]);
@@ -47,15 +48,21 @@ const Manga = ({module, url}) => {
     backgroundPosition: "center",
   };
 
-  return (
+  return webtoonLoaded ? (
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
           <div className="fixed" style={fixedStyle}></div>
-          {webtoon.Rating}
-          <span className="fa fa-star checked rate"></span>
-          <br />
-          Status: {webtoon.Status}
+          <Infoed
+            title=""
+            info={
+              <>
+                {webtoon.Rating}
+                <span className="fa fa-star checked rate"></span>
+              </>
+            }
+          />
+          <Infoed title="Status:" info={webtoon.Status} />
         </div>
         <div className="flex-item">
           <div className="title-sec">
@@ -63,19 +70,25 @@ const Manga = ({module, url}) => {
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="summary-sec">
-            <Infoed title="summary" info={webtoon.Summary} />            
+            <Infoed title="Summary:" info={webtoon.Summary} />
           </div>
           <div className="info-sec">
-            <Infoed title="authors" info={webtoon.Authors} />
-            <Infoed title="artists" info={webtoon.Artists} />            
-            <Infoed title="Posted On" info={webtoon["Posted On"]} />
-            <Infoed title="Updated On" info={webtoon["Updated On"]} />
+            <Infoed title="Authors:" info={webtoon.Authors} />
+            <Infoed title="Artists:" info={webtoon.Artists} />
+            <Infoed title="Posted On:" info={webtoon["Posted On"]} />
+            <Infoed title="Updated On:" info={webtoon["Updated On"]} />
           </div>
         </div>
       </div>
-      {chaptersLoaded ? <></> : <button onClick={loadChapters}>Load Chapters</button>}
+      {chaptersLoaded ? (
+        <></>
+      ) : (
+        <button onClick={loadChapters}>Load Chapters</button>
+      )}
     </div>
+  ) : (
+    <></>
   );
-}
+};
 
 export default Manga;

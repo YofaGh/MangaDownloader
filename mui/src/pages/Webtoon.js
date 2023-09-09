@@ -7,7 +7,7 @@ import Doujin from "./../components/Doujin";
 
 function Webtoon() {
   const { module, url } = useParams();
-  const {state} = useLocation();
+  const { state } = useLocation();
   //backUrl = state.backUrl
   const [moduleType, setModuleType] = useState("");
   useEffect(() => {
@@ -17,7 +17,14 @@ function Webtoon() {
     };
     fetchModuleType();
   });
-  return (moduleType === "Manga") ? <Manga module={module} url={url} /> : <Doujin module={module} url={url}></Doujin>;
+  switch (moduleType) {
+    case "Manga":
+      return <Manga module={module} url={url} />;
+    case "Doujin":
+      return <Doujin module={module} url={url} />;
+    default:
+      return <></>;
+  }
 }
 
 export default Webtoon;

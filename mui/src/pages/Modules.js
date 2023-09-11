@@ -35,7 +35,7 @@ function Modules() {
         {chunkedModules.map((chunk, index) => (
           <div key={index} className="card-row">
             {chunk.map((module) => (
-              <div key={module} className="card-wrapper">
+              <div key={module.domain} className="card-wrapper">
                 <MCard module={module} />
               </div>
             ))}

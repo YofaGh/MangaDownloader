@@ -4,7 +4,9 @@ import "./Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
-import { getDate, getDateTime } from "./extras";
+import Rating from "./Rating";
+import { getDate, getDateTime, filterDict } from "./extras";
+import "./infoed.css";
 
 const Manga = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
@@ -15,28 +17,6 @@ const Manga = ({ module, url }) => {
 
   const loadChapters = () => {
     setChaptersLoaded(true);
-  };
-
-  const filter = (webtoon) => {
-    const parsed = [
-      "Title",
-      "Alternative",
-      "Cover",
-      "Status",
-      "Summary",
-      "Rating",
-      "Posted On",
-      "Updated On",
-    ];
-    let gg = Object.keys(webtoon)
-      .filter((key) => !parsed.includes(key))
-      .reduce((obj, key) => {
-        return Object.assign(obj, {
-          [key]: webtoon[key],
-        });
-      }, {});
-    console.log(gg);
-    return gg;
   };
 
   useEffect(() => {
@@ -78,13 +58,7 @@ const Manga = ({ module, url }) => {
         <div className="fixed">
           <div className="fixed" style={fixedStyle}></div>
           {webtoon.Rating ? (
-            <div style={{ display: "inline-flex" }}>
-              <Infoed title="" info={webtoon.Rating} />
-              <span
-                className="fa fa-star checked rate"
-                style={{ marginTop: "3px" }}
-              ></span>
-            </div>
+            <Rating webtoon={webtoon}/>
           ) : (
             <></>
           )}
@@ -96,13 +70,25 @@ const Manga = ({ module, url }) => {
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="summary-sec">
-            <Infoed title="Summary:" info={webtoon.Summary} />
+            <div className="title-info">Summary: </div>
+            {webtoon.Summary}
           </div>
           <div className="info-sec">
-            {Object.entries(filter(webtoon)).map(([key, value]) => (
+            {Object.entries(
+              filterDict(webtoon, [
+                "Title",
+                "Alternative",
+                "Cover",
+                "Status",
+                "Summary",
+                "Rating",
+                "Posted On",
+                "Updated On",
+              ])
+            ).map(([key, value]) => (
               <Infoed title={`${key}:`} info={value} />
             ))}
-            <div style={{display: "inline-flex"}}>
+            <div style={{ display: "inline-flex" }}>
               <FlipButton
                 frontText={
                   <div>

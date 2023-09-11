@@ -4,24 +4,13 @@ import "./Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
-import { getDate, getDateTime } from "./extras";
+import { getDate, getDateTime, filterDict } from "./extras";
 
 const Manga = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
   const imageWidth = 200;
-
-  const filter = (webtoon) => {
-    const parsed = ["Title", "Alternative", "Cover", "Pages", "Uploaded"];
-    return Object.keys(webtoon)
-      .filter((key) => !parsed.includes(key))
-      .reduce((obj, key) => {
-        return Object.assign(obj, {
-          [key]: webtoon[key],
-        });
-      }, {});
-  };
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -68,7 +57,7 @@ const Manga = ({ module, url }) => {
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="info-sec">
-            {Object.entries(filter(webtoon)).map(([key, value]) => (
+            {Object.entries(filterDict(webtoon, ["Title", "Alternative", "Cover", "Pages", "Uploaded"])).map(([key, value]) => (
               <Infoed title={`${key}:`} info={value} />
             ))}
             <Infoed title="Pages:" info={webtoon.Pages} />

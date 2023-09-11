@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./../App.css";
-import Card from "@mui/joy/Card";
-import CardContent from "@mui/joy/CardContent";
-import Chip from "@mui/joy/Chip";
 import get_logo from "../api/get_logo";
+import "./moduleCard.css";
+import { Link } from "react-router-dom";
 
 function MCard({ module }) {
   const [logo_url, setLogoUrl] = useState([]);
@@ -15,42 +14,39 @@ function MCard({ module }) {
   useEffect(() => {
     fetchLogo();
   });
+
   return (
-    <Card
-      variant="outlined"
-      orientation="horizontal"
-      sx={{
-        width: 200,
-        "&:hover": {
-          boxShadow: "md",
-          borderColor: "neutral.outlinedHoverBorder",
-        },
-        backgroundColor: "#b1b1b1",
-        textDecoration: "none",
-        padding: "10px",
-      }}
-    >
-      <img
-        referrerPolicy="no-referrer"
-        src={(logo_url) ? logo_url : "./assets/module.png"}
-        loading="lazy"
-        alt=""
-        style={{ borderRadius: "50%", width: 70, height: 70 }}
-      />
-      <CardContent>
-        <p style={{ fontSize: 15, padding: "0px", margin: "0px" }}>
-          {module.domain}
-        </p>
-        <Chip
-          variant="outlined"
-          color="primary"
-          size="sm"
-          sx={{ pointerEvents: "none", marginTop: "15px" }}
-        >
-          {module.type}
-        </Chip>
-      </CardContent>
-    </Card>
+    <div className="m-card">
+      <div className="m-card-info">
+        <div className="m-title">
+          <div className="m-label">{module.type}</div>
+          <div className="m-logo">
+            <img
+              referrerPolicy="no-referrer"
+              src={logo_url ? logo_url : "./assets/module.png"}
+              loading="lazy"
+              alt=""
+              style={{ idth: 70, height: 70 }}
+            />
+          </div>
+          <div className="m-name">{module.domain}</div>
+          <div className="button-container">
+            <Link to={`/${module.domain}/search`}>
+              <button className="m-button search-btn">
+                <img
+                  alt=""
+                  src="./assets/search.svg"
+                  className="btn-icon"
+                ></img>
+              </button>
+            </Link>
+            <button className="m-button check-btn">
+              <img alt="" src="./assets/check.svg" className="btn-icon"></img>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

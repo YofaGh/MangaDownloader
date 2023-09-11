@@ -1,3 +1,5 @@
+import "./infoed.css";
+
 const Infoed = ({ title, info }) => {
   function isEmpty(input) {
     switch (typeof input) {
@@ -18,11 +20,17 @@ const Infoed = ({ title, info }) => {
     <></>
   ) : (
     <div>
-      {title}{" "}
+      <div className="title-info">{title} </div>
       {typeof info === "object" ? (
-        info.map((minfo) => <span>{minfo} </span>)
+        info.map((minfo) => (
+          <button className="cssbuttons-io">
+            <span>{minfo} </span>
+          </button>
+        ))
       ) : (
-        <span>{info}</span>
+        <button className="cssbuttons-io">
+          <span>{info} </span>
+        </button>
       )}
     </div>
   );

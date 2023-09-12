@@ -31,7 +31,7 @@ function MCard({ module }) {
           </div>
           <div className="m-name">{module.domain}</div>
           <div className="button-container">
-            <Link to={`/${module.domain}/search`}>
+            <Link to={`/${module.domain}`}>
               <button className="m-button search-btn">
                 <img
                   alt=""

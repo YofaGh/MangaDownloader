@@ -19,7 +19,7 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/:module/webtoon/:url" element={<Webtoon />} />
-          <Route path="/:module/search/" element={<Module />} />
+          <Route path="/:module" element={<Module />} />
         </Routes>
       </div>
     </Router>

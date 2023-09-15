@@ -1,6 +1,7 @@
 import sys, os
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 sys.path.append(f'{os.getcwd()}\\mangascraper')
 
@@ -57,3 +58,9 @@ async def get_module_type(domain):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(domain)
     return module.type
+
+@app.get("/get_chapters/{domain}/{url}/")
+async def get_chapters(domain, url):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(domain)
+    return module.get_chapters(url)

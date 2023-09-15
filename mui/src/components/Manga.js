@@ -3,21 +3,21 @@ import React, { useState, useEffect } from "react";
 import "./Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
+import get_chapters from "../api/get_chapters";
 import FlipButton from "./FlipButton";
 import Rating from "./Rating";
 import { getDate, getDateTime, filterDict } from "./extras";
+import Loading from "./Loading";
 import "./infoed.css";
+import ChapterButton from "./ChapterBotton";
 
 const Manga = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const [chaptersLoaded, setChaptersLoaded] = useState(false);
+  const [loadingChapters, setLoadingChapters] = useState(true);
   const [imageHeight, setImageHeight] = useState(0);
+  const [chapters, setChapters] = useState([]);
   const imageWidth = 200;
-
-  const loadChapters = () => {
-    setChaptersLoaded(true);
-  };
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -44,6 +44,15 @@ const Manga = ({ module, url }) => {
     }
   }, [webtoon.Cover]);
 
+  useEffect(() => {
+    const get_chapterss = async () => {
+      const response = await get_chapters(module, url);
+      setChapters(response);
+      setLoadingChapters(false);
+    };
+    get_chapterss();
+  }, [module, url]);
+
   const fixedStyle = {
     width: `${imageWidth}px`,
     height: `${imageHeight}px`,
@@ -52,16 +61,20 @@ const Manga = ({ module, url }) => {
     backgroundPosition: "center",
   };
 
+  const chunkArray = (array, size) => {
+    const chunkedArray = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunkedArray.push(array.slice(i, i + size));
+    }
+    return chunkedArray;
+  };
+
   return webtoonLoaded ? (
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
           <div className="fixed" style={fixedStyle}></div>
-          {webtoon.Rating ? (
-            <Rating webtoon={webtoon}/>
-          ) : (
-            <></>
-          )}
+          {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>
         <div className="flex-item">
@@ -113,10 +126,21 @@ const Manga = ({ module, url }) => {
           </div>
         </div>
       </div>
-      {chaptersLoaded ? (
-        <></>
+      {loadingChapters ? (
+        <div>
+          Loading Chapters
+          <Loading />
+        </div>
       ) : (
-        <button onClick={loadChapters}>Load Chapters</button>
+        <div>{chunkArray(chapters, 3).map((chunk, index) => (
+          <div key={index} className="card-row">
+            {chunk.map((chapter) => (
+              <div key={webtoon} className="card-wrapper">
+                <ChapterButton chapter={chapter} />
+              </div>
+            ))}
+          </div>
+        ))}</div>
       )}
     </div>
   ) : (

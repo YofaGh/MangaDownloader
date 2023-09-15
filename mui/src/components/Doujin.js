@@ -6,7 +6,7 @@ import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./extras";
 
-const Manga = ({ module, url }) => {
+const Doujin = ({ module, url }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
@@ -57,20 +57,51 @@ const Manga = ({ module, url }) => {
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="info-sec">
-            {Object.entries(filterDict(webtoon, ["Title", "Alternative", "Cover", "Pages", "Uploaded"])).map(([key, value]) => (
+            {Object.entries(
+              filterDict(webtoon, [
+                "Title",
+                "Alternative",
+                "Cover",
+                "Pages",
+                "Uploaded",
+              ])
+            ).map(([key, value]) => (
               <Infoed title={`${key}:`} info={value} />
             ))}
             <Infoed title="Pages:" info={webtoon.Pages} />
-            <FlipButton frontText={<div>Uploaded:<br />{getDate(webtoon.Uploaded)}</div>} backText={getDateTime(webtoon.Uploaded)} />
+            <FlipButton
+              frontText={
+                <div>
+                  Uploaded:
+                  <br />
+                  {getDate(webtoon.Uploaded)}
+                </div>
+              }
+              backText={getDateTime(webtoon.Uploaded)}
+            />
           </div>
         </div>
       </div>
-      <button>Download Doujin</button>
-      <button>Add Doujin to Queue</button>
+      <div>
+        <button className="btnn">
+          <span>Download Doujin</span>
+          <div class="top"></div>
+          <div class="left"></div>
+          <div class="bottom"></div>
+          <div class="right"></div>
+        </button>
+        <button className="btnn">
+          <span>Add Doujin to Queue</span>
+          <div class="top"></div>
+          <div class="left"></div>
+          <div class="bottom"></div>
+          <div class="right"></div>
+        </button>
+      </div>
     </div>
   ) : (
     <></>
   );
 };
 
-export default Manga;
+export default Doujin;

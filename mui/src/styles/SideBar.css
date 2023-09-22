@@ -42,3 +42,7 @@
 .sidebar-button.modules {
   background-image: url("../../../mui/public/assets/module.png");
 }
+
+.sidebar-button.queue {
+  background-image: url("../../../mui/public/assets/queue.svg");
+}

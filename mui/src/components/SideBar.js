@@ -14,6 +14,9 @@ function Sidebar() {
       <Link to={{ pathname: "search" }}>
         <button className="sidebar-button search"></button>
       </Link>
+      <Link to={{ pathname: "queue" }}>
+        <button className="sidebar-button queue"></button>
+      </Link>
       <Link to={{ pathname: "modules" }}>
         <button className="sidebar-button modules"></button>
       </Link>

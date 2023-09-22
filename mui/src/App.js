@@ -7,6 +7,7 @@ import Search from "./pages/Search";
 import HomePage from "./pages/Home";
 import Webtoon from "./pages/Webtoon";
 import Module from "./pages/Module";
+import Queue from "./pages/Queue";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/library" element={<LPage />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/queue" element={<Queue />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/:module/webtoon/:url" element={<Webtoon />} />
           <Route path="/:module" element={<Module />} />

@@ -26,7 +26,7 @@ function MCard({ module }) {
               src={logo_url ? logo_url : "./assets/module.png"}
               loading="lazy"
               alt=""
-              style={{ idth: 70, height: 70 }}
+              style={{ width: 70, height: 70 }}
             />
           </div>
           <div className="m-name">{module.domain}</div>

@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
+const fs = require("fs");
 
 contextBridge.exposeInMainWorld("do", {
   closeApp: () => {
@@ -6,5 +7,12 @@ contextBridge.exposeInMainWorld("do", {
   },
   minimizeApp: () => {
     ipcRenderer.send("minimizeApp");
+  },
+  getJsonFile: (path) => {
+    const fileContent = fs.readFileSync(path, "utf8");
+    return JSON.parse(fileContent);
+  },
+  setJsonFile: (path, data) => {
+    fs.writeFileSync(path, JSON.stringify(data));
   },
 });

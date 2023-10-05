@@ -6,7 +6,7 @@ import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./extras";
 
-const Doujin = ({ module, url }) => {
+const Doujin = ({ module, url, addWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
@@ -43,6 +43,18 @@ const Doujin = ({ module, url }) => {
     backgroundImage: `url(${webtoon.Cover})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
+  };
+
+  const addDoujin = (status) => {
+    addWebtoon({
+      type: "doujin",
+      id: `${module}_$_${url}`,
+      title: webtoon.Title,
+      info: url,
+      module: module,
+      doujin: url,
+      status: status,
+    });
   };
 
   return webtoonLoaded ? (
@@ -83,14 +95,14 @@ const Doujin = ({ module, url }) => {
         </div>
       </div>
       <div>
-        <button className="btnn">
+        <button className="btnn" onClick={() => addDoujin("Started")}>
           <span>Download Doujin</span>
           <div class="top"></div>
           <div class="left"></div>
           <div class="bottom"></div>
           <div class="right"></div>
         </button>
-        <button className="btnn">
+        <button className="btnn" onClick={() => addDoujin("Not Started")}>
           <span>Add Doujin to Queue</span>
           <div class="top"></div>
           <div class="left"></div>

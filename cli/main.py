@@ -31,22 +31,6 @@ async def get_logo(module):
     from mangascraper.utils.modules_contributer import get_module
     return get_module(module).logo
 
-@app.get("/get_library/")
-async def get_library():
-    from mangascraper.utils.assets import load_dict_from_file
-    library_dict = load_dict_from_file('./../library.json')
-    mangas = []
-    for manga, detm in library_dict.items():
-        mangas.append({
-            'title': manga,
-            'status': detm['include'],
-            "domain": detm['domain'],
-            "url": detm['url'],
-            'cover': detm['cover'],
-            "last_downloaded_chapter": detm['last_downloaded_chapter']
-        })
-    return mangas
-
 @app.get("/info/{domain}/{url}/")
 async def get_info(domain, url):
     from mangascraper.utils.modules_contributer import get_module
@@ -64,3 +48,35 @@ async def get_chapters(domain, url):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(domain)
     return module.get_chapters(url)
+
+class GetDoujinImagesRequest(BaseModel):
+    domain: str
+    code: str
+
+class GetMangaImagesRequest(BaseModel):
+    domain: str
+    url: str
+    chapter: str
+
+class DownloadRequest(BaseModel):
+    domain: str
+    image_url: str
+    save_path: str
+
+@app.post("/doujin/images/")
+async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.get_images(request_data.code)
+
+@app.post("/manga/images/")
+async def get_images(request_data: GetMangaImagesRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.get_images(request_data.url, {'url': request_data.chapter})
+
+@app.post("/download_image/")
+async def download_image(request_data: DownloadRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.download_image(request_data.image_url, request_data.save_path, 0)

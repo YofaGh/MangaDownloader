@@ -1,10 +1,19 @@
 import "./QueueCard.css";
 
-export default function QueueCard({
-  webtoon,
-  removeWebtoon,
-  setWebtoonStatus,
-}) {
+export default function QueueCard({ webtoon, addQueueMessage }) {
+
+  const removeWebtoon = (webtoon) => {
+    addQueueMessage({
+      removeWebtoon: { webtoon },
+    });
+  };
+
+  const setWebtoonStatus = (webtoon, status) => {
+    addQueueMessage({
+      setWebtoonStatus: { webtoon, status }
+    });
+  };
+
   return (
     <div className="queue-card">
       <div className="infog">
@@ -18,49 +27,49 @@ export default function QueueCard({
             <div className="d-status">
               Downlading Image
               <br />
-              {webtoon.downloaded+""}/20
+              {(webtoon.downloading || 0) + ""}/{(webtoon.totalImages || 0) + ""}
             </div>
           ) : (
             <div className="d-status">
-              Downladed {webtoon.downloaded+""}/20 Images
+              Downladed {(webtoon.downloading || 0) + ""}/{(webtoon.totalImages || 0) + ""} Images
             </div>
           )}
         </div>
       ) : (
         <></>
       )}
-      <div class="button-containerr">
-        <button class="buttonh" onClick={() => removeWebtoon(webtoon)}>
+      <div className="button-containerr">
+        <button className="buttonh" onClick={() => removeWebtoon(webtoon)}>
           <img alt="" src="./assets/delete.svg" className="icon"></img>
-          <span class="tooltip">Delete</span>
+          <span className="tooltip">Delete</span>
         </button>
         <button
-          class="buttonh"
+          className="buttonh"
           onClick={() => setWebtoonStatus(webtoon, "Not Started")}
         >
           <img alt="" src="./assets/stop.svg" className="icon"></img>
-          <span class="tooltip">Stop</span>
+          <span className="tooltip">Stop</span>
         </button>
         {webtoon.status === "Not Started" || webtoon.status === "Paused" ? (
           <button
-            class="buttonh"
+            className="buttonh"
             onClick={() => setWebtoonStatus(webtoon, "Started")}
           >
             <img alt="" src="./assets/start.svg" className="icon"></img>
-            <span class="tooltip">Start</span>
+            <span className="tooltip">Start</span>
           </button>
         ) : (
           <button
-            class="buttonh"
+            className="buttonh"
             onClick={() => setWebtoonStatus(webtoon, "Paused")}
           >
             <img alt="" src="./assets/pause.svg" className="icon"></img>
-            <span class="tooltip">Pause</span>
+            <span className="tooltip">Pause</span>
           </button>
         )}
-        <button class="buttonh">
+        <button className="buttonh">
           <img alt="" src="./assets/more.svg" className="icon"></img>
-          <span class="tooltip">More</span>
+          <span className="tooltip">More</span>
         </button>
       </div>
     </div>

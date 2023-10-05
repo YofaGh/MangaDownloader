@@ -5,7 +5,7 @@ import get_module_type from "../api/get_module_type";
 import Manga from "./../components/Manga";
 import Doujin from "./../components/Doujin";
 
-function Webtoon() {
+function Webtoon({ addWebtoon }) {
   const { module, url } = useParams();
   const { state } = useLocation();
   //backUrl = state.backUrl
@@ -19,9 +19,9 @@ function Webtoon() {
   });
   switch (moduleType) {
     case "Manga":
-      return <Manga module={module} url={url} />;
+      return <Manga module={module} url={url} addWebtoon={addWebtoon}/>;
     case "Doujin":
-      return <Doujin module={module} url={url} />;
+      return <Doujin module={module} url={url} addWebtoon={addWebtoon}/>;
     default:
       return <></>;
   }

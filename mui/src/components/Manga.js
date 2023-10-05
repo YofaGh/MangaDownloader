@@ -11,7 +11,7 @@ import Loading from "./Loading";
 import "./infoed.css";
 import ChapterButton from "./ChapterBotton";
 
-const Manga = ({ module, url }) => {
+const Manga = ({ module, url, addWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -67,6 +67,19 @@ const Manga = ({ module, url }) => {
       chunkedArray.push(array.slice(i, i + size));
     }
     return chunkedArray;
+  };
+
+  const addManga = (chapter, status) => {
+    addWebtoon({
+      type: "manga",
+      id: `${module}_$_${chapter}_$_${url}`,
+      title: webtoon.Title,
+      info: chapter.name,
+      module: module,
+      manga: url,
+      chapter: chapter.url,
+      status: status,
+    });
   };
 
   return webtoonLoaded ? (
@@ -132,15 +145,17 @@ const Manga = ({ module, url }) => {
           <Loading />
         </div>
       ) : (
-        <div>{chunkArray(chapters, 3).map((chunk, index) => (
-          <div key={index} className="card-row">
-            {chunk.map((chapter) => (
-              <div key={webtoon} className="card-wrapper">
-                <ChapterButton chapter={chapter} />
-              </div>
-            ))}
-          </div>
-        ))}</div>
+        <div>
+          {chunkArray(chapters, 3).map((chunk, index) => (
+            <div key={index} className="card-row">
+              {chunk.map((chapter) => (
+                <div key={webtoon} className="card-wrapper">
+                  <ChapterButton chapter={chapter} addManga={addManga} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   ) : (

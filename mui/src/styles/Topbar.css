@@ -33,15 +33,10 @@
   border: none;
   outline: none;
   background-color: transparent;
-  background-image: url("../../../mui/public/assets/menuBtn.png");
   background-repeat: no-repeat;
   background-position: center;
   transition: 0.2s;
   cursor: pointer;
-}
-
-.titleBar > .toggleButton:hover {
-  background-color: #272c36;
 }
 
 .titleBar > .toggleButton:active {

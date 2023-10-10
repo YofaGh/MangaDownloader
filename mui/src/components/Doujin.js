@@ -97,17 +97,17 @@ const Doujin = ({ module, url, addWebtoon }) => {
       <div>
         <button className="btnn" onClick={() => addDoujin("Started")}>
           <span>Download Doujin</span>
-          <div class="top"></div>
-          <div class="left"></div>
-          <div class="bottom"></div>
-          <div class="right"></div>
+          <div className="top"></div>
+          <div className="left"></div>
+          <div className="bottom"></div>
+          <div className="right"></div>
         </button>
         <button className="btnn" onClick={() => addDoujin("Not Started")}>
           <span>Add Doujin to Queue</span>
-          <div class="top"></div>
-          <div class="left"></div>
-          <div class="bottom"></div>
-          <div class="right"></div>
+          <div className="top"></div>
+          <div className="left"></div>
+          <div className="bottom"></div>
+          <div className="right"></div>
         </button>
       </div>
     </div>

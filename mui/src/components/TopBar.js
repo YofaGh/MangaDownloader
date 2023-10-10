@@ -16,11 +16,9 @@ function TopBar() {
     <div className="mainApp">
       <div className="topBar">
         <div className="titleBar">
-          <button
-            id="showHideMenus"
-            className="toggleButton"
-            onClick={() => showHideMenus()}
-          ></button>
+          <button className="buttonh toggleButton" onClick={() => showHideMenus()}>
+            <img alt="" src="./assets/menuBtn.svg" className="icon"></img>
+          </button>
         </div>
         <div className="titleBarBtns">
           <button

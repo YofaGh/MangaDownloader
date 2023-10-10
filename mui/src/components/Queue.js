@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import QueueCard from "../components/QueueCard";
+import QCard from "../components/QCard";
 import "./Queue.css";
 
 export default function Queue({ queue, addQueueMessage }) {
@@ -42,9 +42,6 @@ export default function Queue({ queue, addQueueMessage }) {
 
   return (
     <div className="container">
-      <div className="menu-bar">
-        <h1>Queue</h1>
-      </div>
       <div className="queue-div">
         <div className="manage">
           <div className="info-manage">Number of Items: {queu.length}</div>
@@ -119,7 +116,7 @@ export default function Queue({ queue, addQueueMessage }) {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            <QueueCard
+                            <QCard
                               webtoon={webtoon}
                               addQueueMessage={addQueueMessage}
                             />

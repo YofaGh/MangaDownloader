@@ -6,19 +6,29 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <Link to={{ pathname: "/" }}>
-        <button className="sidebar-button home"></button>
+        <button className="buttonh">
+          <img alt="" src="./assets/home.svg" className="icon"></img>
+        </button>
       </Link>
       <Link to={{ pathname: "library" }}>
-        <button className="sidebar-button library"></button>
+        <button className="buttonh">
+          <img alt="" src="./assets/library.svg" className="icon"></img>
+        </button>
       </Link>
       <Link to={{ pathname: "search" }}>
-        <button className="sidebar-button search"></button>
+        <button className="buttonh">
+          <img alt="" src="./assets/search.svg" className="icon"></img>
+        </button>
       </Link>
-      <Link to={{ pathname: "queue" }}>
-        <button className="sidebar-button queue"></button>
+      <Link to={{ pathname: "download" }}>
+        <button className="buttonh">
+          <img alt="" src="./assets/dPage.svg" className="icon"></img>
+        </button>
       </Link>
       <Link to={{ pathname: "modules" }}>
-        <button className="sidebar-button modules"></button>
+        <button className="buttonh">
+          <img alt="" src="./assets/module.svg" className="icon"></img>
+        </button>
       </Link>
     </div>
   );

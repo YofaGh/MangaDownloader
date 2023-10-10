@@ -2,7 +2,7 @@ import "./ChapterButton.css";
 
 export default function ChapterButton({ chapter, addManga }) {
   return (
-    <button class="btn-cssbuttons">
+    <button className="btn-cssbuttons">
       <div className="chapter">
         {chapter.name}
       </div>

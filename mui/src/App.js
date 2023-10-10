@@ -7,17 +7,21 @@ import Search from "./pages/Search";
 import HomePage from "./pages/Home";
 import Webtoon from "./pages/Webtoon";
 import Module from "./pages/Module";
-import Queue from "./pages/Queue";
+import Download from "./pages/Download";
 import { fixNameForFolder } from "./components/utils";
+// eslint-disable-next-line
+import Worker from "worker-loader!./downloadWorker.js";
 
 function App() {
   const [queue, setQueue] = useState([]);
   const [worker, setWorker] = useState(null);
   const [queueMessages, setQueueMessages] = useState([]);
   const [downloading, setDownloading] = useState(null);
+  const [downloaded, setDownloaded] = useState([]);
 
   useEffect(() => {
     setQueue(window.do.getJsonFile("queue.json"));
+    setDownloaded(window.do.getJsonFile("downloaded.json"));
     startDownloading();
   }, []);
 
@@ -92,15 +96,13 @@ function App() {
       }
       if (message.done) {
         setDownloading(null);
-        setQueue((queue) => {
-          let data = [...queue];
-          let indexOfTodo = data.findIndex(
-            (item) => item.id === message.done.webtoon.id
-          );
-          data[indexOfTodo] = {
-            ...data[indexOfTodo],
-            status: "Finished",
-          };
+        setQueue(queue.filter((item) => item.id !== message.done.webtoon.id));
+        setDownloaded((downloaded) => {
+          let data = [...downloaded];
+          let newD = message.done.webtoon;
+          delete newD.status;
+          newD.images = message.done.images;
+          data.unshift(newD);
           return data;
         });
       }
@@ -177,6 +179,10 @@ function App() {
     window.do.setJsonFile("queue.json", queue);
   }, [queue]);
 
+  useEffect(() => {
+    window.do.setJsonFile("downloaded.json", downloaded);
+  }, [downloaded]);
+
   const startDownloading = async () => {
     const webtoon = queue.find((item) => item.status === "Started");
     setDownloading(webtoon);
@@ -187,9 +193,9 @@ function App() {
           : fixNameForFolder(webtoon.title);
       await window.do.createFolder(folderName);
       const dirls = window.do.ls(folderName);
-      const dWorker = new Worker(
-        new URL("./downloadWorker.js", import.meta.url)
-      );
+      const dWorker = new Worker();
+      // new URL("./downloadWorker.js", import.meta.url), {type: "module"}
+      //"./downloadWorker.js", {type: "module"}
       dWorker.postMessage({ webtoon, dirls });
       dWorker.onmessage = (e) => {
         setQueueMessages([...queueMessages, e.data]);
@@ -215,8 +221,14 @@ function App() {
           <Route path="/library" element={<LPage />} />
           <Route path="/search" element={<Search />} />
           <Route
-            path="/queue"
-            element={<Queue queue={queue} addQueueMessage={addQueueMessage} />}
+            path="/download"
+            element={
+              <Download
+                queue={queue}
+                addQueueMessage={addQueueMessage}
+                downloaded={downloaded}
+              />
+            }
           />
           <Route path="/modules" element={<Modules />} />
           <Route

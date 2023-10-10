@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-require('electron-reload')(__dirname)
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -11,6 +10,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
+      nodeIntegrationInWorker: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });

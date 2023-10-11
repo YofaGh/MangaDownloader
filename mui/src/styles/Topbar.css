@@ -39,8 +39,8 @@
   cursor: pointer;
 }
 
-.titleBar > .toggleButton:active {
-  background-color: #4f9fee;
+.titleBar > .toggleButton:hover {
+  animation: none;
 }
 
 .titleBar > .title {

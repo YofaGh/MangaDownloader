@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DCard from "./DCard";
 
-export default function Downloaded({ downloaded }) {
+export default function Downloaded({ downloaded, addDownloadedMessage }) {
   return (
     <div className="container">
       <div className="queue-div">
@@ -34,10 +34,15 @@ export default function Downloaded({ downloaded }) {
         </div>
         <div className="queue-list">
           <ul className="ul-queue">
-            {downloaded.map((webtoon) => {
+            {downloaded.map((webtoon, index) => {
               return (
                 <li key={webtoon.id}>
-                  <DCard webtoon={webtoon} />
+                  <DCard
+                    webtoon={webtoon}
+                    removeWebtoon={() =>
+                      addDownloadedMessage({ removeWebtoon: { index } })
+                    }
+                  />
                 </li>
               );
             })}

@@ -3,7 +3,7 @@ import Queue from "./../components/Queue"
 import "./Download.css";
 import Downloaded from "./../components/Downloaded";
 
-export default function Download({ queue, addQueueMessage, downloaded }) {
+export default function Download({ queue, addQueueMessage, downloaded, addDownloadedMessage }) {
   const [current, setCurrent] = useState("queue");
 
   return (
@@ -12,7 +12,7 @@ export default function Download({ queue, addQueueMessage, downloaded }) {
         <span onClick={() => setCurrent("queue")}>Queue</span>
         <span onClick={() => setCurrent("downloaded")}>Downloaded</span>
       </div>
-      {current === "queue" ? <Queue queue={queue} addQueueMessage={addQueueMessage} /> : <Downloaded downloaded={downloaded} />}
+      {current === "queue" ? <Queue queue={queue} addQueueMessage={addQueueMessage} /> : <Downloaded downloaded={downloaded} addDownloadedMessage={addDownloadedMessage} />}
     </div>
   );
 }

@@ -16,6 +16,7 @@ function App() {
   const [queue, setQueue] = useState([]);
   const [worker, setWorker] = useState(null);
   const [queueMessages, setQueueMessages] = useState([]);
+  const [downloadedMessages, setDownloadedMessages] = useState([]);
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
 
@@ -48,6 +49,9 @@ function App() {
                 }`
               : fixNameForFolder(message.setWebtoonStatus.webtoon.title)
           );
+          window.do.removeFolderIfEmpty(
+            fixNameForFolder(message.setWebtoonStatus.webtoon.title)
+          );
         }
         setQueue(updatedList);
         if (
@@ -79,6 +83,9 @@ function App() {
                 ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
                 : fixNameForFolder(webtoon.title)
             );
+            if (webtoon.type === "manga") {
+              window.do.removeFolderIfEmpty(fixNameForFolder(webtoon.title));
+            }
           }
         }
         setQueue(updatedList);
@@ -97,14 +104,11 @@ function App() {
       if (message.done) {
         setDownloading(null);
         setQueue(queue.filter((item) => item.id !== message.done.webtoon.id));
-        setDownloaded((downloaded) => {
-          let data = [...downloaded];
-          let newD = message.done.webtoon;
-          delete newD.status;
-          newD.images = message.done.images;
-          data.unshift(newD);
-          return data;
-        });
+        let newD = message.done.webtoon;
+        delete newD.status;
+        newD.images = message.done.images;
+        newD.path = message.done.path;
+        addDownloadedMessage({ addWebtoon: { webtoon: newD } });
       }
       if (message.removeWebtoon) {
         setQueue(
@@ -170,6 +174,24 @@ function App() {
   }, [queueMessages, queue, downloading]);
 
   useEffect(() => {
+    while (downloadedMessages.length > 0) {
+      const message = downloadedMessages.shift();
+      if (message.addWebtoon) {
+        setDownloaded((downloaded) => {
+          let data = [...downloaded];
+          data.unshift(message.addWebtoon.webtoon);
+          return data;
+        });
+      }
+      if (message.removeWebtoon) {
+        setDownloaded(
+          downloaded.filter((_, index) => index !== message.removeWebtoon.index)
+        );
+      }
+    }
+  }, [downloadedMessages, downloaded]);
+
+  useEffect(() => {
     if (!downloading) {
       startDownloading();
     }
@@ -208,6 +230,10 @@ function App() {
     setQueueMessages([...queueMessages, message]);
   };
 
+  const addDownloadedMessage = (message) => {
+    setDownloadedMessages([...downloadedMessages, message]);
+  };
+
   const addWebtoon = (webtoon) => {
     addQueueMessage({ addWebtoon: { webtoon } });
   };
@@ -227,6 +253,7 @@ function App() {
                 queue={queue}
                 addQueueMessage={addQueueMessage}
                 downloaded={downloaded}
+                addDownloadedMessage={addDownloadedMessage}
               />
             }
           />

@@ -52,5 +52,5 @@ onmessage = async (e) => {
     );
     i++;
   }
-  postMessage({ done: { webtoon, images: images.length } });
+  postMessage({ done: { webtoon, path, images: images.length } });
 };

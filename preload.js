@@ -22,6 +22,11 @@ contextBridge.exposeInMainWorld("do", {
       fs.rmSync(path, { recursive: true });
     } catch (err) {}
   },
+  removeFolderIfEmpty: (path) => {
+    try {
+      fs.rmdirSync(path);
+    } catch (err) {}
+  },
   getJsonFile: (path) => {
     const fileContent = fs.readFileSync(path, "utf8");
     return JSON.parse(fileContent);

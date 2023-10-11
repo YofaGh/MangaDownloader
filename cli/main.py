@@ -63,6 +63,16 @@ class DownloadRequest(BaseModel):
     image_url: str
     save_path: str
 
+class ConvertRequest(BaseModel):
+    path_to_source: str
+    path_to_destination: str
+    pdf_name: str
+
+class MergeRequest(BaseModel):
+    path_to_source: str
+    path_to_destination: str
+    method: str
+
 @app.post("/doujin/images/")
 async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
@@ -80,3 +90,15 @@ async def download_image(request_data: DownloadRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
     return module.download_image(request_data.image_url, request_data.save_path, 0)
+
+@app.post("/convert/")
+async def convert(request_data: ConvertRequest=Body(...)):
+    from mangascraper.utils.pdf_converter import convert_folder
+    convert_folder(request_data.path_to_source, request_data.path_to_destination, request_data.pdf_name)
+    return
+
+@app.post("/merge/")
+async def merge(request_data: MergeRequest=Body(...)):
+    from mangascraper.utils.image_merger import merge_folder
+    merge_folder(request_data.path_to_source, request_data.path_to_destination, True if request_data.method == 'fit' else False)
+    return

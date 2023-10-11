@@ -1,4 +1,4 @@
-import "./infoed.css";
+import "../styles/infoed.css";
 
 const Infoed = ({ title, info }) => {
   function isEmpty(input) {

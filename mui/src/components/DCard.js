@@ -1,4 +1,4 @@
-import "./DCard.css";
+import "../styles/DCard.css";
 import { convertToPdf, mergeImages } from "../api/utils";
 import { fixNameForFolder } from "../components/utils";
 

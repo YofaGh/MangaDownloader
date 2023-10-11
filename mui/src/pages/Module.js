@@ -2,7 +2,7 @@ import "./../App.css";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
-import "./Module.css";
+import "../styles/Module.css";
 
 function Module() {
   const { module } = useParams();

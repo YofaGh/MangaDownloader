@@ -1,4 +1,4 @@
-import "./QCard.css";
+import "../styles/QCard.css";
 
 export default function QCard({ webtoon, addQueueMessage }) {
 

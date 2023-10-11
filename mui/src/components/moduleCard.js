@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./../App.css";
 import get_logo from "../api/get_logo";
-import "./moduleCard.css";
+import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
 function MCard({ module }) {

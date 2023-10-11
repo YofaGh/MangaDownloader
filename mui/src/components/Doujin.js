@@ -1,6 +1,6 @@
 import "./../App.css";
 import React, { useState, useEffect } from "react";
-import "./Webtoon.css";
+import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";

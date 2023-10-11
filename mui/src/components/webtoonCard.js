@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "./webtoonCard.css";
+import "../styles/webtoonCard.css";
 
 export default function Wcard({ webtoon }) {
   const [loaded, setLoaded] = useState(false);

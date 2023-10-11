@@ -1,4 +1,4 @@
-import "./FlipButton.css"
+import "../styles/FlipButton.css"
 
 const FlipButton = ({frontText, backText}) => {
   return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Queue from "./../components/Queue"
-import "./Download.css";
+import "../styles/Download.css";
 import Downloaded from "./../components/Downloaded";
 
 export default function Download({ queue, addQueueMessage, downloaded, addDownloadedMessage }) {

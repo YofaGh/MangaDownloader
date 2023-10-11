@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import QCard from "../components/QCard";
-import "./Queue.css";
+import "../styles/Queue.css";
 
 export default function Queue({ queue, addQueueMessage }) {
   const [queueEditable, setQueueEditable] = useState(false);

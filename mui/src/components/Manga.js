@@ -1,6 +1,6 @@
 import "./../App.css";
 import React, { useState, useEffect } from "react";
-import "./Webtoon.css";
+import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 import get_chapters from "../api/get_chapters";
@@ -8,7 +8,7 @@ import FlipButton from "./FlipButton";
 import Rating from "./Rating";
 import { getDate, getDateTime, filterDict } from "./extras";
 import Loading from "./Loading";
-import "./infoed.css";
+import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 
 const Manga = ({ module, url, addWebtoon }) => {

@@ -1,4 +1,4 @@
-import "./ChapterButton.css";
+import "../styles/ChapterButton.css";
 
 export default function ChapterButton({ chapter, addManga }) {
   return (

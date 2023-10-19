@@ -10,15 +10,18 @@ import Module from "./pages/Module";
 import Download from "./pages/Download";
 import { fixNameForFolder } from "./components/utils";
 // eslint-disable-next-line
-import Worker from "worker-loader!./downloadWorker.js";
+import Worker from "worker-loader!./worker.js";
 
 function App() {
   const [queue, setQueue] = useState([]);
-  const [worker, setWorker] = useState(null);
+  const [downloadWorker, setDownloadWorker] = useState(null);
   const [queueMessages, setQueueMessages] = useState([]);
   const [downloadedMessages, setDownloadedMessages] = useState([]);
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
+  const [searchWorker, setSearchWorker] = useState(null);
+  const [searchingStatus, setSearchingStatus] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     setQueue(window.do.getJsonFile("queue.json"));
@@ -60,7 +63,7 @@ function App() {
           (message.setWebtoonStatus.status === "Paused" ||
             message.setWebtoonStatus.status === "Not Started")
         ) {
-          worker.terminate();
+          downloadWorker.terminate();
           setDownloading(null);
         }
         if (message.setWebtoonStatus.status === "Started" && !downloading) {
@@ -94,7 +97,7 @@ function App() {
             message.setAllWebtoonsStatus.status === "Not Started") &&
           downloading
         ) {
-          worker.terminate();
+          downloadWorker.terminate();
           setDownloading(null);
         }
         if (message.setAllWebtoonsStatus.status === "Started" && !downloading) {
@@ -118,7 +121,7 @@ function App() {
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
         ) {
-          worker.terminate();
+          downloadWorker.terminate();
           setDownloading(null);
         }
         window.do.removeFolder(
@@ -218,11 +221,13 @@ function App() {
       const dWorker = new Worker();
       // new URL("./downloadWorker.js", import.meta.url), {type: "module"}
       //"./downloadWorker.js", {type: "module"}
-      dWorker.postMessage({ webtoon, dirls });
+      dWorker.postMessage({ download: { webtoon, dirls } });
       dWorker.onmessage = (e) => {
-        setQueueMessages([...queueMessages, e.data]);
+        if (!e.data.doneSearching && !e.data.searchedModule && !e.data.searchingModule) {
+          setQueueMessages([...queueMessages, e.data]);
+        }
       };
-      setWorker(dWorker);
+      setDownloadWorker(dWorker);
     }
   };
 
@@ -238,6 +243,44 @@ function App() {
     addQueueMessage({ addWebtoon: { webtoon } });
   };
 
+  const startSearching = (modules, keyword, depth, absolute) => {
+    setSearchResults([]);
+    setSearchingStatus({ searching: { keyword } });
+    const sWorker = new Worker();
+    sWorker.postMessage({ search: { modules, keyword, depth, absolute, sleepTime: 0.1 } });
+    sWorker.onmessage = (e) => {
+      if (e.data.doneSearching) {
+        setSearchingStatus({
+          searched: { keyword: e.data.doneSearching.keyword },
+        });
+      }
+      if (e.data.searchingModule) {
+        setSearchingStatus({
+          searching: {
+            module: e.data.searchingModule.module,
+            keyword: e.data.searchingModule.keyword,
+          },
+        });
+      }
+      if (e.data.searchedModule) {
+        setSearchResults((prevSearchResults) => [
+          ...prevSearchResults,
+          ...e.data.searchedModule.response,
+        ]);
+      }
+    };
+    setSearchWorker(sWorker);
+  };
+
+  const resetSearch = () => {
+    setSearchingStatus(null);
+    setSearchResults([]);
+    if (searchWorker) {
+      searchWorker.terminate();
+    }
+    setSearchWorker(null);
+  };
+
   return (
     <Router>
       <div>
@@ -245,7 +288,17 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/library" element={<LPage />} />
-          <Route path="/search" element={<Search />} />
+          <Route
+            path="/search"
+            element={
+              <Search
+                startSearching={startSearching}
+                searchingStatus={searchingStatus}
+                searchResults={searchResults}
+                resetSearch={resetSearch}
+              />
+            }
+          />
           <Route
             path="/download"
             element={

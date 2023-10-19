@@ -1,0 +1,63 @@
+.filter-toggleee {
+  margin-top: 25px;
+  margin-left: 5px;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 8px 20px;
+  border-radius: 0.8rem;
+  text-align: center;
+  border: 0.5px solid rgba(22, 179, 124);
+  display: flex;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.filter-selected-color {
+  color: #000;
+  background: #009788;
+}
+
+.filter-color {
+  background: #00000000;
+  color: #009788;
+}
+
+.spinnerrr {
+  margin-left: 5px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  border: 4.5px solid #0000;
+  border-radius: 50%;
+  border-color: #009788 #0000;
+  animation: spinnerrr-e04l1k 1s infinite linear;
+}
+
+.spinnerrr::before,
+.spinnerrr::after {
+  content: "";
+  grid-area: 1/1;
+  margin: 2.2px;
+  border: inherit;
+  border-radius: 50%;
+}
+
+.spinnerrr::before {
+  border-color: #009788 #0000;
+  animation: inherit;
+  animation-duration: 2.5s;
+  animation-direction: reverse;
+}
+
+@keyframes spinnerrr-e04l1k {
+  100% {
+    transform: rotate(1turn);
+  }
+}

@@ -1,4 +1,4 @@
-import sys, os
+import time, sys, os
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -73,6 +73,13 @@ class MergeRequest(BaseModel):
     path_to_destination: str
     method: str
 
+class SearchRequest(BaseModel):
+    domain: str
+    keyword: str
+    absolute: bool
+    depth: int
+    sleepTime: float
+
 @app.post("/doujin/images/")
 async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
@@ -102,3 +109,24 @@ async def merge(request_data: MergeRequest=Body(...)):
     from mangascraper.utils.image_merger import merge_folder
     merge_folder(request_data.path_to_source, request_data.path_to_destination, True if request_data.method == 'fit' else False)
     return
+
+@app.post("/search/")
+async def search(request_data: SearchRequest=Body(...)):
+    print(request_data.sleepTime)
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    results = {}
+    search = module.search_by_keyword(request_data.keyword, request_data.absolute)
+    page = 1
+    while page <= request_data.depth:
+        try:
+            last = next(search)
+            if not last:
+                break
+            results.update(last)
+            page += 1
+            if page < request_data.depth:
+                time.sleep(request_data.sleepTime)
+        except Exception:
+            break
+    return [{'name': k, **v} for k, v in results.items()]

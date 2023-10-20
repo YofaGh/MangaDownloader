@@ -17,3 +17,12 @@ export async function mergeImages(pathToSource, pathToDestination, method) {
   });
   return response.data;
 }
+
+export async function retrieveImage(domain, image_url) {
+  const response = await api.post(`/retrieve_image/`, {
+    domain: domain,
+    image_url: image_url,
+    save_path: "",
+  });
+  return response.data;
+}

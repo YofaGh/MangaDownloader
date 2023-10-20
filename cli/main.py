@@ -1,4 +1,4 @@
-import time, sys, os
+import base64, time, sys, os
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -130,3 +130,9 @@ async def search(request_data: SearchRequest=Body(...)):
         except Exception:
             break
     return [{'name': k, **v} for k, v in results.items()]
+
+@app.post("/retrieve_image/")
+async def retrieve_image(request_data: DownloadRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return f'data:image/png;base64, {base64.b64encode(module.send_request(request_data.image_url, headers=module.download_images_headers).content).decode()}'

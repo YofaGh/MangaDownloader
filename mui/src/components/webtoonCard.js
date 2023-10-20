@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import get_chapters from "../api/get_chapters";
 import "../styles/webtoonCard.css";
 
-export default function Wcard({ webtoon, addWebtoon, addLibraryMessage }) {
+export default function Wcard({ webtoon, addLibraryMessage, update }) {
   const [loaded, setLoaded] = useState(false);
 
   const stopRotate = () => {
@@ -11,41 +11,6 @@ export default function Wcard({ webtoon, addWebtoon, addLibraryMessage }) {
     s2.classList.remove("back");
     s2.classList.add("backloaded");
     setLoaded(true);
-  };
-
-  const download = async () => {
-    const allChapters = await get_chapters(webtoon.domain, webtoon.url);
-    let chaptersToDownload = [];
-    if (webtoon.last_downloaded_chapter) {
-      let reached_last_downloaded_chapter = false;
-      for (const chapter of allChapters) {
-        if (chapter.url === webtoon.last_downloaded_chapter.url) {
-          reached_last_downloaded_chapter = true;
-          continue;
-        }
-        if (
-          reached_last_downloaded_chapter &&
-          !chaptersToDownload.includes(chapter)
-        ) {
-          chaptersToDownload.push(chapter);
-        }
-      }
-    } else {
-      chaptersToDownload += allChapters;
-    }
-    for (const chapter of chaptersToDownload) {
-      addWebtoon({
-        type: "manga",
-        id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
-        title: webtoon.title,
-        info: chapter.name,
-        module: webtoon.domain,
-        manga: webtoon.url,
-        chapter: chapter.url,
-        in_library: true,
-        status: "Started",
-      });
-    }
   };
 
   const remove = () => {
@@ -101,7 +66,10 @@ export default function Wcard({ webtoon, addWebtoon, addLibraryMessage }) {
                     ></img>
                   </button>
                 </Link>
-                <button className="mm-button update-btn" onClick={download}>
+                <button
+                  className="mm-button update-btn"
+                  onClick={() => update(webtoon)}
+                >
                   <img
                     alt=""
                     src="./assets/download.svg"

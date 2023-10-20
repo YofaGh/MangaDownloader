@@ -38,7 +38,6 @@ function App() {
           url: detm.url,
           cover: detm.cover,
           last_downloaded_chapter: detm.last_downloaded_chapter,
-          chapters: detm.chapters,
         };
       })
     );
@@ -88,7 +87,13 @@ function App() {
       }
       if (message.setAllWebtoonsStatus) {
         let updatedList = queue.map((item) => {
-          item.status = message.setAllWebtoonsStatus.status;
+          if (message.setAllWebtoonsStatus.status === "Paused") {
+            if (item.downloading) {
+              item.status = "Paused";
+            }
+          } else {
+            item.status = message.setAllWebtoonsStatus.status;
+          }
           return item;
         });
         if (message.setAllWebtoonsStatus.status === "Not Started") {
@@ -250,7 +255,6 @@ function App() {
             url,
             cover,
             last_downloaded_chapter,
-            chapters,
           }
         ) => {
           acc[title] = {
@@ -259,7 +263,6 @@ function App() {
             url,
             cover,
             last_downloaded_chapter,
-            chapters,
           };
           return acc;
         },

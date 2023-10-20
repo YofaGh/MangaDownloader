@@ -4,6 +4,7 @@ import get_modules from "../api/get_modules";
 import SearchFilter from "../components/SearchFilter";
 import FilterButton from "../components/FilterButton";
 import WSearchCard from "../components/WSearchCard";
+import CrushedButton from "../components/CrushedButton";
 import "../styles/Search.css";
 
 function Search({
@@ -94,7 +95,10 @@ function Search({
   } else if (searchingStatus.searching) {
     return (
       <div className="container">
-        <h2>Keyword : {searchingStatus.searching.keyword}</h2>
+        <div className="header-r">
+          <h2>Searching For : {searchingStatus.searching.keyword}</h2>
+          <CrushedButton label={"Terminate"} onClick={resetSearch} />
+        </div>
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
         >
@@ -120,14 +124,15 @@ function Search({
               );
             })}
         </div>
-        <button onClick={resetSearch}>Terminate</button>
       </div>
     );
   } else if (searchingStatus.searched) {
     return (
       <div className="container">
-        <h2>Keyword : {searchingStatus.searched.keyword}</h2>
-        <button onClick={resetSearch}>Reset</button>
+        <div className="header-r">
+          <h2>Keyword : {searchingStatus.searched.keyword}</h2>
+          <CrushedButton label={"Reset"} onClick={resetSearch} />
+        </div>
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
         >

@@ -72,7 +72,7 @@ const Manga = ({ module, url, addWebtoon }) => {
   const addManga = (chapter, status) => {
     addWebtoon({
       type: "manga",
-      id: `${module}_$_${chapter}_$_${url}`,
+      id: `${module}_$_${url}_$_${chapter.url}`,
       title: webtoon.Title,
       info: chapter.name,
       module: module,

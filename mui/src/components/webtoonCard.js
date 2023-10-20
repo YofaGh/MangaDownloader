@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import get_chapters from "../api/get_chapters";
 import "../styles/webtoonCard.css";
 
-export default function Wcard({ webtoon }) {
+export default function Wcard({ webtoon, addWebtoon, addLibraryMessage }) {
   const [loaded, setLoaded] = useState(false);
 
   const stopRotate = () => {
@@ -12,19 +13,48 @@ export default function Wcard({ webtoon }) {
     setLoaded(true);
   };
 
-  const update = (e) => {
-    e.preventDefault();
-    alert(`update: ${webtoon.title}`);
+  const download = async () => {
+    const allChapters = await get_chapters(webtoon.domain, webtoon.url);
+    let chaptersToDownload = [];
+    if (webtoon.last_downloaded_chapter) {
+      let reached_last_downloaded_chapter = false;
+      for (const chapter of allChapters) {
+        if (chapter.url === webtoon.last_downloaded_chapter.url) {
+          reached_last_downloaded_chapter = true;
+          continue;
+        }
+        if (
+          reached_last_downloaded_chapter &&
+          !chaptersToDownload.includes(chapter)
+        ) {
+          chaptersToDownload.push(chapter);
+        }
+      }
+    } else {
+      chaptersToDownload += allChapters;
+    }
+    for (const chapter of chaptersToDownload) {
+      addWebtoon({
+        type: "manga",
+        id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
+        title: webtoon.title,
+        info: chapter.name,
+        module: webtoon.domain,
+        manga: webtoon.url,
+        chapter: chapter.url,
+        in_library: true,
+        status: "Started",
+      });
+    }
   };
 
-  const download = (e) => {
-    e.preventDefault();
-    alert(`download: ${webtoon.title}`);
-  };
-
-  const remove = (e) => {
-    e.preventDefault();
-    alert(`remove: ${webtoon.title}`);
+  const remove = () => {
+    addLibraryMessage({
+      removeWebtoon: {
+        domain: webtoon.domain,
+        url: webtoon.url,
+      },
+    });
   };
 
   return (
@@ -60,40 +90,33 @@ export default function Wcard({ webtoon }) {
               <div className="front-buttons">
                 <Link
                   to={`/${webtoon.domain}/webtoon/${webtoon.url}`}
-                  className="front-button"
-                  id="info-btn"
                   state={{ backUrl: "library" }}
-                ></Link>
-                <a
-                  href="# "
-                  id="update-btn"
-                  className="front-button"
-                  onClick={(e) => {
-                    update(e);
-                  }}
                 >
-                  {" "}
-                </a>
-                <a
-                  href="# "
-                  id="download-btn"
-                  className="front-button"
-                  onClick={(e) => {
-                    download(e);
-                  }}
-                >
-                  {" "}
-                </a>
-                <a
-                  href="# "
-                  id="remove-btn"
-                  className="front-button"
-                  onClick={(e) => {
-                    remove(e);
-                  }}
-                >
-                  {" "}
-                </a>
+                  <button className="mm-button info-btn">
+                    <img
+                      alt=""
+                      src="./assets/info.svg"
+                      className="btn-icon-n"
+                      style={{ width: "30px" }}
+                    ></img>
+                  </button>
+                </Link>
+                <button className="mm-button update-btn" onClick={download}>
+                  <img
+                    alt=""
+                    src="./assets/download.svg"
+                    className="btn-icon-n"
+                    style={{ width: "30px" }}
+                  ></img>
+                </button>
+                <button className="mm-button remove-btn" onClick={remove}>
+                  <img
+                    alt=""
+                    src="./assets/trash.svg"
+                    className="btn-icon-n"
+                    style={{ width: "30px" }}
+                  ></img>
+                </button>
               </div>
             </div>
           )}

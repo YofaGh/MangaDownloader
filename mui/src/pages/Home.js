@@ -1,5 +1,7 @@
 import "./../App.css";
+import "./../styles/Home.css"
 import React from "react";
+import HomeButton from "../components/HomeButton";
 import { Link } from "react-router-dom";
 
 function HomePage() {
@@ -9,21 +11,26 @@ function HomePage() {
         <div className="App-header">
           <h1>Manga Downloader</h1>
         </div>
-        <Link to={{ pathname: "library" }}>
-          <button className="home-button buttonh">
-            <img alt="" src="./assets/library.svg" className="icon"></img>
-          </button>
-        </Link>
-        <Link to={{ pathname: "search" }}>
-          <button className="home-button buttonh">
-            <img alt="" src="./assets/search.svg" className="icon"></img>
-          </button>
-        </Link>
-        <Link to={{ pathname: "modules" }}>
-          <button className="home-button buttonh">
-            <img alt="" src="./assets/module.svg" className="icon"></img>
-          </button>
-        </Link>
+        <div className="home-buttons">
+          <Link to={{ pathname: "library" }}>
+            <HomeButton label={"Library"} svg={"./assets/library.svg"} />
+          </Link>
+          <Link to={{ pathname: "search" }}>
+            <HomeButton label={"Search"} svg={"./assets/search.svg"} />
+          </Link>
+          <Link to={{ pathname: "download" }}>
+            <HomeButton label={"Download"} svg={"./assets/dPage.svg"} />
+          </Link>
+          <Link to={{ pathname: "modules" }}>
+            <HomeButton label={"Modules"} svg={"./assets/module.svg"} />
+          </Link>
+          <Link to={{ pathname: "modules" }}>
+            <HomeButton label={"Favorites"} svg={"./assets/favorites.svg"} />
+          </Link>
+          <Link to={{ pathname: "modules" }}>
+            <HomeButton label={"Locate"} svg={"./assets/locate.svg"} />
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -22,10 +22,26 @@ function App() {
   const [searchWorker, setSearchWorker] = useState(null);
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const [library, setLibrary] = useState([]);
+  const [libraryMessages, setLibraryMessages] = useState([]);
 
   useEffect(() => {
     setQueue(window.do.getJsonFile("queue.json"));
     setDownloaded(window.do.getJsonFile("downloaded.json"));
+    const libraryRaw = window.do.getJsonFile("library.json");
+    setLibrary(
+      Object.entries(libraryRaw).map(([manga, detm]) => {
+        return {
+          title: manga,
+          status: detm.include,
+          domain: detm.domain,
+          url: detm.url,
+          cover: detm.cover,
+          last_downloaded_chapter: detm.last_downloaded_chapter,
+          chapters: detm.chapters,
+        };
+      })
+    );
     startDownloading();
   }, []);
 
@@ -107,8 +123,21 @@ function App() {
       if (message.done) {
         setDownloading(null);
         setQueue(queue.filter((item) => item.id !== message.done.webtoon.id));
+        if (message.done.webtoon.in_library) {
+          addLibraryMessage({
+            updateWebtoon: {
+              domain: message.done.webtoon.module,
+              url: message.done.webtoon.manga,
+              last_downloaded_chapter: {
+                name: message.done.webtoon.info,
+                url: message.done.webtoon.chapter,
+              },
+            },
+          });
+        }
         let newD = message.done.webtoon;
         delete newD.status;
+        delete newD.in_library;
         newD.images = message.done.images;
         newD.path = message.done.path;
         addDownloadedMessage({ addWebtoon: { webtoon: newD } });
@@ -208,6 +237,73 @@ function App() {
     window.do.setJsonFile("downloaded.json", downloaded);
   }, [downloaded]);
 
+  useEffect(() => {
+    window.do.setJsonFile(
+      "library.json",
+      library.reduce(
+        (
+          acc,
+          {
+            title,
+            status,
+            domain,
+            url,
+            cover,
+            last_downloaded_chapter,
+            chapters,
+          }
+        ) => {
+          acc[title] = {
+            include: status,
+            domain,
+            url,
+            cover,
+            last_downloaded_chapter,
+            chapters,
+          };
+          return acc;
+        },
+        {}
+      )
+    );
+  }, [library]);
+
+  useEffect(() => {
+    while (libraryMessages.length > 0) {
+      const message = libraryMessages.shift();
+      if (message.addWebtoon) {
+        setLibrary((library) => {
+          let data = [...library];
+          data.push(message.addWebtoon.webtoon);
+          return data;
+        });
+      }
+      if (message.removeWebtoon) {
+        setLibrary(
+          library.filter(
+            (webtoon) =>
+              `${webtoon.domain}_$_${webtoon.url}` !==
+              `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
+          )
+        );
+      }
+      if (message.updateWebtoon) {
+        setLibrary(
+          library.map((webtoon) => {
+            if (
+              webtoon.domain === message.updateWebtoon.domain &&
+              webtoon.url === message.updateWebtoon.url
+            ) {
+              webtoon.last_downloaded_chapter =
+                message.updateWebtoon.last_downloaded_chapter;
+            }
+            return webtoon;
+          })
+        );
+      }
+    }
+  }, [libraryMessages, library]);
+
   const startDownloading = async () => {
     const webtoon = queue.find((item) => item.status === "Started");
     setDownloading(webtoon);
@@ -223,7 +319,11 @@ function App() {
       //"./downloadWorker.js", {type: "module"}
       dWorker.postMessage({ download: { webtoon, dirls } });
       dWorker.onmessage = (e) => {
-        if (!e.data.doneSearching && !e.data.searchedModule && !e.data.searchingModule) {
+        if (
+          !e.data.doneSearching &&
+          !e.data.searchedModule &&
+          !e.data.searchingModule
+        ) {
           setQueueMessages([...queueMessages, e.data]);
         }
       };
@@ -232,11 +332,15 @@ function App() {
   };
 
   const addQueueMessage = (message) => {
-    setQueueMessages([...queueMessages, message]);
+    setQueueMessages((prevQueueMessages) => [...prevQueueMessages, message]);
   };
 
   const addDownloadedMessage = (message) => {
     setDownloadedMessages([...downloadedMessages, message]);
+  };
+
+  const addLibraryMessage = (message) => {
+    setLibraryMessages([...libraryMessages, message]);
   };
 
   const addWebtoon = (webtoon) => {
@@ -247,7 +351,9 @@ function App() {
     setSearchResults([]);
     setSearchingStatus({ searching: { keyword } });
     const sWorker = new Worker();
-    sWorker.postMessage({ search: { modules, keyword, depth, absolute, sleepTime: 0.1 } });
+    sWorker.postMessage({
+      search: { modules, keyword, depth, absolute, sleepTime: 0.1 },
+    });
     sWorker.onmessage = (e) => {
       if (e.data.doneSearching) {
         setSearchingStatus({
@@ -287,7 +393,16 @@ function App() {
         <TopBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/library" element={<LPage />} />
+          <Route
+            path="/library"
+            element={
+              <LPage
+                library={library}
+                addLibraryMessage={addLibraryMessage}
+                addWebtoon={addWebtoon}
+              />
+            }
+          />
           <Route
             path="/search"
             element={

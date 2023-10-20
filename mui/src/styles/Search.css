@@ -17,8 +17,12 @@
   margin-left: 5px;
 }
 
-h2 {
+.header-r {
   margin-top: 50px;
+  display: flex;
+  color: #ffffff;
+  align-items: center;
+  user-select: none;
 }
 
 .btn-icon {

@@ -30,7 +30,7 @@ function Sidebar() {
           <img alt="" src="./assets/module.svg" className="icon"></img>
         </button>
       </Link>
-      <Link to={{ pathname: "modules" }}>
+      <Link to={{ pathname: "favorites" }}>
         <button className="buttonh">
           <img alt="" src="./assets/favorites.svg" className="icon"></img>
         </button>

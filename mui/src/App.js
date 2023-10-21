@@ -8,6 +8,7 @@ import HomePage from "./pages/Home";
 import Webtoon from "./pages/Webtoon";
 import Module from "./pages/Module";
 import Download from "./pages/Download";
+import Favorites from "./pages/Favorites";
 import { fixNameForFolder } from "./components/utils";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
@@ -431,6 +432,12 @@ function App() {
                 downloaded={downloaded}
                 addDownloadedMessage={addDownloadedMessage}
               />
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <Favorites favorites={favorites} setFavorites={setFavorites} />
             }
           />
           <Route path="/modules" element={<Modules />} />

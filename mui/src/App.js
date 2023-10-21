@@ -24,10 +24,12 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [library, setLibrary] = useState([]);
   const [libraryMessages, setLibraryMessages] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     setQueue(window.do.getJsonFile("queue.json"));
     setDownloaded(window.do.getJsonFile("downloaded.json"));
+    setFavorites(window.do.getJsonFile("favorites.json"));
     const libraryRaw = window.do.getJsonFile("library.json");
     setLibrary(
       Object.entries(libraryRaw).map(([manga, detm]) => {
@@ -243,19 +245,16 @@ function App() {
   }, [downloaded]);
 
   useEffect(() => {
+    window.do.setJsonFile("favorites.json", favorites);
+  }, [favorites]);
+
+  useEffect(() => {
     window.do.setJsonFile(
       "library.json",
       library.reduce(
         (
           acc,
-          {
-            title,
-            status,
-            domain,
-            url,
-            cover,
-            last_downloaded_chapter,
-          }
+          { title, status, domain, url, cover, last_downloaded_chapter }
         ) => {
           acc[title] = {
             include: status,
@@ -339,11 +338,17 @@ function App() {
   };
 
   const addDownloadedMessage = (message) => {
-    setDownloadedMessages([...downloadedMessages, message]);
+    setDownloadedMessages((prevDownloadedMessages) => [
+      ...prevDownloadedMessages,
+      message,
+    ]);
   };
 
   const addLibraryMessage = (message) => {
-    setLibraryMessages([...libraryMessages, message]);
+    setLibraryMessages((prevLibraryMessages) => [
+      ...prevLibraryMessages,
+      message,
+    ]);
   };
 
   const addWebtoon = (webtoon) => {
@@ -431,7 +436,13 @@ function App() {
           <Route path="/modules" element={<Modules />} />
           <Route
             path="/:module/webtoon/:url"
-            element={<Webtoon addWebtoon={addWebtoon} />}
+            element={
+              <Webtoon
+                addWebtoon={addWebtoon}
+                favorites={favorites}
+                setFavorites={setFavorites}
+              />
+            }
           />
           <Route path="/:module" element={<Module />} />
         </Routes>

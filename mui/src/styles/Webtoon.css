@@ -17,6 +17,7 @@
 }
 .title {
   font-size: xx-large;
+  display: flex;
 }
 .alternatives {
   font-size: large;
@@ -123,4 +124,31 @@
 .btnn:hover .left,
 .btnn:hover .right {
   height: 100%;
+}
+
+
+.buttonht {
+  outline: 0 !important;
+  border: 0 !important;
+  height: 50px;
+  border-radius: 50%;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: all ease-in-out;
+  cursor: pointer;
+  transition-duration: 1s;
+}
+
+.buttonht:hover .tooltip {
+  opacity: 1;
+  transition-duration: 0.5s;
+}
+
+.icongt {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }

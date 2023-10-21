@@ -11,7 +11,7 @@ import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 
-const Manga = ({ module, url, addWebtoon }) => {
+const Manga = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -92,7 +92,28 @@ const Manga = ({ module, url, addWebtoon }) => {
         </div>
         <div className="flex-item">
           <div className="title-sec">
-            <div className="title">{webtoon.Title}</div>
+            <div className="title">
+              {webtoon.Title}
+              <button
+                className="buttonht"
+                onClick={() => {
+                  updateWebtoon({
+                    title: webtoon.Title,
+                    cover: webtoon.Cover,
+                  });
+                }}
+              >
+                <img
+                  alt=""
+                  src={
+                    isFavorite
+                      ? "./assets/favorites.svg"
+                      : "./assets/favorites-outlined.svg"
+                  }
+                  className="icongt"
+                ></img>
+              </button>
+            </div>
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="summary-sec">

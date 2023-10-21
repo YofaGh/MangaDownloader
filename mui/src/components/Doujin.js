@@ -6,7 +6,7 @@ import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./extras";
 
-const Doujin = ({ module, url, addWebtoon }) => {
+const Doujin = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
@@ -65,7 +65,28 @@ const Doujin = ({ module, url, addWebtoon }) => {
         </div>
         <div className="flex-item">
           <div className="title-sec">
-            <div className="title">{webtoon.Title}</div>
+            <div className="title">
+              {webtoon.Title}
+              <button
+                className="buttonht"
+                onClick={() => {
+                  updateWebtoon({
+                    title: webtoon.Title,
+                    cover: webtoon.Cover,
+                  });
+                }}
+              >
+                <img
+                  alt=""
+                  src={
+                    isFavorite
+                      ? "./assets/favorites.svg"
+                      : "./assets/favorites-outlined.svg"
+                  }
+                  className="icongt"
+                ></img>
+              </button>
+            </div>
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="info-sec">

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import "../styles/Favorites.css";
+import FavoriteWebtoon from "../components/FavoriteWebtoon";
 
 export default function Favorites({ favorites, setFavorites }) {
   return (
@@ -13,34 +13,7 @@ export default function Favorites({ favorites, setFavorites }) {
             }`}
             key={webtoon.id}
           >
-            <div className="f-card">
-              <div className="f-content">
-                <div className="f-backloaded" id={webtoon.title}>
-                  <div className="f-back-content">
-                    <div className="f-tey">
-                      <img src={webtoon.cover} alt="" className="f-img-back" />
-                    </div>
-                    <div className="f-infoo">
-                      <button
-                        className="buttonht"
-                        onClick={() => {
-                          setFavorites((prevFavorites) =>
-                            prevFavorites.filter((wt) => wt.id !== webtoon.id)
-                          );
-                        }}
-                      >
-                        <img
-                          alt=""
-                          src={"./assets/favorites.svg"}
-                          className="icongt"
-                        ></img>
-                      </button>
-                    </div>
-                    <div className="f-info">{webtoon.title}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} />
           </Link>
         ))}
       </div>

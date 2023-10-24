@@ -46,7 +46,7 @@ export default function WSearchCard({ webtoon }) {
       state={{ backUrl: "search" }}
       style={{ textDecoration: "none" }}
     >
-      <div class="search-card">
+      <div className="search-card">
         <div style={fixedStyle}></div>
         <div className="info-searched-w">
           <h3>{webtoon.name}</h3>

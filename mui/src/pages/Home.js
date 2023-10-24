@@ -27,8 +27,8 @@ function HomePage() {
           <Link to={{ pathname: "favorites" }}>
             <HomeButton label={"Favorites"} svg={"./assets/favorites.svg"} />
           </Link>
-          <Link to={{ pathname: "modules" }}>
-            <HomeButton label={"Locate"} svg={"./assets/locate.svg"} />
+          <Link to={{ pathname: "saucer" }}>
+            <HomeButton label={"Saucer"} svg={"./assets/saucer.svg"} />
           </Link>
         </div>
       </div>

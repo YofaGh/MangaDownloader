@@ -76,7 +76,12 @@ function Search({
               );
             }}
           >
-            <img alt="" src="./assets/search.svg" className="btn-icon"></img>
+            <img
+              alt=""
+              src="./assets/search.svg"
+              className="btn-icon"
+              style={{ width: 20, height: 20 }}
+            ></img>
           </button>
         </div>
         <SearchFilter

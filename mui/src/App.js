@@ -9,6 +9,7 @@ import Webtoon from "./pages/Webtoon";
 import Module from "./pages/Module";
 import Download from "./pages/Download";
 import Favorites from "./pages/Favorites";
+import Saucer from "./pages/Saucer";
 import { fixNameForFolder } from "./components/utils";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
@@ -441,6 +442,7 @@ function App() {
             }
           />
           <Route path="/modules" element={<Modules />} />
+          <Route path="/saucer" element={<Saucer />} />
           <Route
             path="/:module/webtoon/:url"
             element={

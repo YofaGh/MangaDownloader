@@ -37,11 +37,12 @@ function MCard({ module }) {
                   alt=""
                   src="./assets/search.svg"
                   className="btn-icon"
+                  style={{ width: 30, height: 30 }}
                 ></img>
               </button>
             </Link>
             <button className="m-button check-btn">
-              <img alt="" src="./assets/check.svg" className="btn-icon"></img>
+              <img alt="" src="./assets/check.svg" className="btn-icon" style={{ width: 30, height: 30 }}></img>
             </button>
           </div>
         </div>

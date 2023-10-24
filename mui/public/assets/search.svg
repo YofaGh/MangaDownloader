@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14.42 14.9">
-  <g id="Layer_1-2" data-name="Layer 1">
-    <path class="cls-1" d="M14.42,13.56l-5.5-5.93c.53-.78,.84-1.73,.84-2.74C9.77,2.19,7.58,0,4.88,0S0,2.19,0,4.88s2.19,4.88,4.88,4.88c.96,0,1.85-.29,2.61-.77l5.48,5.91,1.45-1.35ZM1.6,4.88c0-1.82,1.47-3.29,3.29-3.29s3.29,1.47,3.29,3.29-1.47,3.29-3.29,3.29-3.29-1.47-3.29-3.29Z"/>
-  </g>
+<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 6C13.7614 6 16 8.23858 16 11M16.6588 16.6549L21 21M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

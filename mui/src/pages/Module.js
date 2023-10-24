@@ -14,11 +14,21 @@ function Module() {
         <SearchBar input={input} setInput={setInput} />
         <Link to={`/${module}/webtoon/${input}`} state={{ backUrl: "library" }}>
           <button className="m-button goto-btn">
-            <img alt="" src="./assets/goto.svg" className="btn-icon"></img>
+            <img
+              alt=""
+              src="./assets/goto.svg"
+              className="btn-icon"
+              style={{ width: 20, height: 20 }}
+            ></img>
           </button>
         </Link>
         <button className="m-button search-btn">
-          <img alt="" src="./assets/search.svg" className="btn-icon"></img>
+          <img
+            alt=""
+            src="./assets/search.svg"
+            className="btn-icon"
+            style={{ width: 20, height: 20 }}
+          ></img>
         </button>
       </div>
     </div>

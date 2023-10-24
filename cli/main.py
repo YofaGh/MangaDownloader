@@ -80,6 +80,13 @@ class SearchRequest(BaseModel):
     depth: int
     sleepTime: float
 
+class SauceRequest(BaseModel):
+    site: str
+    url: str
+
+class UploadRequest(BaseModel):
+    url: str
+
 @app.post("/doujin/images/")
 async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
@@ -112,7 +119,6 @@ async def merge(request_data: MergeRequest=Body(...)):
 
 @app.post("/search/")
 async def search(request_data: SearchRequest=Body(...)):
-    print(request_data.sleepTime)
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
     results = {}
@@ -136,3 +142,30 @@ async def retrieve_image(request_data: DownloadRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
     return f'data:image/png;base64, {base64.b64encode(module.send_request(request_data.image_url, headers=module.download_images_headers).content).decode()}'
+
+@app.get("/get_saucers_list/")
+async def get_saucers_list():
+    from mangascraper.utils.saucer import sites
+    return [site.__name__ for site in sites]
+
+@app.post("/upload_image/")
+async def upload_image(request_data: UploadRequest=Body(...)):
+    import requests
+    from bs4 import BeautifulSoup
+    with open(request_data.url, 'rb') as file:
+        bytes = file.read()
+    response = requests.post('https://imgops.com/store', files={'photo': (os.path.basename(request_data.url), bytes)})
+    soup = BeautifulSoup(response.text, 'html.parser')
+    link = soup.find('div', {'id': 'content'}).find('a')['href']
+    return f'https:{link}'
+
+@app.post("/saucer/")
+async def saucer(request_data: SauceRequest=Body(...)):
+    from mangascraper.utils.saucer import sites
+    results = []
+    saucer_bot = next(site for site in sites if site.__name__ == request_data.site)
+    try:
+        results = saucer_bot(request_data.url)
+    except:
+        pass
+    return results

@@ -16,6 +16,10 @@ function createWindow() {
   });
   mainWindow.setResizable(false);
   mainWindow.loadFile("mui/build/index.html");
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    require("electron").shell.openExternal(details.url);
+    return { action: "deny" };
+  });
   ipcMain.on("closeApp", () => {
     mainWindow.close();
   });

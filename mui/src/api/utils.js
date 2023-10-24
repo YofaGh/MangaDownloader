@@ -26,3 +26,23 @@ export async function retrieveImage(domain, image_url) {
   });
   return response.data;
 }
+
+export async function upload_image(image_url) {
+  const response = await api.post(`/upload_image/`, {
+    url: image_url,
+  });
+  return response.data;
+}
+
+export async function saucer(site, url) {
+  const response = await api.post(`/saucer/`, {
+    site: site,
+    url: url,
+  });
+  return response.data;
+}
+
+export async function get_saucers_list() {
+  const response = await api.get(`/get_saucers_list/`);
+  return response.data;
+}

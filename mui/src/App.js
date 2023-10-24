@@ -353,7 +353,7 @@ function App() {
     ]);
   };
 
-  const addWebtoon = (webtoon) => {
+  const addWebtoonToQueue = (webtoon) => {
     addQueueMessage({ addWebtoon: { webtoon } });
   };
 
@@ -409,7 +409,7 @@ function App() {
               <LPage
                 library={library}
                 addLibraryMessage={addLibraryMessage}
-                addWebtoon={addWebtoon}
+                addWebtoonToQueue={addWebtoonToQueue}
               />
             }
           />
@@ -447,9 +447,11 @@ function App() {
             path="/:module/webtoon/:url"
             element={
               <Webtoon
-                addWebtoon={addWebtoon}
+                addWebtoonToQueue={addWebtoonToQueue}
                 favorites={favorites}
                 setFavorites={setFavorites}
+                addLibraryMessage={addLibraryMessage}
+                library={library}
               />
             }
           />

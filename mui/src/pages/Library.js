@@ -3,7 +3,7 @@ import Wcard from "./../components/webtoonCard";
 import HomeButton from "./../components/HomeButton";
 import get_chapters from "../api/get_chapters";
 
-function LPage({ library, addLibraryMessage, addWebtoon }) {
+function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
   const chunkArray = (array, size) => {
     const chunkedArray = [];
     for (let i = 0; i < array.length; i += size) {
@@ -33,7 +33,7 @@ function LPage({ library, addLibraryMessage, addWebtoon }) {
       chaptersToDownload += allChapters;
     }
     for (const chapter of chaptersToDownload) {
-      addWebtoon({
+      addWebtoonToQueue({
         type: "manga",
         id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
         title: webtoon.title,

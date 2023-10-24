@@ -50,7 +50,7 @@ export default function Wcard({ webtoon, addLibraryMessage, update }) {
               <div className="info">
                 {webtoon.title}
                 <br></br>
-                {webtoon.last_downloaded_chapter.name}
+                {webtoon.last_downloaded_chapter ? webtoon.last_downloaded_chapter.name : ""}
               </div>
             </div>
           </div>

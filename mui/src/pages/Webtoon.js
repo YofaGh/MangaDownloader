@@ -5,12 +5,19 @@ import get_module_type from "../api/get_module_type";
 import Manga from "./../components/Manga";
 import Doujin from "./../components/Doujin";
 
-function Webtoon({ addWebtoon, favorites, setFavorites }) {
+function Webtoon({
+  addWebtoonToQueue,
+  favorites,
+  setFavorites,
+  addLibraryMessage,
+  library,
+}) {
   const { module, url } = useParams();
   const { state } = useLocation();
   //backUrl = state.backUrl
   const [moduleType, setModuleType] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isInLibrary, setIsInLibrary] = useState(false);
   useEffect(() => {
     const fetchModuleType = async () => {
       const response = await get_module_type(module);
@@ -20,6 +27,13 @@ function Webtoon({ addWebtoon, favorites, setFavorites }) {
           (webtoon) => webtoon.id === `${response}_$_${module}_$_${url}`
         )
       );
+      if (response === "Manga") {
+        setIsInLibrary(
+          library.some(
+            (webtoon) => webtoon.url === url && webtoon.domain === module
+          )
+        );
+      }
     };
     fetchModuleType();
   });
@@ -51,9 +65,11 @@ function Webtoon({ addWebtoon, favorites, setFavorites }) {
         <Manga
           module={module}
           url={url}
-          addWebtoon={addWebtoon}
+          addWebtoonToQueue={addWebtoonToQueue}
           isFavorite={isFavorite}
           updateWebtoon={updateWebtoon}
+          addLibraryMessage={addLibraryMessage}
+          isInLibrary={isInLibrary}
         />
       );
     case "Doujin":
@@ -61,7 +77,7 @@ function Webtoon({ addWebtoon, favorites, setFavorites }) {
         <Doujin
           module={module}
           url={url}
-          addWebtoon={addWebtoon}
+          addWebtoonToQueue={addWebtoonToQueue}
           isFavorite={isFavorite}
           updateWebtoon={updateWebtoon}
         />

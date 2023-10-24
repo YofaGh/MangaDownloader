@@ -6,7 +6,7 @@ import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./extras";
 
-const Doujin = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
+const Doujin = ({ module, url, addWebtoonToQueue, isFavorite, updateWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
@@ -46,7 +46,7 @@ const Doujin = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
   };
 
   const addDoujin = (status) => {
-    addWebtoon({
+    addWebtoonToQueue({
       type: "doujin",
       id: `${module}_$_${url}`,
       title: webtoon.Title,

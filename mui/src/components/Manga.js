@@ -11,7 +11,15 @@ import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 
-const Manga = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
+const Manga = ({
+  module,
+  url,
+  addWebtoonToQueue,
+  isFavorite,
+  updateWebtoon,
+  addLibraryMessage,
+  isInLibrary,
+}) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -70,7 +78,7 @@ const Manga = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
   };
 
   const addManga = (chapter, status) => {
-    addWebtoon({
+    addWebtoonToQueue({
       type: "manga",
       id: `${module}_$_${url}_$_${chapter.url}`,
       title: webtoon.Title,
@@ -80,6 +88,30 @@ const Manga = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
       chapter: chapter.url,
       status: status,
     });
+  };
+
+  const updateLibrary = () => {
+    if (isInLibrary) {
+      addLibraryMessage({
+        removeWebtoon: {
+          domain: module,
+          url,
+        },
+      });
+    } else {
+      addLibraryMessage({
+        addWebtoon: {
+          webtoon: {
+            title: webtoon.Title,
+            status: true,
+            domain: module,
+            url,
+            cover: webtoon.Cover,
+            last_downloaded_chapter: null,
+          },
+        },
+      });
+    }
   };
 
   return webtoonLoaded ? (
@@ -111,6 +143,17 @@ const Manga = ({ module, url, addWebtoon, isFavorite, updateWebtoon }) => {
                       : "./assets/favorites-outlined.svg"
                   }
                   className="icongt"
+                ></img>
+              </button>
+              <button className="buttonht" onClick={updateLibrary}>
+                <img
+                  alt=""
+                  src={
+                    isInLibrary
+                      ? "./assets/library.svg"
+                      : "./assets/add_to_library.svg"
+                  }
+                  className="icon"
                 ></img>
               </button>
             </div>

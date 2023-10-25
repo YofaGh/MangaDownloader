@@ -35,7 +35,7 @@ async def get_logo(module):
 async def get_info(domain, url):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(domain)
-    return module.get_info(url)
+    return module.get_info(url, wait=False)
 
 @app.get("/type/{domain}/")
 async def get_module_type(domain):
@@ -47,7 +47,7 @@ async def get_module_type(domain):
 async def get_chapters(domain, url):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(domain)
-    return module.get_chapters(url)
+    return module.get_chapters(url, wait=False)
 
 class GetDoujinImagesRequest(BaseModel):
     domain: str
@@ -91,19 +91,19 @@ class UploadRequest(BaseModel):
 async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
-    return module.get_images(request_data.code)
+    return module.get_images(request_data.code, wait=False)
 
 @app.post("/manga/images/")
 async def get_images(request_data: GetMangaImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
-    return module.get_images(request_data.url, {'url': request_data.chapter})
+    return module.get_images(request_data.url, {'url': request_data.chapter}, wait=False)
 
 @app.post("/download_image/")
 async def download_image(request_data: DownloadRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
-    return module.download_image(request_data.image_url, request_data.save_path, 0)
+    return module.download_image(request_data.image_url, request_data.save_path, 0, wait=False)
 
 @app.post("/convert/")
 async def convert(request_data: ConvertRequest=Body(...)):
@@ -122,7 +122,7 @@ async def search(request_data: SearchRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
     results = {}
-    search = module.search_by_keyword(request_data.keyword, request_data.absolute)
+    search = module.search_by_keyword(request_data.keyword, request_data.absolute, wait=False)
     page = 1
     while page <= request_data.depth:
         try:
@@ -141,7 +141,7 @@ async def search(request_data: SearchRequest=Body(...)):
 async def retrieve_image(request_data: DownloadRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
-    return f'data:image/png;base64, {base64.b64encode(module.send_request(request_data.image_url, headers=module.download_images_headers).content).decode()}'
+    return f'data:image/png;base64, {base64.b64encode(module.send_request(request_data.image_url, headers=module.download_images_headers, wait=False).content).decode()}'
 
 @app.get("/get_saucers_list/")
 async def get_saucers_list():

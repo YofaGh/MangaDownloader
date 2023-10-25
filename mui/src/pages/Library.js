@@ -30,7 +30,7 @@ function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
         }
       }
     } else {
-      chaptersToDownload += allChapters;
+      chaptersToDownload = chaptersToDownload.concat(allChapters);
     }
     for (const chapter of chaptersToDownload) {
       addWebtoonToQueue({

@@ -27,6 +27,7 @@ function App() {
   const [library, setLibrary] = useState([]);
   const [libraryMessages, setLibraryMessages] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
 
   useEffect(() => {
     setQueue(window.do.getJsonFile("queue.json"));
@@ -358,11 +359,18 @@ function App() {
   };
 
   const startSearching = (modules, keyword, depth, absolute) => {
+    setSelectedModulesForSearch(modules);
     setSearchResults([]);
     setSearchingStatus({ searching: { keyword } });
     const sWorker = new Worker();
     sWorker.postMessage({
-      search: { modules, keyword, depth, absolute, sleepTime: 0.1 },
+      search: {
+        modules: modules.map((item) => item.name),
+        keyword,
+        depth,
+        absolute,
+        sleepTime: 0.1,
+      },
     });
     sWorker.onmessage = (e) => {
       if (e.data.doneSearching) {
@@ -391,6 +399,7 @@ function App() {
   const resetSearch = () => {
     setSearchingStatus(null);
     setSearchResults([]);
+    selectedModulesForSearch([]);
     if (searchWorker) {
       searchWorker.terminate();
     }
@@ -421,6 +430,7 @@ function App() {
                 searchingStatus={searchingStatus}
                 searchResults={searchResults}
                 resetSearch={resetSearch}
+                selectedModulesForSearch={selectedModulesForSearch}
               />
             }
           />

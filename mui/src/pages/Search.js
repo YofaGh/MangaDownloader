@@ -12,6 +12,7 @@ function Search({
   searchingStatus,
   searchResults,
   resetSearch,
+  selectedModulesForSearch,
 }) {
   const [input, setInput] = useState("");
   const [types, updateTypes] = useState([
@@ -68,8 +69,7 @@ function Search({
                       (type) => type.name === module.type && type.selected
                     )
                   )
-                  .filter((item) => item.selected)
-                  .map((item) => item.name),
+                  .filter((item) => item.selected),
                 input,
                 depth,
                 absolute
@@ -107,27 +107,22 @@ function Search({
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
         >
-          {modules
-            .filter((module) =>
-              types.some((type) => type.name === module.type && type.selected)
-            )
-            .filter((item) => item.selected)
-            .map((item) => {
-              let num = searchResults.filter(
-                (result) => result.domain === item.name
-              ).length;
-              num = num === 0 ? "" : num;
-              return (
-                <FilterButton
-                  key={item.name}
-                  label={`${item.name}  ${num}`}
-                  selected={searchResults.some(
-                    (result) => result.domain === item.name
-                  )}
-                  loading={searchingStatus.searching.module === item.name}
-                />
-              );
-            })}
+          {selectedModulesForSearch.map((item) => {
+            let num = searchResults.filter(
+              (result) => result.domain === item.name
+            ).length;
+            num = num === 0 ? "" : num;
+            return (
+              <FilterButton
+                key={item.name}
+                label={`${item.name}  ${num}`}
+                selected={searchResults.some(
+                  (result) => result.domain === item.name
+                )}
+                loading={searchingStatus.searching.module === item.name}
+              />
+            );
+          })}
         </div>
       </div>
     );
@@ -141,25 +136,19 @@ function Search({
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
         >
-          {modules
-            .filter((module) =>
-              types.some((type) => type.name === module.type && type.selected)
-            )
-            .filter((item) => item.selected)
-            .map((item) => {
-              return (
-                <FilterButton
-                  key={item.name}
-                  label={`${item.name} ${
-                    searchResults.filter(
-                      (result) => result.domain === item.name
-                    ).length
-                  }`}
-                  selected={true}
-                  loading={false}
-                />
-              );
-            })}
+          {selectedModulesForSearch.map((item) => {
+            return (
+              <FilterButton
+                key={item.name}
+                label={`${item.name} ${
+                  searchResults.filter((result) => result.domain === item.name)
+                    .length
+                }`}
+                selected={true}
+                loading={false}
+              />
+            );
+          })}
         </div>
         <br />
         <div

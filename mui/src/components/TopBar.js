@@ -16,21 +16,25 @@ function TopBar() {
     <div className="mainApp">
       <div className="topBar">
         <div className="titleBar">
-          <button className="buttonh toggleButton" onClick={() => showHideMenus()}>
-            <img alt="" src="./assets/menuBtn.svg" className="icon"></img>
-          </button>
+          <input
+            id="menu-checkbox"
+            type="checkbox"
+            onChange={showHideMenus}
+            defaultChecked={isMenuOpen}
+          ></input>
+          <label class="menu-toggle" htmlFor="menu-checkbox">
+            <div id="menu-bar1" class="menu-bars"></div>
+            <div id="menu-bar2" class="menu-bars"></div>
+            <div id="menu-bar3" class="menu-bars"></div>
+          </label>
         </div>
         <div className="titleBarBtns">
-          <button
-            id="minimizeBtn"
-            className="topBtn minimizeBtn"
-            onClick={() => window.do.minimizeApp()}
-          ></button>
-          <button
-            id="closeBtn"
-            className="topBtn closeBtn"
-            onClick={() => window.do.closeApp()}
-          ></button>
+          <button className="topBtn minimizeBtn" onClick={() => window.do.minimizeApp()}>
+          <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
+        </button>
+        <button className="topBtn closeBtn" onClick={() => window.do.closeApp()}>
+          <img alt="" src="./assets/delete.svg" className="icon-t"></img>
+        </button>
         </div>
       </div>
       <div className="contentArea">

@@ -26,7 +26,7 @@ export default function DCard({ webtoon, removeWebtoon }) {
       <div className="statusg">
         <div className="d-status">Downladed {webtoon.images + ""} Images</div>
       </div>
-      <div className="button-containerr">
+      <div className="button-containerrr">
         <button className="buttonh" onClick={removeWebtoon}>
           <img alt="" src="./assets/delete.svg" className="icon"></img>
           <span className="tooltip">Remove</span>
@@ -38,10 +38,6 @@ export default function DCard({ webtoon, removeWebtoon }) {
         <button className="buttonh" onClick={convert}>
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>
           <span className="tooltip">Convert to PDF</span>
-        </button>
-        <button className="buttonh">
-          <img alt="" src="./assets/more.svg" className="icon"></img>
-          <span className="tooltip">More</span>
         </button>
       </div>
     </div>

@@ -90,6 +90,12 @@ const Manga = ({
     });
   };
 
+  const addAllChapters = (status) => {
+    for (const chapter of chapters) {
+      addManga(chapter, status);
+    }
+  };
+
   const updateLibrary = () => {
     if (isInLibrary) {
       addLibraryMessage({
@@ -210,15 +216,36 @@ const Manga = ({
         </div>
       ) : (
         <div>
-          {chunkArray(chapters, 3).map((chunk, index) => (
-            <div key={index} className="card-row">
-              {chunk.map((chapter) => (
-                <div key={webtoon} className="card-wrapper">
-                  <ChapterButton chapter={chapter} addManga={addManga} />
-                </div>
-              ))}
-            </div>
-          ))}
+          <button className="btnn" onClick={() => addAllChapters("Started")}>
+            <span>Download All Chapters</span>
+            <div className="top"></div>
+            <div className="left"></div>
+            <div className="bottom"></div>
+            <div className="right"></div>
+          </button>
+          <button
+            className="btnn"
+            onClick={() => addAllChapters("Not Started")}
+          >
+            <span>Add All Chapters to Queue</span>
+            <div className="top"></div>
+            <div className="left"></div>
+            <div className="bottom"></div>
+            <div className="right"></div>
+          </button>
+          <br />
+          <br />
+          <div>
+            {chunkArray(chapters, 3).map((chunk, index) => (
+              <div key={index} className="card-row">
+                {chunk.map((chapter) => (
+                  <div key={webtoon} className="card-wrapper">
+                    <ChapterButton chapter={chapter} addManga={addManga} />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

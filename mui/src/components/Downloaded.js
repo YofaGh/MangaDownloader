@@ -22,10 +22,6 @@ export default function Downloaded({ downloaded, addDownloadedMessage }) {
             <img alt="" src="./assets/pdf.svg" className="icon"></img>
             <span className="tooltip">Convert All to PDF</span>
           </button>
-          <button className="buttong">
-            <img alt="" src="./assets/more.svg" className="icon"></img>
-            <span className="tooltip">More</span>
-          </button>
         </div>
       </div>
       <div className="queue-list">

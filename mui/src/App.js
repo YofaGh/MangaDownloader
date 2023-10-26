@@ -153,8 +153,10 @@ function App() {
         addDownloadedMessage({ addWebtoon: { webtoon: newD } });
       }
       if (message.removeWebtoon) {
-        setQueue(
-          queue.filter((item) => item.id !== message.removeWebtoon.webtoon.id)
+        setQueue((prevQueue) =>
+          prevQueue.filter(
+            (item) => item.id !== message.removeWebtoon.webtoon.id
+          )
         );
         if (
           downloading &&

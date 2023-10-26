@@ -40,6 +40,14 @@ export default function Queue({ queue, addQueueMessage }) {
     });
   };
 
+  const deleteAllWebtoons = () => {
+    for (const webtoon of queue) {
+      addQueueMessage({
+        removeWebtoon: { webtoon },
+      });
+    }
+  };
+
   return (
     <div className="queue-div">
       <div className="manage">
@@ -71,9 +79,9 @@ export default function Queue({ queue, addQueueMessage }) {
               <img alt="" src="./assets/start.svg" className="icon"></img>
               <span className="tooltip">Start All</span>
             </button>
-            <button className="buttong">
-              <img alt="" src="./assets/more.svg" className="icon"></img>
-              <span className="tooltip">More</span>
+            <button className="buttong" onClick={deleteAllWebtoons}>
+              <img alt="" src="./assets/trash.svg" className="icon"></img>
+              <span className="tooltip">Delete All</span>
             </button>
           </div>
         ) : (

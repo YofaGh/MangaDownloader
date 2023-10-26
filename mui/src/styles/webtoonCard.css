@@ -149,22 +149,6 @@
   font-size: large;
 }
 
-#info-btn {
-  background-image: url("../../../mui/public/assets/info.png");
-}
-
-#update-btn {
-  background-image: url("../../../mui/public/assets/update.png");
-}
-
-#download-btn {
-  background-image: url("../../../mui/public/assets/download.png");
-}
-
-#remove-btn {
-  background-image: url("../../../mui/public/assets/remove.png");
-}
-
 .front .img {
   position: absolute;
   width: 100%;

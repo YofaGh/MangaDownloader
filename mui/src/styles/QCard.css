@@ -9,7 +9,7 @@
 .statusg {
   display: flex;
   background-color: rgb(21, 21, 21);
-  min-width: 200px;
+  min-width: 350px;
   height: 100px;
   color: #ffffff;
   text-align: center;
@@ -37,7 +37,7 @@
   width: 100%;
 }
 
-.button-containerr {
+.button-containerrr {
   display: flex;
   background-color: rgb(21, 21, 21);
   height: 100px;
@@ -45,10 +45,10 @@
   justify-content: space-around;
   border-top-right-radius: 50px;
   border-bottom-right-radius: 50px;
-  min-width: 270px;
+  min-width: 220px;
 }
 
-.button-containerr::before {
+.button-containerrr::before {
   content: "";
   display: block;
   box-sizing: border-box;

@@ -15,7 +15,6 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  background-color: #212121;
   user-select: none;
   -webkit-app-region: drag;
 }
@@ -61,8 +60,8 @@
 }
 
 .titleBarBtns > .topBtn {
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border: none;
   outline: none;
   background-color: transparent;
@@ -70,6 +69,13 @@
   background-position: center;
   transition: 0.2s;
   cursor: pointer;
+}
+
+.icon-t{
+  width: 15px;
+  height: 15px;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
 }
 
 .titleBarBtns > .topBtn:hover {
@@ -84,14 +90,6 @@
   background-color: #4f9fee;
 }
 
-.titleBarBtns > .minimizeBtn {
-  background-image: url("../../../mui/public/assets/minimizeBtn.png");
-}
-
-.titleBarBtns > .closeBtn {
-  background-image: url("../../../mui/public/assets/closeBtn.png");
-}
-
 .mainApp > .contentArea {
   display: flex;
   flex-direction: row;
@@ -104,4 +102,49 @@
   height: 100%;
   display: flex;
   align-items: center;
+}
+
+#menu-checkbox {
+  display: none;
+}
+
+.menu-toggle {
+  margin-left: 6px;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition-duration: .3s;
+}
+
+.menu-bars {
+  width: 20px;
+  height: 2px;
+  background-color: #009788;
+  border-radius: 5px;
+  transition-duration: .3s;
+}
+
+#menu-checkbox:checked + .menu-toggle #menu-bar2 {
+  transform: translateY(8px) rotate(60deg);
+  margin-left: 0;
+  transform-origin: right;
+  transition-duration: .3s;
+  z-index: 2;
+}
+
+#menu-checkbox:checked + .menu-toggle #menu-bar1 {
+  transform: translateY(15px) rotate(-60deg);
+  transition-duration: .3s;
+  transform-origin: left;
+  z-index: 1;
+}
+
+#menu-checkbox:checked + .menu-toggle {
+  transform: rotate(-90deg);
 }

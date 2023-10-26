@@ -37,7 +37,7 @@
   width: 100%;
 }
 
-.button-containerr {
+.button-containerrr {
   display: flex;
   background-color: rgb(21, 21, 21);
   height: 100px;
@@ -48,7 +48,7 @@
   min-width: 270px;
 }
 
-.button-containerr::before {
+.button-containerrr::before {
   content: "";
   display: block;
   box-sizing: border-box;

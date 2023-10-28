@@ -40,7 +40,7 @@ function Sidebar() {
           <img alt="" src="./assets/saucer.svg" className="icon"></img>
         </button>
       </Link>
-      <Link to={{ pathname: "modules" }} style={{ marginTop: "auto", marginBottom: "40px" }}>
+      <Link to={{ pathname: "settings" }} style={{ marginTop: "auto", marginBottom: "40px" }}>
         <button className="buttonhg">
           <img alt="" src="./assets/settings.svg" className="icon"></img>
         </button>

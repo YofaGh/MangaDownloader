@@ -28,13 +28,20 @@ function TopBar() {
             <div id="menu-bar3" class="menu-bars"></div>
           </label>
         </div>
+        <div className="titleBarText">Manga Downloader</div>
         <div className="titleBarBtns">
-          <button className="topBtn minimizeBtn" onClick={() => window.do.minimizeApp()}>
-          <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
-        </button>
-        <button className="topBtn closeBtn" onClick={() => window.do.closeApp()}>
-          <img alt="" src="./assets/delete.svg" className="icon-t"></img>
-        </button>
+          <button
+            className="topBtn minimizeBtn"
+            onClick={() => window.do.minimizeApp()}
+          >
+            <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
+          </button>
+          <button
+            className="topBtn closeBtn"
+            onClick={() => window.do.closeApp()}
+          >
+            <img alt="" src="./assets/delete.svg" className="icon-t"></img>
+          </button>
         </div>
       </div>
       <div className="contentArea">

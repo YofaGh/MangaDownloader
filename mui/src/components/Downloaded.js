@@ -1,26 +1,30 @@
 import DCard from "./DCard";
 
 export default function Downloaded({ downloaded, addDownloadedMessage }) {
-  return (
+  const removeWebtoon = (index) => {
+    addDownloadedMessage({ removeWebtoon: { index } });
+  };
+  const removeAllWebtoons = () => {
+    addDownloadedMessage({ removeAllWebtoons: {} });
+  };
+  const deleteAllWebtoons = () => {
+    downloaded.forEach((webtoon) => {
+      window.do.removeFolder(webtoon.path);
+    });
+    addDownloadedMessage({ removeAllWebtoons: {} });
+  };
+  return downloaded.length !== 0 ? (
     <div className="queue-div">
       <div className="manage">
         <div className="info-manage">Number of Items: {downloaded.length}</div>
         <div className="manage-btn">
-          <button className="buttong" onClick={() => {}}>
+          <button className="buttong" onClick={removeAllWebtoons}>
             <img alt="" src="./assets/delete.svg" className="icon"></img>
             <span className="tooltip">Remove All from List</span>
           </button>
-          <button className="buttong" onClick={() => {}}>
+          <button className="buttong" onClick={deleteAllWebtoons}>
             <img alt="" src="./assets/trash.svg" className="icon"></img>
             <span className="tooltip">Delete All</span>
-          </button>
-          <button className="buttong" onClick={() => {}}>
-            <img alt="" src="./assets/merge.svg" className="icon"></img>
-            <span className="tooltip">Merge All</span>
-          </button>
-          <button className="buttong" onClick={() => {}}>
-            <img alt="" src="./assets/pdf.svg" className="icon"></img>
-            <span className="tooltip">Convert All to PDF</span>
           </button>
         </div>
       </div>
@@ -31,9 +35,7 @@ export default function Downloaded({ downloaded, addDownloadedMessage }) {
               <li key={webtoon.id}>
                 <DCard
                   webtoon={webtoon}
-                  removeWebtoon={() =>
-                    addDownloadedMessage({ removeWebtoon: { index } })
-                  }
+                  removeWebtoon={() => removeWebtoon(index)}
                 />
               </li>
             );
@@ -41,5 +43,7 @@ export default function Downloaded({ downloaded, addDownloadedMessage }) {
         </ul>
       </div>
     </div>
+  ) : (
+    <div className="no-info"><h2>There are no downloaded webtoons</h2></div>
   );
 }

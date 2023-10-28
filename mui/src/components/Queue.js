@@ -48,7 +48,7 @@ export default function Queue({ queue, addQueueMessage }) {
     }
   };
 
-  return (
+  return queue.length !== 0 ? (
     <div className="queue-div">
       <div className="manage">
         <div className="info-manage">Number of Items: {queu.length}</div>
@@ -136,5 +136,7 @@ export default function Queue({ queue, addQueueMessage }) {
         </DragDropContext>
       </div>
     </div>
+  ) : (
+    <div className="no-info"><h2>There are no webtoons</h2></div>
   );
 }

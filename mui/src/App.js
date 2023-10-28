@@ -10,11 +10,13 @@ import Module from "./pages/Module";
 import Download from "./pages/Download";
 import Favorites from "./pages/Favorites";
 import Saucer from "./pages/Saucer";
+import Settings from "./pages/Settings";
 import { fixNameForFolder } from "./components/utils";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
 function App() {
+  const [settings, setSettings] = useState(null);
   const [queue, setQueue] = useState([]);
   const [downloadWorker, setDownloadWorker] = useState(null);
   const [queueMessages, setQueueMessages] = useState([]);
@@ -28,26 +30,45 @@ function App() {
   const [libraryMessages, setLibraryMessages] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
+  const [settingsPath, setSettingsPath] = useState("");
 
   useEffect(() => {
-    setQueue(window.do.getJsonFile("queue.json"));
-    setDownloaded(window.do.getJsonFile("downloaded.json"));
-    setFavorites(window.do.getJsonFile("favorites.json"));
-    const libraryRaw = window.do.getJsonFile("library.json");
-    setLibrary(
-      Object.entries(libraryRaw).map(([manga, detm]) => {
-        return {
-          title: manga,
-          status: detm.include,
-          domain: detm.domain,
-          url: detm.url,
-          cover: detm.cover,
-          last_downloaded_chapter: detm.last_downloaded_chapter,
-        };
+    setSettingsPath(
+      window.do.getSettingsPath().then((result) => {
+        setSettingsPath(result);
+        setQueue(window.do.getJsonFile(result, "queue.json"));
+        setDownloaded(window.do.getJsonFile(result, "downloaded.json"));
+        setFavorites(window.do.getJsonFile(result, "favorites.json"));
+        setSettings(window.do.getJsonFile(result, "settings.json"));
+        const libraryRaw = window.do.getJsonFile(result, "library.json");
+        setLibrary(
+          Object.entries(libraryRaw).map(([manga, detm]) => {
+            return {
+              title: manga,
+              status: detm.include,
+              domain: detm.domain,
+              url: detm.url,
+              cover: detm.cover,
+              last_downloaded_chapter: detm.last_downloaded_chapter,
+            };
+          })
+        );
       })
     );
-    startDownloading();
   }, []);
+
+  useEffect(() => {
+    if (settings) {
+      if (!settings.downloadPath) {
+        window.do.selectFolder().then((result) => {
+          if (result) {
+            setSettings({ ...settings, downloadPath: result });
+          }
+        });
+      }
+      startDownloading();
+    }
+  }, [settings]);
 
   useEffect(() => {
     while (queueMessages.length > 0) {
@@ -232,6 +253,9 @@ function App() {
           downloaded.filter((_, index) => index !== message.removeWebtoon.index)
         );
       }
+      if (message.removeAllWebtoons) {
+        setDownloaded([]);
+      }
     }
   }, [downloadedMessages, downloaded]);
 
@@ -242,37 +266,52 @@ function App() {
   }, [downloading, queue]);
 
   useEffect(() => {
-    window.do.setJsonFile("queue.json", queue);
+    if (settingsPath !== "") {
+      window.do.setJsonFile(settingsPath, "queue.json", queue);
+    }
   }, [queue]);
 
   useEffect(() => {
-    window.do.setJsonFile("downloaded.json", downloaded);
+    if (settingsPath !== "") {
+      window.do.setJsonFile(settingsPath, "downloaded.json", downloaded);
+    }
   }, [downloaded]);
 
   useEffect(() => {
-    window.do.setJsonFile("favorites.json", favorites);
+    if (settingsPath !== "") {
+      window.do.setJsonFile(settingsPath, "settings.json", settings);
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    if (settingsPath !== "") {
+      window.do.setJsonFile(settingsPath, "favorites.json", favorites);
+    }
   }, [favorites]);
 
   useEffect(() => {
-    window.do.setJsonFile(
-      "library.json",
-      library.reduce(
-        (
-          acc,
-          { title, status, domain, url, cover, last_downloaded_chapter }
-        ) => {
-          acc[title] = {
-            include: status,
-            domain,
-            url,
-            cover,
-            last_downloaded_chapter,
-          };
-          return acc;
-        },
-        {}
-      )
-    );
+    if (settingsPath !== "") {
+      window.do.setJsonFile(
+        settingsPath,
+        "library.json",
+        library.reduce(
+          (
+            acc,
+            { title, status, domain, url, cover, last_downloaded_chapter }
+          ) => {
+            acc[title] = {
+              include: status,
+              domain,
+              url,
+              cover,
+              last_downloaded_chapter,
+            };
+            return acc;
+          },
+          {}
+        )
+      );
+    }
   }, [library]);
 
   useEffect(() => {
@@ -371,7 +410,7 @@ function App() {
         keyword,
         depth,
         absolute,
-        sleepTime: 0.1,
+        sleepTime: settings.sleepTime,
       },
     });
     sWorker.onmessage = (e) => {
@@ -401,7 +440,7 @@ function App() {
   const resetSearch = () => {
     setSearchingStatus(null);
     setSearchResults([]);
-    selectedModulesForSearch([]);
+    setSelectedModulesForSearch([]);
     if (searchWorker) {
       searchWorker.terminate();
     }
@@ -454,6 +493,10 @@ function App() {
             }
           />
           <Route path="/modules" element={<Modules />} />
+          <Route
+            path="/settings"
+            element={<Settings settings={settings} setSettings={setSettings} />}
+          />
           <Route path="/saucer" element={<Saucer />} />
           <Route
             path="/:module/webtoon/:url"

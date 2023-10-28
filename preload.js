@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer, shell } = require("electron");
+const path = require("path");
 const fs = require("fs");
 
 contextBridge.exposeInMainWorld("do", {
@@ -27,11 +28,13 @@ contextBridge.exposeInMainWorld("do", {
       fs.rmdirSync(path);
     } catch (err) {}
   },
-  getJsonFile: (path) => {
-    const fileContent = fs.readFileSync(path, "utf8");
+  getJsonFile: (pathToFile, name) => {
+    const fileContent = fs.readFileSync(path.join(pathToFile, name), "utf8");
     return JSON.parse(fileContent);
   },
-  setJsonFile: (path, data) => {
-    fs.writeFileSync(path, JSON.stringify(data, null, 2), "utf8");
+  setJsonFile: (pathToFile, name, data) => {
+    fs.writeFileSync(path.join(pathToFile, name), JSON.stringify(data, null, 2), "utf8");
   },
+  selectFolder: () => ipcRenderer.invoke("selectFolder"),
+  getSettingsPath: () => ipcRenderer.invoke("getSettingsPath"),
 });

@@ -54,7 +54,7 @@ export default function Saucer() {
   if (currentStatus === "Sauced") {
     return (
       <div className="container">
-        <div className="f-header">Results:</div>
+        <div className="f-header">Results</div>
         <div className="ff-container">
           {results.map((result) => (
             <SaucerResult key={result.url} result={result} />

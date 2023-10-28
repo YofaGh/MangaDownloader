@@ -1,0 +1,15 @@
+#s-folder {
+  display: none;
+}
+
+
+.cyb-checkbox-label {
+  color: #fff;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.playstore-button{
+  cursor: pointer;
+}

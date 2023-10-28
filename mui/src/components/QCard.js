@@ -40,7 +40,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
       )}
       <div className="button-containerrr">
         <button className="buttonh" onClick={() => removeWebtoon(webtoon)}>
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
+          <img alt="" src="./assets/trash.svg" className="icon"></img>
           <span className="tooltip">Delete</span>
         </button>
         <button

@@ -1,7 +1,7 @@
 import "../styles/Settings.css";
 import FilterToggleButton from "../components/FilterToggleButton";
 
-export default function Settings({ settings, setSettings }) {
+export default function Settings({ settings, setSettings, downloading }) {
   return (
     <div className="container">
       <div className="in-depth">
@@ -103,13 +103,16 @@ export default function Settings({ settings, setSettings }) {
         ></input>
         <span
           className="playstore-button texts"
-          onClick={() =>
+          onClick={() => {
+            if (downloading) {
+              return;
+            }
             window.do.selectFolder().then((result) => {
               if (result) {
                 setSettings({ ...settings, downloadPath: result });
               }
-            })
-          }
+            });
+          }}
         >
           <span className="text-2">Browse</span>
         </span>

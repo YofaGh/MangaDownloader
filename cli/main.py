@@ -114,7 +114,7 @@ async def convert(request_data: ConvertRequest=Body(...)):
 @app.post("/merge/")
 async def merge(request_data: MergeRequest=Body(...)):
     from mangascraper.utils.image_merger import merge_folder
-    merge_folder(request_data.path_to_source, request_data.path_to_destination, True if request_data.method == 'fit' else False)
+    merge_folder(request_data.path_to_source, request_data.path_to_destination, request_data.method == 'Fit')
     return
 
 @app.post("/search/")

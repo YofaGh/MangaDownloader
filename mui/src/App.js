@@ -356,14 +356,15 @@ function App() {
     if (webtoon) {
       const folderName =
         webtoon.type === "manga"
-          ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
+          ? fixNameForFolder(webtoon.title) + "\\" + webtoon.info
           : fixNameForFolder(webtoon.title);
-      await window.do.createFolder(folderName);
-      const dirls = window.do.ls(folderName);
+      const dPath = settings.downloadPath + "\\" + folderName;
+      await window.do.createFolder(dPath);
+      const dirls = window.do.ls(dPath);
       const dWorker = new Worker();
       // new URL("./downloadWorker.js", import.meta.url), {type: "module"}
       //"./downloadWorker.js", {type: "module"}
-      dWorker.postMessage({ download: { webtoon, dirls } });
+      dWorker.postMessage({ download: { webtoon, dPath, dirls } });
       dWorker.onmessage = (e) => {
         if (
           !e.data.doneSearching &&
@@ -472,6 +473,7 @@ function App() {
                 searchResults={searchResults}
                 resetSearch={resetSearch}
                 selectedModulesForSearch={selectedModulesForSearch}
+                defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
               />
             }
           />
@@ -483,6 +485,8 @@ function App() {
                 addQueueMessage={addQueueMessage}
                 downloaded={downloaded}
                 addDownloadedMessage={addDownloadedMessage}
+                downloadPath={settings ? settings.downloadPath : ""}
+                mergeMethod={settings ? settings.mergeMethod : ""}
               />
             }
           />
@@ -495,7 +499,13 @@ function App() {
           <Route path="/modules" element={<Modules />} />
           <Route
             path="/settings"
-            element={<Settings settings={settings} setSettings={setSettings} />}
+            element={
+              <Settings
+                settings={settings}
+                setSettings={setSettings}
+                downloading={downloading}
+              />
+            }
           />
           <Route path="/saucer" element={<Saucer />} />
           <Route

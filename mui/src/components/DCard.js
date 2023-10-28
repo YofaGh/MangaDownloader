@@ -2,18 +2,28 @@ import "../styles/DCard.css";
 import { convertToPdf, mergeImages } from "../api/utils";
 import { fixNameForFolder } from "../components/utils";
 
-export default function DCard({ webtoon, removeWebtoon }) {
+export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMethod }) {
   const convert = () => {
     convertToPdf(
-      `../${webtoon.path}`,
-      `../${webtoon.path}`,
+      webtoon.path,
+      webtoon.path,
       webtoon.type === "manga"
         ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
         : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
     );
   };
   const merge = () => {
-    mergeImages(`../${webtoon.path}`, `../Merged/${webtoon.path}`, "merge");
+    mergeImages(
+      webtoon.path,
+      webtoon.type === "manga"
+        ? downloadPath +
+            "\\Merged\\" +
+            fixNameForFolder(webtoon.title) +
+            "\\" +
+            webtoon.info
+        : downloadPath + "\\Merged\\" + fixNameForFolder(webtoon.title),
+      mergeMethod
+    );
   };
 
   const deleteFolder = () => {

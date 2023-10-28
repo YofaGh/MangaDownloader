@@ -1,6 +1,11 @@
 import DCard from "./DCard";
 
-export default function Downloaded({ downloaded, addDownloadedMessage }) {
+export default function Downloaded({
+  downloaded,
+  addDownloadedMessage,
+  downloadPath,
+  mergeMethod,
+}) {
   const removeWebtoon = (index) => {
     addDownloadedMessage({ removeWebtoon: { index } });
   };
@@ -36,6 +41,8 @@ export default function Downloaded({ downloaded, addDownloadedMessage }) {
                 <DCard
                   webtoon={webtoon}
                   removeWebtoon={() => removeWebtoon(index)}
+                  downloadPath={downloadPath}
+                  mergeMethod={mergeMethod}
                 />
               </li>
             );
@@ -44,6 +51,8 @@ export default function Downloaded({ downloaded, addDownloadedMessage }) {
       </div>
     </div>
   ) : (
-    <div className="no-info"><h2>There are no downloaded webtoons</h2></div>
+    <div className="no-info">
+      <h2>There are no downloaded webtoons</h2>
+    </div>
   );
 }

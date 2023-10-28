@@ -8,6 +8,8 @@ export default function Download({
   addQueueMessage,
   downloaded,
   addDownloadedMessage,
+  downloadPath,
+  mergeMethod,
 }) {
   const [current, setCurrent] = useState("queue");
 
@@ -23,6 +25,8 @@ export default function Download({
           <Downloaded
             downloaded={downloaded}
             addDownloadedMessage={addDownloadedMessage}
+            downloadPath={downloadPath}
+            mergeMethod={mergeMethod}
           />
         )}
     </div>

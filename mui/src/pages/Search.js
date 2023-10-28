@@ -13,6 +13,7 @@ function Search({
   searchResults,
   resetSearch,
   selectedModulesForSearch,
+  defaultSearchDepth,
 }) {
   const [input, setInput] = useState("");
   const [types, updateTypes] = useState([
@@ -20,7 +21,7 @@ function Search({
     { name: "Doujin", selected: true },
   ]);
   const [modules, updateModules] = useState([]);
-  const [depth, setDepth] = useState(3);
+  const [depth, setDepth] = useState(defaultSearchDepth);
   const [absolute, setAbsolute] = useState(false);
   const fetchModules = async () => {
     const response = await get_modules();

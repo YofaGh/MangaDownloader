@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./../App.css";
-import get_logo from "../api/get_logo";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
 function MCard({ module }) {
-  const [logo_url, setLogoUrl] = useState([]);
-  const fetchLogo = async () => {
-    const response = await get_logo(module.domain);
-    setLogoUrl(response);
-  };
-
-  useEffect(() => {
-    fetchLogo();
-  });
-
   return (
     <div className="m-card">
       <div className="m-card-info">
@@ -23,7 +12,7 @@ function MCard({ module }) {
           <div className="m-logo">
             <img
               referrerPolicy="no-referrer"
-              src={logo_url ? logo_url : "./assets/module.png"}
+              src={module.logo ? module.logo : "./assets/module.png"}
               loading="lazy"
               alt=""
               style={{ width: 70, height: 70 }}
@@ -42,7 +31,12 @@ function MCard({ module }) {
               </button>
             </Link>
             <button className="m-button check-btn">
-              <img alt="" src="./assets/check.svg" className="btn-icon" style={{ width: 30, height: 30 }}></img>
+              <img
+                alt=""
+                src="./assets/check.svg"
+                className="btn-icon"
+                style={{ width: 30, height: 30 }}
+              ></img>
             </button>
           </div>
         </div>

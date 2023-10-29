@@ -66,6 +66,10 @@
   content: "Filter";
 }
 
+.sort-btn::before {
+  content: "Sort by";
+}
+
 .m-button:hover::before {
   font-size: 13px;
   opacity: 1;

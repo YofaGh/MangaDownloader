@@ -1,4 +1,4 @@
-import base64, time, sys, os
+import uvicorn, signal, base64, time, sys, os
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -23,7 +23,9 @@ async def get_modules():
     from mangascraper.utils.modules_contributer import get_all_modules
     return [{
         'type': module.type,
-        'domain': module.domain
+        'domain': module.domain,
+        'logo': module.logo,
+        'searchable': True if hasattr(module, 'search_by_keyword') else False
     } for module in get_all_modules()]
 
 @app.get("/module_logo/{module}/")
@@ -171,3 +173,10 @@ async def saucer(request_data: SauceRequest=Body(...)):
     except:
         pass
     return results
+
+@app.get('/shutdown/')
+async def shutdown():
+    os.kill(os.getpid(), signal.SIGTERM)
+
+if __name__ == '__main__':
+    uvicorn.run(app=app, host="0.0.0.0", port=8000, lifespan="off")

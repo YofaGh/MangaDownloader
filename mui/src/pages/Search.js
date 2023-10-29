@@ -4,7 +4,7 @@ import get_modules from "../api/get_modules";
 import SearchFilter from "../components/SearchFilter";
 import FilterButton from "../components/FilterButton";
 import WSearchCard from "../components/WSearchCard";
-import CrushedButton from "../components/CrushedButton";
+import PushButton from "../components/PushButton";
 import "../styles/Search.css";
 
 function Search({
@@ -103,7 +103,7 @@ function Search({
       <div className="container">
         <div className="header-r">
           <h2>Searching For : {searchingStatus.searching.keyword}</h2>
-          <CrushedButton label={"Terminate"} onClick={resetSearch} />
+          <PushButton label={"Terminate"} onClick={resetSearch} />
         </div>
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
@@ -132,7 +132,18 @@ function Search({
       <div className="container">
         <div className="header-r">
           <h2>Keyword : {searchingStatus.searched.keyword}</h2>
-          <CrushedButton label={"Reset"} onClick={resetSearch} />
+          <PushButton label={"Reset"} onClick={resetSearch} />
+          <button
+            className="m-button sort-btn"
+            onClick={() => {}}
+          >
+            <img
+              alt=""
+              src="./assets/sort.svg"
+              className="btn-icon"
+              style={{ width: 20, height: 20 }}
+            ></img>
+          </button>
         </div>
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}

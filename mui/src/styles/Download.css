@@ -1,6 +1,5 @@
 div.scrollmenu {
   margin-top: 100px;
-  background-color: #333;
   white-space: nowrap;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -12,12 +11,7 @@ div.scrollmenu {
 
 div.scrollmenu span {
   display: inline-block;
-  color: white;
   text-align: center;
   padding: 14px;
   text-decoration: none;
-}
-
-div.scrollmenu span:hover {
-  background-color: #777;
 }

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Queue from "./../components/Queue";
 import "../styles/Download.css";
 import Downloaded from "./../components/Downloaded";
+import PushButton from "./../components/PushButton";
 
 export default function Download({
   queue,
@@ -16,8 +17,8 @@ export default function Download({
   return (
     <div className="container">
       <div className="scrollmenu">
-        <span onClick={() => setCurrent("queue")}>Queue</span>
-        <span onClick={() => setCurrent("downloaded")}>Downloaded</span>
+        <PushButton label={"Queue"} onClick={() => setCurrent("queue")}/>
+        <PushButton label={"Downloaded"} onClick={() => setCurrent("downloaded")}/>
       </div>
         {current === "queue" ? (
           <Queue queue={queue} addQueueMessage={addQueueMessage} />

@@ -486,7 +486,7 @@ function App() {
                 downloaded={downloaded}
                 addDownloadedMessage={addDownloadedMessage}
                 downloadPath={settings ? settings.downloadPath : ""}
-                mergeMethod={settings ? settings.mergeMethod : ""}
+                mergeMethod={settings ? settings.mergeMethod : "Normal"}
               />
             }
           />

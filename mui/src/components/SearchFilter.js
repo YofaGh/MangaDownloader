@@ -1,6 +1,7 @@
 import React from "react";
 import "../styles/SearchFilter.css";
 import FilterToggleButton from "./FilterToggleButton";
+import PushButton from "./PushButton";
 
 export default function SearchFilter({
   types,
@@ -26,9 +27,19 @@ export default function SearchFilter({
     // updateModules(newModules);
   };
 
+  const checkAllModules = (checked) => {
+    const newModules = modules.map((module) => {
+      module.selected = checked;
+      return module;
+    });
+    updateModules(newModules);
+  };
+
   const setModules = (moduleName, checked) => {
     const updatedModules = [...modules];
-    const index = updatedModules.findIndex(module => module.name === moduleName);
+    const index = updatedModules.findIndex(
+      (module) => module.name === moduleName
+    );
     updatedModules[index].selected = checked;
     updateModules(updatedModules);
   };
@@ -78,7 +89,17 @@ export default function SearchFilter({
             </label>
           </div>
         </div>
-        <h2>Modules:</h2>
+        <div className="filter-types align-center">
+          <h2>Modules</h2>
+          <PushButton
+            label={"Check All"}
+            onClick={() => checkAllModules(true)}
+          />
+          <PushButton
+            label={"Uncheck All"}
+            onClick={() => checkAllModules(false)}
+          />
+        </div>
         <div className="filter-types">
           {modules
             .filter((module) =>

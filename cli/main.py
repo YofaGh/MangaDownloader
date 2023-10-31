@@ -89,6 +89,15 @@ class SauceRequest(BaseModel):
 class UploadRequest(BaseModel):
     url: str
 
+class ValidateRequest(BaseModel):
+    path: str
+
+@app.post("/doujin/title/")
+async def get_title(request_data: GetDoujinImagesRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.get_title(request_data.code, wait=False)
+
 @app.post("/doujin/images/")
 async def get_images(request_data: GetDoujinImagesRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
@@ -174,9 +183,25 @@ async def saucer(request_data: SauceRequest=Body(...)):
         pass
     return results
 
+@app.get("/get_sample/{domain}/")
+async def get_sample(domain):
+    from mangascraper.utils.assets import load_dict_from_file
+    samples = load_dict_from_file('mangascraper/test_samples.json')
+    return samples[domain]
+
+@app.post("/validate_corrupted_image/")
+async def validate_corrupted_image(request_data: ValidateRequest=Body(...)):
+    from mangascraper.utils.assets import validate_corrupted_image
+    return validate_corrupted_image(request_data.path)
+
+@app.post("/validate_truncated_image/")
+async def validate_truncated_image(request_data: ValidateRequest=Body(...)):
+    from mangascraper.utils.assets import validate_truncated_image
+    return validate_truncated_image(request_data.path)
+
 @app.get('/shutdown/')
 async def shutdown():
     os.kill(os.getpid(), signal.SIGTERM)
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host="0.0.0.0", port=8000, lifespan="off")
+    uvicorn.run(app=app, host="0.0.0.0", port=8000)

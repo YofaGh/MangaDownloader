@@ -3,14 +3,15 @@ import { convertToPdf, mergeImages } from "../api/utils";
 import { fixNameForFolder } from "../components/utils";
 
 export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMethod }) {
-  const convert = () => {
-    convertToPdf(
+  const convert = async () => {
+    await convertToPdf(
       webtoon.path,
       webtoon.path,
       webtoon.type === "manga"
         ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
         : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
     );
+    window.do.openFolder(webtoon.path);
   };
   const merge = () => {
     mergeImages(

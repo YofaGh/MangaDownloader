@@ -37,4 +37,7 @@ contextBridge.exposeInMainWorld("do", {
   },
   selectFolder: () => ipcRenderer.invoke("selectFolder"),
   getSettingsPath: () => ipcRenderer.invoke("getSettingsPath"),
+  deleteImage: (path) => {
+    fs.unlinkSync(path);
+  }
 });

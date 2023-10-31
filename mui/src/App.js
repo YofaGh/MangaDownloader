@@ -235,6 +235,9 @@ function App() {
         );
         setQueue(newQueue);
       }
+      if (message.rempveImage) {
+        window.do.deleteImage(message.rempveImage.saved_path);
+      }
     }
   }, [queueMessages, queue, downloading]);
 
@@ -496,7 +499,7 @@ function App() {
               <Favorites favorites={favorites} setFavorites={setFavorites} />
             }
           />
-          <Route path="/modules" element={<Modules />} />
+          <Route path="/modules" element={<Modules settingsPath={settingsPath} />} />
           <Route
             path="/settings"
             element={

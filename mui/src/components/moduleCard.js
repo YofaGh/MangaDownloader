@@ -3,7 +3,7 @@ import "./../App.css";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
-function MCard({ module }) {
+function MCard({ module, checkModule }) {
   return (
     <div className="m-card">
       <div className="m-card-info">
@@ -20,7 +20,7 @@ function MCard({ module }) {
           </div>
           <div className="m-name">{module.domain}</div>
           <div className="button-container">
-            <Link to={`/${module.domain}`}>
+            <Link to={`/${module.domain}`} state={{ module }}>
               <button className="m-button search-btn">
                 <img
                   alt=""
@@ -30,7 +30,7 @@ function MCard({ module }) {
                 ></img>
               </button>
             </Link>
-            <button className="m-button check-btn">
+            <button className="m-button check-btn" onClick={() => checkModule(module)}>
               <img
                 alt=""
                 src="./assets/check.svg"

@@ -1,10 +1,14 @@
 import { get_manga_images, get_doujin_images } from "./api/get_images";
 import { download_image } from "./api/download_image";
 import { search } from "./api/search";
+import {
+  validate_corrupted_image,
+  validate_truncated_image,
+} from "./api/utils";
 
 onmessage = async (e) => {
   if (e.data.download) {
-    const {webtoon, dPath, dirls} = e.data.download;
+    const { webtoon, dPath, dirls } = e.data.download;
     let images;
     let save_names;
     let i = 0;
@@ -23,6 +27,7 @@ onmessage = async (e) => {
     }
     postMessage({ totalImages: { webtoon, total: images.length } });
     const existsImages = dirls.map((inp) => `${dPath}/${inp}`);
+    let lastTruncated = null;
     while (i < images.length) {
       const createArrowFunction = (image) => {
         return () => {
@@ -44,6 +49,19 @@ onmessage = async (e) => {
           images[i],
           save_path
         );
+        const notCorrupted = await validate_corrupted_image(saved_path);
+        if (!notCorrupted) {
+          postMessage({ corruptedImage: { webtoon, path: saved_path } });
+          i += 1;
+          continue;
+        }
+        const notTruncated = await validate_truncated_image(saved_path);
+        if (!notTruncated && lastTruncated !== saved_path) {
+          lastTruncated = saved_path;
+          postMessage({ removeImage: { saved_path } });
+          i -= 1;
+          continue;
+        }
       }
       await new Promise((res) => setTimeout(res, 100, "done sleeping")).then(
         createArrowFunction(i)
@@ -56,7 +74,13 @@ onmessage = async (e) => {
     const { keyword, depth, absolute, modules, sleepTime } = e.data.search;
     for (const module of modules) {
       postMessage({ searchingModule: { module, keyword } });
-      const response = await search(module, keyword, depth, absolute, sleepTime);
+      const response = await search(
+        module,
+        keyword,
+        depth,
+        absolute,
+        sleepTime
+      );
       postMessage({ searchedModule: { module, response } });
     }
     postMessage({ doneSearching: { keyword } });

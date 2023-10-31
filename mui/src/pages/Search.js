@@ -26,13 +26,15 @@ function Search({
   const fetchModules = async () => {
     const response = await get_modules();
     updateModules(
-      response.map((module) => {
-        const item = { ...module };
-        item.name = item.domain;
-        delete item.domain;
-        item.selected = true;
-        return item;
-      })
+      response
+        .filter((module) => module.searchable)
+        .map((module) => {
+          const item = { ...module };
+          item.name = item.domain;
+          delete item.domain;
+          item.selected = true;
+          return item;
+        })
     );
   };
 
@@ -133,10 +135,7 @@ function Search({
         <div className="header-r">
           <h2>Keyword : {searchingStatus.searched.keyword}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <button
-            className="m-button sort-btn"
-            onClick={() => {}}
-          >
+          <button className="m-button sort-btn" onClick={() => {}}>
             <img
               alt=""
               src="./assets/sort.svg"

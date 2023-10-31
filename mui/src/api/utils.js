@@ -46,3 +46,27 @@ export async function get_saucers_list() {
   const response = await api.get(`/get_saucers_list/`);
   return response.data;
 }
+
+export async function get_sample(domain) {
+  const response = await api.get(`/get_sample/${domain}/`);
+  return response.data;
+}
+
+export async function validate_corrupted_image(image_path) {
+  const response = await api.post(`/validate_corrupted_image/`, {
+    path: image_path,
+  });
+  return response.data;
+}
+
+export async function validate_truncated_image(image_path) {
+  const response = await api.post(`/validate_truncated_image/`, {
+    path: image_path,
+  });
+  return response.data;
+}
+
+export async function get_doujin_title(domain, code) {
+  const response = await api.post(`/doujin/title/`, {domain, code});
+  return response.data;
+}

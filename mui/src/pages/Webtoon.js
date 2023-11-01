@@ -70,6 +70,7 @@ function Webtoon({
           updateWebtoon={updateWebtoon}
           addLibraryMessage={addLibraryMessage}
           isInLibrary={isInLibrary}
+          library={library}
         />
       );
     case "Doujin":

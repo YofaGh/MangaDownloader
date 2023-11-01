@@ -10,6 +10,7 @@ import { getDate, getDateTime, filterDict } from "./utils";
 import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
+import PushButton from "./PushButton";
 
 const Manga = ({
   module,
@@ -19,11 +20,13 @@ const Manga = ({
   updateWebtoon,
   addLibraryMessage,
   isInLibrary,
+  library,
 }) => {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
   const [imageHeight, setImageHeight] = useState(0);
+  const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
   const imageWidth = 200;
 
@@ -32,6 +35,7 @@ const Manga = ({
       const response = await get_info(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
+      setMangaTitleForLibrary(response.Title);
     };
     fetchManga();
   }, [module, url]);
@@ -77,6 +81,11 @@ const Manga = ({
     return chunkedArray;
   };
 
+  const showHideModal = (isShow) => {
+    const modal = document.getElementById("lib-modal");
+    modal.style.display = isShow ? "block" : "none";
+  };
+
   const addManga = (chapter, status) => {
     addWebtoonToQueue({
       type: "manga",
@@ -105,19 +114,35 @@ const Manga = ({
         },
       });
     } else {
-      addLibraryMessage({
-        addWebtoon: {
-          webtoon: {
-            title: webtoon.Title,
-            status: true,
-            domain: module,
-            url,
-            cover: webtoon.Cover,
-            last_downloaded_chapter: null,
-          },
-        },
-      });
+      // addLibraryMessage({
+      //   addWebtoon: {
+      //     webtoon: {
+      //       title: webtoon.Title,
+      //       status: true,
+      //       domain: module,
+      //       url,
+      //       cover: webtoon.Cover,
+      //       last_downloaded_chapter: null,
+      //     },
+      //   },
+      // });
+      showHideModal(true);
     }
+  };
+
+  const addMangaToLibrary = () => {
+    addLibraryMessage({
+      addWebtoon: {
+        webtoon: {
+          title: mangaTitleForLibrary,
+          status: true,
+          domain: module,
+          url,
+          cover: webtoon.Cover,
+          last_downloaded_chapter: null,
+        },
+      },
+    });
   };
 
   return webtoonLoaded ? (
@@ -248,6 +273,52 @@ const Manga = ({
           </div>
         </div>
       )}
+      <div id="lib-modal" className="modal">
+        <div className="modal-content">
+          <button
+            className="buttonh closeBtn"
+            onClick={() => showHideModal(false)}
+          >
+            <img alt="" src="./assets/delete.svg" className="icon"></img>
+          </button>
+          <div className="title">Add manga to library</div>
+          <br />
+          <div>
+            Please enter a title for the manga you want to add to your library.
+            <br />
+            You can use the original title of the manga if there isn't any manga
+            with the same title in your library.
+          </div>
+          <br />
+          <input
+            placeholder={"Enter a title"}
+            className="input"
+            name="text"
+            type="text"
+            value={mangaTitleForLibrary}
+            onChange={(e) => setMangaTitleForLibrary(e.target.value)}
+          ></input>
+          <PushButton
+            label={"Ok"}
+            onClick={() => {
+              if (
+                library.some((manga) => manga.title === mangaTitleForLibrary)
+              ) {
+                const errorField = document.getElementById("pwmessage");
+                errorField.innerText =
+                  "A manga with this title is already in your library.";
+                errorField.style.color = "red";
+              } else {
+                addMangaToLibrary();
+                showHideModal(false);
+              }
+            }}
+          />
+          <PushButton label={"Cancel"} onClick={() => showHideModal(false)} />
+          <br />
+          <span id="pwmessage"></span>
+        </div>
+      </div>
     </div>
   ) : (
     <></>

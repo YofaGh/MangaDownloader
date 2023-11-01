@@ -12,6 +12,7 @@ import Favorites from "./pages/Favorites";
 import Saucer from "./pages/Saucer";
 import Settings from "./pages/Settings";
 import { fixNameForFolder, convert, merge } from "./components/utils";
+import PushButton from "./components/PushButton";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
@@ -60,13 +61,11 @@ function App() {
   useEffect(() => {
     if (settings) {
       if (!settings.downloadPath) {
-        window.do.selectFolder().then((result) => {
-          if (result) {
-            setSettings({ ...settings, downloadPath: result });
-          }
-        });
+        const modal = document.getElementById("browse-modal");
+        modal.style.display = "block";
+      } else {
+        startDownloading();
       }
-      startDownloading();
     }
   }, [settings]);
 
@@ -369,9 +368,12 @@ function App() {
   }, [libraryMessages, library]);
 
   const startDownloading = async () => {
+    if (downloading) {
+      return;
+    }
     const webtoon = queue.find((item) => item.status === "Started");
-    setDownloading(webtoon);
     if (webtoon) {
+      setDownloading(webtoon);
       const folderName =
         webtoon.type === "manga"
           ? fixNameForFolder(webtoon.title) + "\\" + webtoon.info
@@ -557,6 +559,29 @@ function App() {
             }
           />
         </Routes>
+        <div id="browse-modal" className="modal">
+          <div className="modal-content" style={{ textAlign: "center" }}>
+            You need to specify a folder to download the webtoons in it.
+            <br />
+            You canlater change the folder in settings.
+            <br />
+            <br />
+            <br />
+            <PushButton
+              label={"Browse"}
+              onClick={() =>
+                window.do.selectFolder().then((result) => {
+                  if (result) {
+                    setSettings({ ...settings, downloadPath: result });
+                    const modal = document.getElementById("browse-modal");
+                    modal.style.display = "none";
+                    startDownloading();
+                  }
+                })
+              }
+            />
+          </div>
+        </div>
       </div>
     </Router>
   );

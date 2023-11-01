@@ -4,15 +4,16 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[\/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 export const convert = async (webtoon, openPath) => {
+  let pdfName = webtoon.type === "manga"
+  ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
+  : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
   await convertToPdf(
     webtoon.path,
     webtoon.path,
-    webtoon.type === "manga"
-      ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
-      : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
+    pdfName
   ).then(() => {
     if (openPath) {
-      window.do.openFolder(webtoon.path, { activate: true });
+      window.do.showItemInFolder(`${webtoon.path}\\${pdfName}.pdf`);
     }
   });
 };

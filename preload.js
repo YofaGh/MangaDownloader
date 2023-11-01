@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld("do", {
   openFolder: (path) => {
     shell.openExternal(path);
   },
+  showItemInFolder: (path) => {
+    shell.showItemInFolder(path);
+  },
   createFolder: (path) => {
     fs.mkdirSync(path, { recursive: true }, (err) => {});
   },

@@ -207,8 +207,7 @@ function App() {
             data.push(message.addWebtoon.webtoon);
             return data;
           });
-        }
-        else {
+        } else {
           setQueue((queue) => {
             let data = [...queue];
             let indexOfTodo = data.findIndex(
@@ -470,7 +469,13 @@ function App() {
   return (
     <Router>
       <div>
-        <TopBar currentDownloadStatus={downloading ? {downloading: downloading} : {downloaded: downloaded[0]}}/>
+        <TopBar
+          currentDownloadStatus={
+            downloading
+              ? { downloading: downloading }
+              : { downloaded: downloaded[0] }
+          }
+        />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route
@@ -515,7 +520,10 @@ function App() {
               <Favorites favorites={favorites} setFavorites={setFavorites} />
             }
           />
-          <Route path="/modules" element={<Modules settingsPath={settingsPath} />} />
+          <Route
+            path="/modules"
+            element={<Modules settingsPath={settingsPath} />}
+          />
           <Route
             path="/settings"
             element={
@@ -539,7 +547,15 @@ function App() {
               />
             }
           />
-          <Route path="/:module" element={<Module />} />
+          <Route
+            path="/:module"
+            element={
+              <Module
+                defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
+                sleepTime={settings ? settings.sleepTime : 0.1}
+              />
+            }
+          />
         </Routes>
       </div>
     </Router>

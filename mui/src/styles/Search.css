@@ -80,3 +80,47 @@
 .m-button:hover .btn-icon {
   opacity: 0;
 }
+.f-menu {
+  position: relative;
+  list-style-type: none;
+  margin: 5px 0;
+  padding: 0;
+  width: 100px;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  margin-left: 60px;
+}
+
+.f-menu > li {
+  margin: 0;
+  color: #009788;
+  background-color: transparent;
+  border: 0.5px solid #009788;
+}
+
+.f-menu > li:hover {
+  background-color: #009788;
+  color: #000;
+}
+
+.f-menu > li.selected {
+  background-color: #009788;
+  color: #000;
+}
+
+.f-menu > li > button {
+  width: 70px;
+  height: 100%;
+  text-align: center;
+
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 5px;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}

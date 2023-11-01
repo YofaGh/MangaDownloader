@@ -16,7 +16,7 @@
 }
 
 .info-searched-w {
-  padding: 20px;
+  padding: 10px;
 }
 
 .search-card:hover {
@@ -25,4 +25,9 @@
 
 .search-card:active {
   transform: scale(0.95) rotateZ(1.1deg);
+}
+.search-info{
+  display: flex;
+  margin-top: 0;
+  justify-content: space-around;
 }

@@ -10,12 +10,13 @@ export const convert = async (webtoon, openPath) => {
     webtoon.type === "manga"
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
       : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
-  );
-  if (openPath) {
-    window.do.openFolder(webtoon.path);
-  }
+  ).then(() => {
+    if (openPath) {
+      window.do.openFolder(webtoon.path, { activate: true });
+    }
+  });
 };
-export const merge = (webtoon, downloadPath, mergeMethod, openPath) => {
+export const merge = async (webtoon, downloadPath, mergeMethod, openPath) => {
   const mergePath =
     webtoon.type === "manga"
       ? downloadPath +
@@ -24,8 +25,30 @@ export const merge = (webtoon, downloadPath, mergeMethod, openPath) => {
         "\\" +
         webtoon.info
       : downloadPath + "\\Merged\\" + fixNameForFolder(webtoon.title);
-  mergeImages(webtoon.path, mergePath, mergeMethod);
-  if (openPath) {
-    window.do.openFolder(mergePath);
-  }
+  await mergeImages(webtoon.path, mergePath, mergeMethod).then(() => {
+    if (openPath) {
+      window.do.openFolder(mergePath, { activate: true });
+    }
+  });
+};
+export const getDate = (datetime) => {
+  const date = new Date(datetime);
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+};
+
+export const getDateTime = (datetime) => {
+  const date = new Date(datetime);
+  return `${date.getFullYear()}/${
+    date.getMonth() + 1
+  }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+};
+
+export const filterDict = (webtoon, filters) => {
+  return Object.keys(webtoon)
+    .filter((key) => !filters.includes(key))
+    .reduce((obj, key) => {
+      return Object.assign(obj, {
+        [key]: webtoon[key],
+      });
+    }, {});
 };

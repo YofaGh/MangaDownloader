@@ -4,7 +4,7 @@ import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
 import get_info from "../api/get_info";
 import FlipButton from "./FlipButton";
-import { getDate, getDateTime, filterDict } from "./extras";
+import { getDate, getDateTime, filterDict } from "./utils";
 
 const Doujin = ({ module, url, addWebtoonToQueue, isFavorite, updateWebtoon }) => {
   const [webtoon, setWebtoon] = useState({});

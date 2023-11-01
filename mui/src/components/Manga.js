@@ -6,7 +6,7 @@ import get_info from "../api/get_info";
 import get_chapters from "../api/get_chapters";
 import FlipButton from "./FlipButton";
 import Rating from "./Rating";
-import { getDate, getDateTime, filterDict } from "./extras";
+import { getDate, getDateTime, filterDict } from "./utils";
 import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";

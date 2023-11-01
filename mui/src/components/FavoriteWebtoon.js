@@ -19,7 +19,8 @@ export default function FavoriteWebtoon({ webtoon, setFavorites }) {
             <div className="f-infoo">
               <button
                 className="buttonht"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setFavorites((prevFavorites) =>
                     prevFavorites.filter((wt) => wt.id !== webtoon.id)
                   );

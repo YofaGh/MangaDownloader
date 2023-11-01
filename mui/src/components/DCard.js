@@ -1,31 +1,7 @@
 import "../styles/DCard.css";
-import { convertToPdf, mergeImages } from "../api/utils";
-import { fixNameForFolder } from "../components/utils";
+import { convert, merge } from "../components/utils";
 
 export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMethod }) {
-  const convert = async () => {
-    await convertToPdf(
-      webtoon.path,
-      webtoon.path,
-      webtoon.type === "manga"
-        ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
-        : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
-    );
-    window.do.openFolder(webtoon.path);
-  };
-  const merge = () => {
-    mergeImages(
-      webtoon.path,
-      webtoon.type === "manga"
-        ? downloadPath +
-            "\\Merged\\" +
-            fixNameForFolder(webtoon.title) +
-            "\\" +
-            webtoon.info
-        : downloadPath + "\\Merged\\" + fixNameForFolder(webtoon.title),
-      mergeMethod
-    );
-  };
 
   const deleteFolder = () => {
     window.do.removeFolder(webtoon.path);
@@ -43,11 +19,11 @@ export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMetho
         <div className="d-status">Downladed {webtoon.images + ""} Images</div>
       </div>
       <div className="button-containerrr">
-        <button className="buttonh" onClick={merge}>
+        <button className="buttonh" onClick={() => merge(webtoon, downloadPath, mergeMethod, true)}>
           <img alt="" src="./assets/merge.svg" className="icofn"></img>
           <span className="tooltip">Merge</span>
         </button>
-        <button className="buttonh" onClick={convert}>
+        <button className="buttonh" onClick={() => convert(webtoon, true)}>
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>
           <span className="tooltip">Convert to PDF</span>
         </button>

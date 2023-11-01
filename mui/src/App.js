@@ -11,7 +11,7 @@ import Download from "./pages/Download";
 import Favorites from "./pages/Favorites";
 import Saucer from "./pages/Saucer";
 import Settings from "./pages/Settings";
-import { fixNameForFolder } from "./components/utils";
+import { fixNameForFolder, convert, merge } from "./components/utils";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
@@ -172,6 +172,12 @@ function App() {
         newD.images = message.done.images;
         newD.path = message.done.path;
         addDownloadedMessage({ addWebtoon: { webtoon: newD } });
+        if (settings.autoMerge) {
+          merge(newD, settings.downloadPath, settings.mergeMethod, false);
+        }
+        if (settings.autoConvert) {
+          convert(newD, false);
+        }
       }
       if (message.removeWebtoon) {
         setQueue((prevQueue) =>
@@ -199,6 +205,16 @@ function App() {
           setQueue((queue) => {
             let data = [...queue];
             data.push(message.addWebtoon.webtoon);
+            return data;
+          });
+        }
+        else {
+          setQueue((queue) => {
+            let data = [...queue];
+            let indexOfTodo = data.findIndex(
+              (item) => item.id === message.addWebtoon.webtoon.id
+            );
+            data[indexOfTodo] = message.addWebtoon.webtoon;
             return data;
           });
         }
@@ -454,7 +470,7 @@ function App() {
   return (
     <Router>
       <div>
-        <TopBar />
+        <TopBar currentDownloadStatus={downloading ? {downloading: downloading} : {downloaded: downloaded[0]}}/>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route

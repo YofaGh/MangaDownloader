@@ -5,15 +5,15 @@ import SearchBar from "../components/SearchBar";
 import "../styles/Module.css";
 
 function Module() {
-  const { domain } = useParams();
+  const { module } = useParams();
   const [input, setInput] = useState("");
-  const module = useLocation().state.module;
+  const moduleDetm = useLocation().state.module;
 
   return (
     <div className="container">
       <div style={{ display: "flex" }}>
         <SearchBar input={input} setInput={setInput} />
-        <Link to={`/${domain}/webtoon/${input}`} state={{ backUrl: "library" }}>
+        <Link to={`/${module}/webtoon/${input}`} state={{ backUrl: "library" }}>
           <button className="m-button goto-btn">
             <img
               alt=""
@@ -23,7 +23,7 @@ function Module() {
             ></img>
           </button>
         </Link>
-        {module.searchable && (
+        {moduleDetm.searchable && (
           <button className="m-button search-btn">
             <img
               alt=""

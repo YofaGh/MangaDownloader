@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import "./../styles/Topbar.css";
 import Sidebar from "./SideBar";
+import { useNavigate } from "react-router-dom";
 
-function TopBar() {
+function TopBar({ currentDownloadStatus }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  let currentDownloadLabel = null;
+  if (currentDownloadStatus.downloading) {
+    currentDownloadLabel = `Downlading ${currentDownloadStatus.downloading.title}`
+    if (currentDownloadStatus.downloading.type === "manga") {
+      currentDownloadLabel += ` ${currentDownloadStatus.downloading.info}`
+    }
+  }
+  if (currentDownloadStatus.downloaded) {
+    currentDownloadLabel = `Downladed ${currentDownloadStatus.downloaded.title}`
+    if (currentDownloadStatus.downloaded.type === "manga") {
+      currentDownloadLabel += ` ${currentDownloadStatus.downloaded.info}`
+    }
+  }
 
   function showHideMenus() {
     document.getElementById("mySidebar").style.width = isMenuOpen
@@ -28,8 +43,13 @@ function TopBar() {
             <div id="menu-bar3" class="menu-bars"></div>
           </label>
         </div>
+        {/* <img alt="" src="./assets/icon.svg"style={{width: "40px", height: "40px"}}></img> */}
         <div className="titleBarText">Manga Downloader</div>
         <div className="titleBarBtns">
+          <button className="d-buttonh" onClick={() => {navigate('download');}}>
+            <img alt="" src="./assets/download-st.svg" className="icon-t" style={{width: "20px", height: "20px"}}></img>
+            {currentDownloadLabel && <span className="d-tooltip">{currentDownloadLabel}</span>}
+          </button>
           <button
             className="topBtn minimizeBtn"
             onClick={() => window.do.minimizeApp()}

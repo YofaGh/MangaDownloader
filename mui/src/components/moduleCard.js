@@ -3,7 +3,7 @@ import "./../App.css";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
-function MCard({ module, checkModule }) {
+export default function MCard({ module, checkModule }) {
   return (
     <div className="m-card">
       <div className="m-card-info">
@@ -30,7 +30,10 @@ function MCard({ module, checkModule }) {
                 ></img>
               </button>
             </Link>
-            <button className="m-button check-btn" onClick={() => checkModule(module)}>
+            <button
+              className="m-button check-btn"
+              onClick={() => checkModule(module)}
+            >
               <img
                 alt=""
                 src="./assets/check.svg"
@@ -44,5 +47,3 @@ function MCard({ module, checkModule }) {
     </div>
   );
 }
-
-export default MCard;

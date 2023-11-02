@@ -7,7 +7,7 @@ import WSearchCard from "../components/WSearchCard";
 import PushButton from "../components/PushButton";
 import "../styles/Search.css";
 
-function Search({
+export default function Search({
   startSearching,
   searchingStatus,
   searchResults,
@@ -212,5 +212,3 @@ function Search({
     return <div className="container"></div>;
   }
 }
-
-export default Search;

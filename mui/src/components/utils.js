@@ -3,20 +3,19 @@ import { convertToPdf, mergeImages } from "../api/utils";
 export const fixNameForFolder = (manga) => {
   return manga.replace(/[\/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
+
 export const convert = async (webtoon, openPath) => {
-  let pdfName = webtoon.type === "manga"
-  ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
-  : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`
-  await convertToPdf(
-    webtoon.path,
-    webtoon.path,
-    pdfName
-  ).then(() => {
+  let pdfName =
+    webtoon.type === "manga"
+      ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
+      : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`;
+  await convertToPdf(webtoon.path, webtoon.path, pdfName).then(() => {
     if (openPath) {
       window.do.showItemInFolder(`${webtoon.path}\\${pdfName}.pdf`);
     }
   });
 };
+
 export const merge = async (webtoon, downloadPath, mergeMethod, openPath) => {
   const mergePath =
     webtoon.type === "manga"
@@ -32,6 +31,7 @@ export const merge = async (webtoon, downloadPath, mergeMethod, openPath) => {
     }
   });
 };
+
 export const getDate = (datetime) => {
   const date = new Date(datetime);
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;

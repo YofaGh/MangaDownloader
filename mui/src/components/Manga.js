@@ -12,7 +12,7 @@ import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 import PushButton from "./PushButton";
 
-const Manga = ({
+export default function Manga({
   module,
   url,
   addWebtoonToQueue,
@@ -21,7 +21,7 @@ const Manga = ({
   addLibraryMessage,
   isInLibrary,
   library,
-}) => {
+}) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -323,6 +323,4 @@ const Manga = ({
   ) : (
     <></>
   );
-};
-
-export default Manga;
+}

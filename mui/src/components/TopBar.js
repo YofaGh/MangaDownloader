@@ -3,20 +3,20 @@ import "./../styles/Topbar.css";
 import Sidebar from "./SideBar";
 import { useNavigate } from "react-router-dom";
 
-function TopBar({ currentDownloadStatus }) {
+export default function TopBar({ currentDownloadStatus }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   let currentDownloadLabel = null;
   if (currentDownloadStatus.downloading) {
-    currentDownloadLabel = `Downlading ${currentDownloadStatus.downloading.title}`
+    currentDownloadLabel = `Downlading ${currentDownloadStatus.downloading.title}`;
     if (currentDownloadStatus.downloading.type === "manga") {
-      currentDownloadLabel += ` ${currentDownloadStatus.downloading.info}`
+      currentDownloadLabel += ` ${currentDownloadStatus.downloading.info}`;
     }
   }
   if (currentDownloadStatus.downloaded) {
-    currentDownloadLabel = `Downladed ${currentDownloadStatus.downloaded.title}`
+    currentDownloadLabel = `Downladed ${currentDownloadStatus.downloaded.title}`;
     if (currentDownloadStatus.downloaded.type === "manga") {
-      currentDownloadLabel += ` ${currentDownloadStatus.downloaded.info}`
+      currentDownloadLabel += ` ${currentDownloadStatus.downloaded.info}`;
     }
   }
 
@@ -46,9 +46,21 @@ function TopBar({ currentDownloadStatus }) {
         {/* <img alt="" src="./assets/icon.svg"style={{width: "40px", height: "40px"}}></img> */}
         <div className="titleBarText">Manga Downloader</div>
         <div className="titleBarBtns">
-          <button className="d-buttonh" onClick={() => {navigate('download');}}>
-            <img alt="" src="./assets/download-st.svg" className="icon-t" style={{width: "20px", height: "20px"}}></img>
-            {currentDownloadLabel && <span className="d-tooltip">{currentDownloadLabel}</span>}
+          <button
+            className="d-buttonh"
+            onClick={() => {
+              navigate("download");
+            }}
+          >
+            <img
+              alt=""
+              src="./assets/download-st.svg"
+              className="icon-t"
+              style={{ width: "20px", height: "20px" }}
+            ></img>
+            {currentDownloadLabel && (
+              <span className="d-tooltip">{currentDownloadLabel}</span>
+            )}
           </button>
           <button
             className="topBtn minimizeBtn"
@@ -72,5 +84,3 @@ function TopBar({ currentDownloadStatus }) {
     </div>
   );
 }
-
-export default TopBar;

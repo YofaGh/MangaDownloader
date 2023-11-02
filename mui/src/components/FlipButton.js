@@ -1,6 +1,6 @@
-import "../styles/FlipButton.css"
+import "../styles/FlipButton.css";
 
-const FlipButton = ({frontText, backText}) => {
+export default function FlipButton({ frontText, backText }) {
   return (
     <div className="scene">
       <div className="cube">
@@ -9,6 +9,4 @@ const FlipButton = ({frontText, backText}) => {
       </div>
     </div>
   );
-};
-
-export default FlipButton;
+}

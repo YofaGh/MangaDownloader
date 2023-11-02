@@ -14,7 +14,7 @@ import { get_manga_images, get_doujin_images } from "../api/get_images";
 import { download_image } from "../api/download_image";
 import { search } from "../api/search";
 
-function Modules({ settingsPath }) {
+export default function Modules({ settingsPath }) {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const fetchModules = async () => {
@@ -252,5 +252,3 @@ function Modules({ settingsPath }) {
     </div>
   );
 }
-
-export default Modules;

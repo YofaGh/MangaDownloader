@@ -4,7 +4,7 @@ import React from "react";
 import HomeButton from "../components/HomeButton";
 import { Link } from "react-router-dom";
 
-function HomePage() {
+export default function HomePage() {
   return (
     <div className="container">
       <div className="App">
@@ -35,5 +35,3 @@ function HomePage() {
     </div>
   );
 }
-
-export default HomePage;

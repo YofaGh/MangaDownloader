@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/SearchBar.css";
 
-const SearchBar = ({ input, setInput, placeHolder }) => {
+export default function SearchBar({ input, setInput, placeHolder }) {
   return (
     <input
       placeholder={placeHolder ? placeHolder : "Type here"}
@@ -12,6 +12,4 @@ const SearchBar = ({ input, setInput, placeHolder }) => {
       onChange={(e) => setInput(e.target.value)}
     ></input>
   );
-};
-
-export default SearchBar;
+}

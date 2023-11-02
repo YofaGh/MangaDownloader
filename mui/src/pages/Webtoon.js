@@ -5,7 +5,7 @@ import get_module_type from "../api/get_module_type";
 import Manga from "./../components/Manga";
 import Doujin from "./../components/Doujin";
 
-function Webtoon({
+export default function Webtoon({
   addWebtoonToQueue,
   favorites,
   setFavorites,
@@ -87,5 +87,3 @@ function Webtoon({
       return <></>;
   }
 }
-
-export default Webtoon;

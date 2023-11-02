@@ -3,7 +3,7 @@ import Wcard from "./../components/webtoonCard";
 import HomeButton from "./../components/HomeButton";
 import get_chapters from "../api/get_chapters";
 
-function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
+export default function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
   const chunkArray = (array, size) => {
     const chunkedArray = [];
     for (let i = 0; i < array.length; i += size) {
@@ -80,5 +80,3 @@ function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
     </div>
   );
 }
-
-export default LPage;

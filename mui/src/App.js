@@ -16,7 +16,7 @@ import PushButton from "./components/PushButton";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
-function App() {
+export default function App() {
   const [settings, setSettings] = useState(null);
   const [queue, setQueue] = useState([]);
   const [downloadWorker, setDownloadWorker] = useState(null);
@@ -586,5 +586,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;

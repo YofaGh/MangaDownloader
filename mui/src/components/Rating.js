@@ -1,4 +1,4 @@
-const Rating = ({webtoon}) => {
+export default function Rating({ webtoon }) {
   return (
     <div>
       {webtoon.Rating}
@@ -8,6 +8,4 @@ const Rating = ({webtoon}) => {
       ></span>
     </div>
   );
-};
-
-export default Rating;
+}

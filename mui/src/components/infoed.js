@@ -1,6 +1,6 @@
 import "../styles/infoed.css";
 
-const Infoed = ({ title, info }) => {
+export default function Infoed({ title, info }) {
   function isEmpty(input) {
     switch (typeof input) {
       case "undefined":
@@ -34,6 +34,4 @@ const Infoed = ({ title, info }) => {
       )}
     </div>
   );
-};
-
-export default Infoed;
+}

@@ -2,7 +2,7 @@ import React from "react";
 import "./../styles/SideBar.css";
 import { Link } from "react-router-dom";
 
-function Sidebar() {
+export default function Sidebar() {
   return (
     <div className="sidebar">
       <Link to={{ pathname: "/" }}>
@@ -40,7 +40,10 @@ function Sidebar() {
           <img alt="" src="./assets/saucer.svg" className="icon"></img>
         </button>
       </Link>
-      <Link to={{ pathname: "settings" }} style={{ marginTop: "auto", marginBottom: "40px" }}>
+      <Link
+        to={{ pathname: "settings" }}
+        style={{ marginTop: "auto", marginBottom: "40px" }}
+      >
         <button className="buttonhg">
           <img alt="" src="./assets/settings.svg" className="icon"></img>
         </button>
@@ -48,5 +51,3 @@ function Sidebar() {
     </div>
   );
 }
-
-export default Sidebar;

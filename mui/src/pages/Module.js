@@ -8,7 +8,7 @@ import WSearchCard from "../components/WSearchCard";
 import Loading from "../components/Loading";
 import "../styles/Module.css";
 
-function Module({ defaultSearchDepth, sleepTime }) {
+export default function Module({ defaultSearchDepth, sleepTime }) {
   const { module } = useParams();
   const [input, setInput] = useState("");
   const [absolute, setAbsolute] = useState(false);
@@ -180,5 +180,3 @@ function Module({ defaultSearchDepth, sleepTime }) {
     return <></>;
   }
 }
-
-export default Module;

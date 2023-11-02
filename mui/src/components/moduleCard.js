@@ -1,9 +1,19 @@
-import React from "react";
+import React, {useState} from "react";
+import { retrieveImage } from "../api/utils";
 import "./../App.css";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
-export default function MCard({ module, checkModule }) {
+export default function MCard({ module, checkModule }) {  
+  const [imageSrc, setImageSrc] = useState(module.logo ? module.logo : "./assets/module-cyan.svg");
+  const get_cover = async () => {
+    try{
+      const response = await retrieveImage(module.domain, imageSrc);
+      setImageSrc(response);
+    }catch(error){
+      setImageSrc("./assets/module-cyan.svg");
+    }
+  };
   return (
     <div className="m-card">
       <div className="m-card-info">
@@ -12,10 +22,11 @@ export default function MCard({ module, checkModule }) {
           <div className="m-logo">
             <img
               referrerPolicy="no-referrer"
-              src={module.logo ? module.logo : "./assets/module.png"}
+              src={imageSrc}
               loading="lazy"
               alt=""
               style={{ width: 70, height: 70 }}
+              onError={get_cover}
             />
           </div>
           <div className="m-name">{module.domain}</div>

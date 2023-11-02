@@ -1,41 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { retrieveImage } from "../api/utils";
 import "../styles/WSearchCard.css";
 
 export default function WSearchCard({ webtoon }) {
-  const [imageWidth, setImageWidth] = useState(0);
-  const imageHeight = 220;
-
-  useEffect(() => {
-    const calculateImageWidth = () => {
-      const image = new Image();
-      image.src = webtoon.thumbnail;
-      image.onload = () => {
-        const aspectRatio = image.height / image.width;
-        const calculatedWidth = imageHeight / aspectRatio;
-        setImageWidth(calculatedWidth);
-      };
-    };
-
-    if (webtoon.thumbnail) {
-      calculateImageWidth();
-    }
-  }, [webtoon.thumbnail]);
-
-  const fixedStyle = {
-    width: `${imageWidth}px`,
-    height: `${imageHeight}px`,
-    backgroundImage: `url(${webtoon.thumbnail})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    float: "left",
-    left: 0,
-    borderTopLeftRadius: "20%",
-    borderBottomLeftRadius: "20%",
-    objectFit: "fill",
-    maxWidth: "150px",
+  const [imageSrc, setImageSrc] = useState(webtoon.thumbnail);
+  const get_cover = async () => {
+    const response = await retrieveImage(webtoon.domain, imageSrc);
+    setImageSrc(response);
   };
-
   return (
     <Link
       to={
@@ -47,9 +20,17 @@ export default function WSearchCard({ webtoon }) {
       style={{ textDecoration: "none" }}
     >
       <div className="search-card">
-        <div style={fixedStyle}></div>
+        <img
+          className="search-i"
+          alt=""
+          src={imageSrc}
+          onError={get_cover}
+        ></img>
         <div className="info-searched-w">
-          <h3>{webtoon.name.slice(0, 100)}{webtoon.name.length > 100 ? "..." : ""}</h3>
+          <h3>
+            {webtoon.name.slice(0, 100)}
+            {webtoon.name.length > 100 ? "..." : ""}
+          </h3>
           {webtoon.latest_chapter && <h4>{webtoon.latest_chapter}</h4>}
           {webtoon.code && <h4>{webtoon.code}</h4>}
         </div>

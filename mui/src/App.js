@@ -563,7 +563,7 @@ export default function App() {
           <div className="modal-content" style={{ textAlign: "center" }}>
             You need to specify a folder to download the webtoons in it.
             <br />
-            You canlater change the folder in settings.
+            You can later change the folder in settings.
             <br />
             <br />
             <br />

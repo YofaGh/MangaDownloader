@@ -152,3 +152,9 @@
   width: 20px;
   height: 20px;
 }
+
+.webtoon-i{
+  width: 200px;
+  background-size: cover;
+  background-position: center;
+}

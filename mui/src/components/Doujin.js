@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
 import { get_info } from "../api/webtoon";
+import { retrieveImage } from "../api/utils";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./utils";
 
@@ -15,40 +16,20 @@ export default function Doujin({
 }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const [imageHeight, setImageHeight] = useState(0);
-  const imageWidth = 200;
+  const [imageSrc, setImageSrc] = useState("");
 
   useEffect(() => {
     const fetchManga = async () => {
       const response = await get_info(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
+      setImageSrc(response.Cover);
     };
     fetchManga();
   }, [module, url]);
-
-  useEffect(() => {
-    const calculateImageHeight = () => {
-      const image = new Image();
-      image.src = webtoon.Cover;
-      image.onload = () => {
-        const aspectRatio = image.width / image.height;
-        const calculatedHeight = imageWidth / aspectRatio;
-        setImageHeight(calculatedHeight);
-      };
-    };
-
-    if (webtoon.Cover) {
-      calculateImageHeight();
-    }
-  }, [webtoon.Cover]);
-
-  const fixedStyle = {
-    width: `${imageWidth}px`,
-    height: `${imageHeight}px`,
-    backgroundImage: `url(${webtoon.Cover})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
+  const get_cover = async () => {
+    const response = await retrieveImage(module, imageSrc);
+    setImageSrc(response);
   };
 
   const addDoujin = (status) => {
@@ -67,7 +48,12 @@ export default function Doujin({
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
-          <div className="fixed" style={fixedStyle}></div>
+          <img
+            className="webtoon-i"
+            alt=""
+            src={imageSrc}
+            onError={get_cover}
+          ></img>
         </div>
         <div className="flex-item">
           <div className="title-sec">

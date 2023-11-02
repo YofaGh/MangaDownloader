@@ -26,8 +26,21 @@
 .search-card:active {
   transform: scale(0.95) rotateZ(1.1deg);
 }
+
 .search-info{
   display: flex;
   margin-top: 0;
   justify-content: space-around;
+}
+
+.search-i{
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  float: left;
+  left: 0;
+  border-top-left-radius: 20%;
+  border-bottom-left-radius: 20%;
+  object-fit: fill;
+  max-width: 150px;
 }

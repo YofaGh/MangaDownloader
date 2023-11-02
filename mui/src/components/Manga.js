@@ -2,6 +2,7 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
+import { retrieveImage } from "../api/utils";
 import { get_info, get_chapters } from "../api/webtoon";
 import FlipButton from "./FlipButton";
 import Rating from "./Rating";
@@ -24,10 +25,14 @@ export default function Manga({
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
-  const [imageHeight, setImageHeight] = useState(0);
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
-  const imageWidth = 200;
+  const [imageSrc, setImageSrc] = useState("");
+
+  const get_cover = async () => {
+    const response = await retrieveImage(module, imageSrc);
+    setImageSrc(response);
+  };
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -35,25 +40,10 @@ export default function Manga({
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
+      setImageSrc(response.Cover);
     };
     fetchManga();
   }, [module, url]);
-
-  useEffect(() => {
-    const calculateImageHeight = () => {
-      const image = new Image();
-      image.src = webtoon.Cover;
-      image.onload = () => {
-        const aspectRatio = image.width / image.height;
-        const calculatedHeight = imageWidth / aspectRatio;
-        setImageHeight(calculatedHeight);
-      };
-    };
-
-    if (webtoon.Cover) {
-      calculateImageHeight();
-    }
-  }, [webtoon.Cover]);
 
   useEffect(() => {
     const get_chapterss = async () => {
@@ -63,14 +53,6 @@ export default function Manga({
     };
     get_chapterss();
   }, [module, url]);
-
-  const fixedStyle = {
-    width: `${imageWidth}px`,
-    height: `${imageHeight}px`,
-    backgroundImage: `url(${webtoon.Cover})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  };
 
   const chunkArray = (array, size) => {
     const chunkedArray = [];
@@ -113,18 +95,6 @@ export default function Manga({
         },
       });
     } else {
-      // addLibraryMessage({
-      //   addWebtoon: {
-      //     webtoon: {
-      //       title: webtoon.Title,
-      //       status: true,
-      //       domain: module,
-      //       url,
-      //       cover: webtoon.Cover,
-      //       last_downloaded_chapter: null,
-      //     },
-      //   },
-      // });
       showHideModal(true);
     }
   };
@@ -148,7 +118,12 @@ export default function Manga({
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
-          <div className="fixed" style={fixedStyle}></div>
+          <img
+            className="webtoon-i"
+            alt=""
+            src={imageSrc}
+            onError={get_cover}
+          ></img>
           {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>

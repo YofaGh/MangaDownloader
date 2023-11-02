@@ -1,6 +1,9 @@
-import { get_manga_images, get_doujin_images } from "./api/get_images";
-import { download_image } from "./api/download_image";
-import { search } from "./api/search";
+import {
+  get_manga_images,
+  get_doujin_images,
+  download_image,
+  search,
+} from "./api/webtoon";
 import {
   validate_corrupted_image,
   validate_truncated_image,

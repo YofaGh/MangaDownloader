@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
-import get_modules from "../api/get_modules";
+import { get_modules } from "../api/webtoon";
 import SearchFilter from "../components/SearchFilter";
 import FilterButton from "../components/FilterButton";
 import WSearchCard from "../components/WSearchCard";
@@ -45,9 +45,10 @@ export default function Search({
   }, []);
 
   useEffect(() => {
-    if (searchingStatus && searchingStatus.searched){
-    const sortMenu = document.getElementById("sort-menu");
-    sortMenu.style.opacity = sortOpen ? "1" : "0";}
+    if (searchingStatus && searchingStatus.searched) {
+      const sortMenu = document.getElementById("sort-menu");
+      sortMenu.style.opacity = sortOpen ? "1" : "0";
+    }
   }, [sortOpen, searchingStatus]);
 
   const updateSortBy = (newSortBy) => {

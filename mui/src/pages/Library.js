@@ -1,9 +1,13 @@
 import "./../App.css";
 import Wcard from "./../components/webtoonCard";
 import HomeButton from "./../components/HomeButton";
-import get_chapters from "../api/get_chapters";
+import { get_chapters } from "../api/webtoon";
 
-export default function LPage({ library, addLibraryMessage, addWebtoonToQueue }) {
+export default function LPage({
+  library,
+  addLibraryMessage,
+  addWebtoonToQueue,
+}) {
   const chunkArray = (array, size) => {
     const chunkedArray = [];
     for (let i = 0; i < array.length; i += size) {
@@ -51,7 +55,7 @@ export default function LPage({ library, addLibraryMessage, addWebtoonToQueue })
     for (const webtoon of library) {
       updateSingle(webtoon);
     }
-  }
+  };
 
   const chunkedWebtoons = chunkArray(library, 3);
   return (
@@ -59,7 +63,11 @@ export default function LPage({ library, addLibraryMessage, addWebtoonToQueue })
       <div className="container">
         <div className="top-header">
           Library
-          <HomeButton svg={"./assets/download.svg"} label={"Update All"} onClick={updateAll} />
+          <HomeButton
+            svg={"./assets/download.svg"}
+            label={"Update All"}
+            onClick={updateAll}
+          />
         </div>
         <div className="card-row-container">
           {chunkedWebtoons.map((chunk, index) => (

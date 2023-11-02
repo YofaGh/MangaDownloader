@@ -2,7 +2,7 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
-import { search } from "../api/search";
+import { search } from "../api/webtoon";
 import PushButton from "../components/PushButton";
 import WSearchCard from "../components/WSearchCard";
 import Loading from "../components/Loading";

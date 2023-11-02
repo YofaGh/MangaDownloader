@@ -2,7 +2,7 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
-import get_info from "../api/get_info";
+import { get_info } from "../api/webtoon";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime, filterDict } from "./utils";
 

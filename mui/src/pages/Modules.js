@@ -1,7 +1,14 @@
 import "./../App.css";
 import React, { useState, useEffect } from "react";
 import MCard from "../components/moduleCard";
-import get_modules from "../api/get_modules";
+import {
+  get_modules,
+  get_chapters,
+  get_manga_images,
+  get_doujin_images,
+  download_image,
+  search,
+} from "../api/webtoon";
 import ModuleChecker from "../components/ModuleChecker";
 import {
   get_sample,
@@ -9,10 +16,6 @@ import {
   validate_truncated_image,
   get_doujin_title,
 } from "../api/utils";
-import get_chapters from "../api/get_chapters";
-import { get_manga_images, get_doujin_images } from "../api/get_images";
-import { download_image } from "../api/download_image";
-import { search } from "../api/search";
 
 export default function Modules({ settingsPath }) {
   const [modules, setModules] = useState([]);

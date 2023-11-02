@@ -3,53 +3,12 @@ from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-sys.path.append(f'{os.getcwd()}\\mangascraper')
+class ModuleRequest(BaseModel):
+    domain: str
 
-app = FastAPI()
-
-origins = [
-    "http://localhost:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_methods=['*'],
-    allow_headers=['*']
-)
-
-@app.get("/modules/")
-async def get_modules():
-    from mangascraper.utils.modules_contributer import get_all_modules
-    return [{
-        'type': module.type,
-        'domain': module.domain,
-        'logo': module.logo,
-        'searchable': True if hasattr(module, 'search_by_keyword') else False
-    } for module in get_all_modules()]
-
-@app.get("/module_logo/{module}/")
-async def get_logo(module):
-    from mangascraper.utils.modules_contributer import get_module
-    return get_module(module).logo
-
-@app.get("/info/{domain}/{url}/")
-async def get_info(domain, url):
-    from mangascraper.utils.modules_contributer import get_module
-    module = get_module(domain)
-    return module.get_info(url, wait=False)
-
-@app.get("/type/{domain}/")
-async def get_module_type(domain):
-    from mangascraper.utils.modules_contributer import get_module
-    module = get_module(domain)
-    return module.type
-
-@app.get("/get_chapters/{domain}/{url}/")
-async def get_chapters(domain, url):
-    from mangascraper.utils.modules_contributer import get_module
-    module = get_module(domain)
-    return module.get_chapters(url, wait=False)
+class WebtoonRequest(BaseModel):
+    domain: str
+    url: str
 
 class GetDoujinImagesRequest(BaseModel):
     domain: str
@@ -79,18 +38,66 @@ class SearchRequest(BaseModel):
     domain: str
     keyword: str
     absolute: bool
-    depth: int
-    sleepTime: float
+    page: int
+    sleep_time: float
 
 class SauceRequest(BaseModel):
     site: str
     url: str
 
 class UploadRequest(BaseModel):
-    url: str
+    image_url: str
 
 class ValidateRequest(BaseModel):
-    path: str
+    image_path: str
+
+sys.path.append(f'{os.getcwd()}\\mangascraper')
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*']
+)
+
+@app.get("/modules/")
+async def get_modules():
+    from mangascraper.utils.modules_contributer import get_all_modules
+    return [{
+        'type': module.type,
+        'domain': module.domain,
+        'logo': module.logo,
+        'searchable': True if hasattr(module, 'search_by_keyword') else False
+    } for module in get_all_modules()]
+
+@app.get("/get_saucers_list/")
+async def get_saucers_list():
+    from mangascraper.utils.saucer import sites
+    return [site.__name__ for site in sites]
+
+@app.get('/shutdown/')
+async def shutdown():
+    os.kill(os.getpid(), signal.SIGTERM)
+
+@app.post("/info/")
+async def get_info(request_data: WebtoonRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.get_info(request_data.url, wait=False)
+
+@app.post("/get_chapters/")
+async def get_chapters(request_data: WebtoonRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.get_chapters(request_data.url, wait=False)
+
+@app.post("/type/")
+async def get_module_type(request_data: ModuleRequest=Body(...)):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(request_data.domain)
+    return module.type
 
 @app.post("/doujin/title/")
 async def get_title(request_data: GetDoujinImagesRequest=Body(...)):
@@ -135,15 +142,15 @@ async def search(request_data: SearchRequest=Body(...)):
     results = {}
     search = module.search_by_keyword(request_data.keyword, request_data.absolute, wait=False)
     page = 1
-    while page <= request_data.depth:
+    while page <= request_data.page:
         try:
             last = next(search)
             if not last:
                 break
             results.update(last)
             page += 1
-            if page < request_data.depth:
-                time.sleep(request_data.sleepTime)
+            if page < request_data.page:
+                time.sleep(request_data.sleep_time)
         except Exception:
             break
     return [{'name': k, **v} for k, v in results.items()]
@@ -156,18 +163,13 @@ async def retrieve_image(request_data: DownloadRequest=Body(...)):
     image = response.content
     return f'data:image/png;base64, {base64.b64encode(image).decode()}'
 
-@app.get("/get_saucers_list/")
-async def get_saucers_list():
-    from mangascraper.utils.saucer import sites
-    return [site.__name__ for site in sites]
-
 @app.post("/upload_image/")
 async def upload_image(request_data: UploadRequest=Body(...)):
     import requests
     from bs4 import BeautifulSoup
-    with open(request_data.url, 'rb') as file:
+    with open(request_data.image_url, 'rb') as file:
         bytes = file.read()
-    response = requests.post('https://imgops.com/store', files={'photo': (os.path.basename(request_data.url), bytes)})
+    response = requests.post('https://imgops.com/store', files={'photo': (os.path.basename(request_data.image_url), bytes)})
     soup = BeautifulSoup(response.text, 'html.parser')
     link = soup.find('div', {'id': 'content'}).find('a')['href']
     return f'https:{link}'
@@ -183,25 +185,21 @@ async def saucer(request_data: SauceRequest=Body(...)):
         pass
     return results
 
-@app.get("/get_sample/{domain}/")
-async def get_sample(domain):
+@app.post("/get_sample/")
+async def get_sample(request_data: ModuleRequest=Body(...)):
     from mangascraper.utils.assets import load_dict_from_file
     samples = load_dict_from_file('mangascraper/test_samples.json')
-    return samples[domain]
+    return samples[request_data.domain]
 
 @app.post("/validate_corrupted_image/")
 async def validate_corrupted_image(request_data: ValidateRequest=Body(...)):
     from mangascraper.utils.assets import validate_corrupted_image
-    return validate_corrupted_image(request_data.path)
+    return validate_corrupted_image(request_data.image_path)
 
 @app.post("/validate_truncated_image/")
 async def validate_truncated_image(request_data: ValidateRequest=Body(...)):
     from mangascraper.utils.assets import validate_truncated_image
-    return validate_truncated_image(request_data.path)
-
-@app.get('/shutdown/')
-async def shutdown():
-    os.kill(os.getpid(), signal.SIGTERM)
+    return validate_truncated_image(request_data.image_path)
 
 if __name__ == '__main__':
     uvicorn.run(app=app, host="0.0.0.0", port=8000)

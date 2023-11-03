@@ -13,6 +13,7 @@ export default function Doujin({
   addWebtoonToQueue,
   isFavorite,
   updateWebtoon,
+  loadCovers,
 }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
@@ -23,13 +24,17 @@ export default function Doujin({
       const response = await get_info(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
-      setImageSrc(response.Cover);
+      setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
     };
     fetchManga();
-  }, [module, url]);
+  }, [module, url, loadCovers]);
   const get_cover = async () => {
-    const response = await retrieveImage(module, imageSrc);
-    setImageSrc(response);
+    try {
+      const response = await retrieveImage(module, imageSrc);
+      setImageSrc(response);
+    } catch (error) {
+      setImageSrc("./assets/default-cover.svg");
+    }
   };
 
   const addDoujin = (status) => {

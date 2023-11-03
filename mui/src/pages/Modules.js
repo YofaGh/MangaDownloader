@@ -17,7 +17,7 @@ import {
   get_doujin_title,
 } from "../api/utils";
 
-export default function Modules({ settingsPath }) {
+export default function Modules({ settingsPath, loadCovers }) {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const fetchModules = async () => {
@@ -241,7 +241,7 @@ export default function Modules({ settingsPath }) {
           <div key={index} className="card-row">
             {chunk.map((module) => (
               <div key={module.domain} className="card-wrapper">
-                <MCard module={module} checkModule={checkModule} />
+                <MCard module={module} checkModule={checkModule} loadCovers={loadCovers}/>
               </div>
             ))}
           </div>

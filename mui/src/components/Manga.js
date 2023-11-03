@@ -21,6 +21,7 @@ export default function Manga({
   addLibraryMessage,
   isInLibrary,
   library,
+  loadCovers,
 }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
@@ -30,8 +31,12 @@ export default function Manga({
   const [imageSrc, setImageSrc] = useState("");
 
   const get_cover = async () => {
-    const response = await retrieveImage(module, imageSrc);
-    setImageSrc(response);
+    try {
+      const response = await retrieveImage(module, imageSrc);
+      setImageSrc(response);
+    } catch (error) {
+      setImageSrc("./assets/default-cover.svg");
+    }
   };
 
   useEffect(() => {
@@ -40,10 +45,10 @@ export default function Manga({
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
-      setImageSrc(response.Cover);
+      setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
     };
     fetchManga();
-  }, [module, url]);
+  }, [module, url, loadCovers]);
 
   useEffect(() => {
     const get_chapterss = async () => {

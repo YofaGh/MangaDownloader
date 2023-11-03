@@ -6,7 +6,7 @@ import Loading from "../components/Loading";
 import { useNotification } from "../NotificationProvider";
 import "../styles/Saucer.css";
 
-export default function Saucer() {
+export default function Saucer({ loadCovers }) {
   const [url, setUrl] = useState("");
   const [sites, setSites] = useState([]);
   const [results, setResults] = useState([]);
@@ -67,7 +67,11 @@ export default function Saucer() {
         <div className="f-header">Results</div>
         <div className="ff-container">
           {results.map((result) => (
-            <SaucerResult key={result.url} result={result} />
+            <SaucerResult
+              key={result.url}
+              result={result}
+              loadCovers={loadCovers}
+            />
           ))}
         </div>
       </div>

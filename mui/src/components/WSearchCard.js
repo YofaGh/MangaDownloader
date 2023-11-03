@@ -3,11 +3,17 @@ import { Link } from "react-router-dom";
 import { retrieveImage } from "../api/utils";
 import "../styles/WSearchCard.css";
 
-export default function WSearchCard({ webtoon }) {
-  const [imageSrc, setImageSrc] = useState(webtoon.thumbnail);
+export default function WSearchCard({ webtoon, loadCovers }) {
+  const [imageSrc, setImageSrc] = useState(
+    loadCovers ? webtoon.thumbnail : "./assets/default-cover.svg"
+  );
   const get_cover = async () => {
-    const response = await retrieveImage(webtoon.domain, imageSrc);
-    setImageSrc(response);
+    try {
+      const response = await retrieveImage(webtoon.domain, imageSrc);
+      setImageSrc(response);
+    } catch {
+      setImageSrc("./assets/default-cover.svg");
+    }
   };
   return (
     <Link

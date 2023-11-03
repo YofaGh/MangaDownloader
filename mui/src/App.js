@@ -550,6 +550,7 @@ export default function App() {
                 library={library}
                 addLibraryMessage={addLibraryMessage}
                 addWebtoonToQueue={addWebtoonToQueue}
+                loadCovers={settings ? settings.loadCovers : true}
               />
             }
           />
@@ -563,6 +564,7 @@ export default function App() {
                 resetSearch={resetSearch}
                 selectedModulesForSearch={selectedModulesForSearch}
                 defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
+                loadCovers={settings ? settings.loadCovers : true}
               />
             }
           />
@@ -582,12 +584,21 @@ export default function App() {
           <Route
             path="/favorites"
             element={
-              <Favorites favorites={favorites} setFavorites={setFavorites} />
+              <Favorites
+                favorites={favorites}
+                setFavorites={setFavorites}
+                loadCovers={settings ? settings.loadCovers : true}
+              />
             }
           />
           <Route
             path="/modules"
-            element={<Modules settingsPath={settingsPath} />}
+            element={
+              <Modules
+                settingsPath={settingsPath}
+                loadCovers={settings ? settings.loadCovers : true}
+              />
+            }
           />
           <Route
             path="/settings"
@@ -600,7 +611,7 @@ export default function App() {
               />
             }
           />
-          <Route path="/saucer" element={<Saucer />} />
+          <Route path="/saucer" element={<Saucer loadCovers={settings ? settings.loadCovers : true}/>} />
           <Route
             path="/:module/webtoon/:url"
             element={
@@ -610,6 +621,7 @@ export default function App() {
                 setFavorites={setFavorites}
                 addLibraryMessage={addLibraryMessage}
                 library={library}
+                loadCovers={settings ? settings.loadCovers : true}
               />
             }
           />
@@ -619,6 +631,7 @@ export default function App() {
               <Module
                 defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
                 sleepTime={settings ? settings.sleepTime : 0.1}
+                loadCovers={settings ? settings.loadCovers : true}
               />
             }
           />

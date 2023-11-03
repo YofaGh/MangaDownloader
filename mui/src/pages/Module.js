@@ -8,7 +8,7 @@ import WSearchCard from "../components/WSearchCard";
 import Loading from "../components/Loading";
 import "../styles/Module.css";
 
-export default function Module({ defaultSearchDepth, sleepTime }) {
+export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
   const { module } = useParams();
   const [input, setInput] = useState("");
   const [absolute, setAbsolute] = useState(false);
@@ -174,7 +174,7 @@ export default function Module({ defaultSearchDepth, sleepTime }) {
           }}
         >
           {results.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} />
+            <WSearchCard key={index} webtoon={item} loadCovers={loadCovers} />
           ))}
         </div>
       </div>

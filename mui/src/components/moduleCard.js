@@ -1,16 +1,18 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { retrieveImage } from "../api/utils";
 import "./../App.css";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
 
-export default function MCard({ module, checkModule }) {  
-  const [imageSrc, setImageSrc] = useState(module.logo ? module.logo : "./assets/module-cyan.svg");
+export default function MCard({ module, checkModule, loadCovers }) {
+  const [imageSrc, setImageSrc] = useState(
+    loadCovers && module.logo ? module.logo : "./assets/module-cyan.svg"
+  );
   const get_cover = async () => {
-    try{
+    try {
       const response = await retrieveImage(module.domain, imageSrc);
       setImageSrc(response);
-    }catch(error){
+    } catch (error) {
       setImageSrc("./assets/module-cyan.svg");
     }
   };

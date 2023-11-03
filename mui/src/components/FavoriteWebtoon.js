@@ -3,12 +3,21 @@ import { retrieveImage } from "../api/utils";
 import "../styles/FavoriteWebtoon.css";
 import { useNotification } from "../NotificationProvider";
 
-export default function FavoriteWebtoon({ webtoon, setFavorites }) {
+export default function FavoriteWebtoon({ webtoon, setFavorites, loadCovers }) {
   const dispatch = useNotification();
-  const [imageSrc, setImageSrc] = useState(webtoon.cover);
+  const [imageSrc, setImageSrc] = useState(
+    loadCovers ? webtoon.cover : "./assets/default-cover.svg"
+  );
   const get_cover = async () => {
-    const response = await retrieveImage(webtoon.id.split("_$_")[1], webtoon.cover);
-    setImageSrc(response);
+    try {
+      const response = await retrieveImage(
+        webtoon.id.split("_$_")[1],
+        webtoon.cover
+      );
+      setImageSrc(response);
+    } catch {
+      setImageSrc("./assets/default-cover.svg");
+    }
   };
   return (
     <div className="f-card">
@@ -16,7 +25,12 @@ export default function FavoriteWebtoon({ webtoon, setFavorites }) {
         <div className="f-backloaded" id={webtoon.title}>
           <div className="f-back-content">
             <div className="f-tey">
-              <img src={imageSrc} alt="" className="f-img-back" onError={get_cover}/>
+              <img
+                src={imageSrc}
+                alt=""
+                className="f-img-back"
+                onError={get_cover}
+              />
             </div>
             <div className="f-infoo">
               <button
@@ -30,7 +44,7 @@ export default function FavoriteWebtoon({ webtoon, setFavorites }) {
                     type: "SUCCESS",
                     message: `Removed ${webtoon.title} from favorites`,
                     title: "Successful Request",
-                  })
+                  });
                 }}
               >
                 <img

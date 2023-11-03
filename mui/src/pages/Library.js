@@ -7,6 +7,7 @@ export default function LPage({
   library,
   addLibraryMessage,
   addWebtoonToQueue,
+  loadCovers,
 }) {
   const chunkArray = (array, size) => {
     const chunkedArray = [];
@@ -78,6 +79,7 @@ export default function LPage({
                     webtoon={webtoon}
                     addLibraryMessage={addLibraryMessage}
                     update={updateSingle}
+                    loadCovers={loadCovers}
                   />
                 </div>
               ))}

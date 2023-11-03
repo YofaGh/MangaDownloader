@@ -14,6 +14,7 @@ export default function Search({
   resetSearch,
   selectedModulesForSearch,
   defaultSearchDepth,
+  loadCovers,
 }) {
   const [input, setInput] = useState("");
   const [types, updateTypes] = useState([
@@ -204,7 +205,7 @@ export default function Search({
           }}
         >
           {searchResults.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} />
+            <WSearchCard key={index} webtoon={item} loadCovers={loadCovers} />
           ))}
         </div>
       </div>

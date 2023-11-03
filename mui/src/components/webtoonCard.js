@@ -3,9 +3,16 @@ import { Link } from "react-router-dom";
 import { retrieveImage } from "../api/utils";
 import "../styles/webtoonCard.css";
 
-export default function Wcard({ webtoon, addLibraryMessage, update }) {
+export default function Wcard({
+  webtoon,
+  addLibraryMessage,
+  update,
+  loadCovers,
+}) {
   const [loaded, setLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState(webtoon.cover);
+  const [imageSrc, setImageSrc] = useState(
+    loadCovers ? webtoon.cover : "./assets/default-cover.svg"
+  );
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
@@ -19,6 +26,7 @@ export default function Wcard({ webtoon, addLibraryMessage, update }) {
       const response = await retrieveImage(webtoon.domain, webtoon.cover);
       setImageSrc(response);
     } catch (error) {
+      setImageSrc("./assets/default-cover.svg");
       stopRotate();
     }
   };
@@ -50,18 +58,16 @@ export default function Wcard({ webtoon, addLibraryMessage, update }) {
               <div className="info">
                 {webtoon.title}
                 <br></br>
-                {webtoon.last_downloaded_chapter ? webtoon.last_downloaded_chapter.name : ""}
+                {webtoon.last_downloaded_chapter
+                  ? webtoon.last_downloaded_chapter.name
+                  : ""}
               </div>
             </div>
           </div>
           {loaded && (
             <div className="front">
               <div className="img">
-                <img
-                  src={imageSrc}
-                  alt=""
-                  className="img-front"
-                />
+                <img src={imageSrc} alt="" className="img-front" />
               </div>
               <div className="front-content">
                 <small className="badge">{webtoon.domain}</small>

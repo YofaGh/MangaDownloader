@@ -17,7 +17,7 @@ function createWindow() {
     title: "Manga Downloader",
     width: 1000,
     height: 600,
-    //frame: false,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
@@ -26,8 +26,7 @@ function createWindow() {
     },
   });
   mainWindow.setResizable(false);
-  //mainWindow.loadFile("mui/build/index.html");
-  mainWindow.loadURL("http://127.0.0.1:3000");
+  mainWindow.loadFile("mui/build/index.html");
   mainWindow.webContents.setWindowOpenHandler((req) => {
     shell.openExternal(req.url);
     return { action: "deny" };
@@ -53,44 +52,28 @@ function createWindow() {
   });
 }
 
-const loadUpChecks = () => {
-  if (!fs.existsSync(path.join(app.getPath("userData"), "settings.json"))) {
+const saveFile = (name, data) => {
+  if (!fs.existsSync(path.join(app.getPath("userData"), name))) {
     fs.writeFileSync(
-      path.join(app.getPath("userData"), "settings.json"),
-      JSON.stringify(defaultSettings, null, 2),
-      "utf8"
-    );
-  }
-  if (!fs.existsSync(path.join(app.getPath("userData"), "queue.json"))) {
-    fs.writeFileSync(
-      path.join(app.getPath("userData"), "queue.json"),
-      JSON.stringify([], null, 2),
-      "utf8"
-    );
-  }
-  if (!fs.existsSync(path.join(app.getPath("userData"), "downloaded.json"))) {
-    fs.writeFileSync(
-      path.join(app.getPath("userData"), "downloaded.json"),
-      JSON.stringify([], null, 2),
-      "utf8"
-    );
-  }
-  if (!fs.existsSync(path.join(app.getPath("userData"), "favorites.json"))) {
-    fs.writeFileSync(
-      path.join(app.getPath("userData"), "favorites.json"),
-      JSON.stringify([], null, 2),
-      "utf8"
-    );
-  }
-  if (!fs.existsSync(path.join(app.getPath("userData"), "library.json"))) {
-    fs.writeFileSync(
-      path.join(app.getPath("userData"), "library.json"),
-      JSON.stringify({}, null, 2),
+      path.join(app.getPath("userData"), name),
+      JSON.stringify(data, null, 2),
       "utf8"
     );
   }
 };
+
+const loadUpChecks = () => {
+  saveFile("settings.json", defaultSettings);
+  saveFile("queue.json", []);
+  saveFile("downloaded.json", []);
+  saveFile("favorites.json", []);
+  saveFile("library.json", {});
+};
+
 app.whenReady().then(() => {
+  app.on("window-all-closed", () => {
+    app.quit();
+  });
   loadUpChecks();
   createWindow();
 });

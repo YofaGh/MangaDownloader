@@ -10,7 +10,7 @@ export default function Queue({ queue, addQueueMessage }) {
   function handleOnDragEnd(result) {
     if (!result.destination) return;
 
-    const items = Array.from(queue);
+    const items = Array.from(queu);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 

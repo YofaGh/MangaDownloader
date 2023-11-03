@@ -41,3 +41,74 @@
   flex: 0 0 33.33%;
   padding: 10px;
 }
+.notification-wrapper {
+  position: fixed;
+  top: 50px;
+  right: 10px;
+  width: 300px;
+  z-index: 999;
+}
+
+.notification-item {
+  box-shadow: 0 0 10px #212121;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  animation: SlideLeft 0.4s;
+  animation-fill-mode: forwards;
+  width: 300px;
+  background-color: #212121;
+  font-size:smaller;
+}
+
+@keyframes SlideLeft {
+  0% {
+    margin-left: 120%;
+  }
+
+  100% {
+    margin-left: 0;
+  }
+}
+
+@keyframes SlideRight {
+  0% {
+    margin-left: 0;
+  }
+
+  100% {
+    margin-left: 120%;
+  }
+}
+
+.notification-item.exit {
+  animation: SlideRight 0.4s;
+  animation-fill-mode: forwards;
+}
+
+.notification-item p {
+  margin: 0;
+  padding: 10px;
+}
+
+.notification-item .bar {
+  height: 10px;
+}
+.notification-item.success{
+  color: #009788;
+  border: 1px solid #009788;
+}
+
+.notification-item.error{
+  color: rgba(134, 0, 0, 0.977);
+  border: 1px solid rgba(134, 0, 0, 0.977);
+  font-weight: bold;
+}
+
+.notification-item.success .bar {
+  background-color: #009788;
+}
+
+.notification-item.error .bar {
+  background-color: rgba(134, 0, 0, 0.977);
+}

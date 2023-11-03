@@ -4,19 +4,27 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[\/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
-export const convert = async (webtoon, openPath) => {
+export const convert = async (webtoon, openPath, dispatch) => {
   let pdfName =
     webtoon.type === "manga"
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
       : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`;
   await convertToPdf(webtoon.path, webtoon.path, pdfName).then(() => {
+    dispatch({
+      type: "SUCCESS",
+      message:
+        webtoon.type === "manga"
+          ? `Converted ${webtoon.title} - ${webtoon.info}`
+          : `Converted ${webtoon.title}`,
+      title: "Successful Request",
+    });
     if (openPath) {
       window.do.showItemInFolder(`${webtoon.path}\\${pdfName}.pdf`);
     }
   });
 };
 
-export const merge = async (webtoon, downloadPath, mergeMethod, openPath) => {
+export const merge = async (webtoon, downloadPath, mergeMethod, openPath, dispatch) => {
   const mergePath =
     webtoon.type === "manga"
       ? downloadPath +
@@ -26,6 +34,14 @@ export const merge = async (webtoon, downloadPath, mergeMethod, openPath) => {
         webtoon.info
       : downloadPath + "\\Merged\\" + fixNameForFolder(webtoon.title);
   await mergeImages(webtoon.path, mergePath, mergeMethod).then(() => {
+    dispatch({
+      type: "SUCCESS",
+      message:
+        webtoon.type === "manga"
+          ? `Merged ${webtoon.title} - ${webtoon.info}`
+          : `Merged ${webtoon.title}`,
+      title: "Successful Request",
+    });
     if (openPath) {
       window.do.openFolder(mergePath, { activate: true });
     }

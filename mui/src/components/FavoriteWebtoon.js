@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { retrieveImage } from "../api/utils";
 import "../styles/FavoriteWebtoon.css";
+import { useNotification } from "../NotificationProvider";
 
 export default function FavoriteWebtoon({ webtoon, setFavorites }) {
+  const dispatch = useNotification();
   const [imageSrc, setImageSrc] = useState(webtoon.cover);
   const get_cover = async () => {
     const response = await retrieveImage(webtoon.id.split("_$_")[1], webtoon.cover);
@@ -24,6 +26,11 @@ export default function FavoriteWebtoon({ webtoon, setFavorites }) {
                   setFavorites((prevFavorites) =>
                     prevFavorites.filter((wt) => wt.id !== webtoon.id)
                   );
+                  dispatch({
+                    type: "SUCCESS",
+                    message: `Removed ${webtoon.title} from favorites`,
+                    title: "Successful Request",
+                  })
                 }}
               >
                 <img

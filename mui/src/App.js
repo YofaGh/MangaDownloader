@@ -13,6 +13,7 @@ import Saucer from "./pages/Saucer";
 import Settings from "./pages/Settings";
 import { fixNameForFolder, convert, merge } from "./components/utils";
 import PushButton from "./components/PushButton";
+import { useNotification } from "./NotificationProvider";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
@@ -32,6 +33,7 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
   const [settingsPath, setSettingsPath] = useState("");
+  const dispatch = useNotification();
 
   useEffect(() => {
     setSettingsPath(
@@ -152,7 +154,9 @@ export default function App() {
       }
       if (message.done) {
         setDownloading(null);
-        setQueue(queue.filter((item) => item.id !== message.done.webtoon.id));
+        setQueue((prevQueue) =>
+          prevQueue.filter((item) => item.id !== message.done.webtoon.id)
+        );
         if (message.done.webtoon.in_library) {
           addLibraryMessage({
             updateWebtoon: {
@@ -171,11 +175,25 @@ export default function App() {
         newD.images = message.done.images;
         newD.path = message.done.path;
         addDownloadedMessage({ addWebtoon: { webtoon: newD } });
+        dispatch({
+          type: "SUCCESS",
+          message:
+            message.done.webtoon.type === "manga"
+              ? `Downloaded ${message.done.webtoon.title} - ${message.done.webtoon.info}`
+              : `Downloaded ${message.done.webtoon.title}`,
+          title: "Successful Request",
+        });
         if (settings.autoMerge) {
-          merge(newD, settings.downloadPath, settings.mergeMethod, false);
+          merge(
+            newD,
+            settings.downloadPath,
+            settings.mergeMethod,
+            false,
+            dispatch
+          );
         }
         if (settings.autoConvert) {
-          convert(newD, false);
+          convert(newD, false, dispatch);
         }
       }
       if (message.removeWebtoon) {
@@ -184,6 +202,14 @@ export default function App() {
             (item) => item.id !== message.removeWebtoon.webtoon.id
           )
         );
+        dispatch({
+          type: "SUCCESS",
+          message:
+            message.removeWebtoon.webtoon.type === "manga"
+              ? `Removed ${message.removeWebtoon.webtoon.title} - ${message.removeWebtoon.webtoon.info} from queue`
+              : `Removed ${message.removeWebtoon.webtoon.title} from queue`,
+          title: "Successful Request",
+        });
         if (
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
@@ -206,6 +232,14 @@ export default function App() {
             data.push(message.addWebtoon.webtoon);
             return data;
           });
+          dispatch({
+            type: "SUCCESS",
+            message:
+              message.addWebtoon.webtoon.type === "manga"
+                ? `Added ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} to queue`
+                : `Added ${message.addWebtoon.webtoon.title} to queue`,
+            title: "Successful Request",
+          });
         } else {
           setQueue((queue) => {
             let data = [...queue];
@@ -214,6 +248,14 @@ export default function App() {
             );
             data[indexOfTodo] = message.addWebtoon.webtoon;
             return data;
+          });
+          dispatch({
+            type: "SUCCESS",
+            message:
+              message.addWebtoon.webtoon.type === "manga"
+                ? `Updated ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} in queue`
+                : `Updated ${message.addWebtoon.webtoon.title} in queue`,
+            title: "Successful Request",
           });
         }
       }
@@ -244,10 +286,11 @@ export default function App() {
         });
       }
       if (message.reOrderQueue) {
-        const newQueue = message.reOrderQueue.order.map((webtoon) =>
-          queue.find((item) => item.id === webtoon)
-        );
-        setQueue(newQueue);
+        setQueue((prevQueue) => {
+          return message.reOrderQueue.order.map((webtoon) =>
+            prevQueue.find((item) => item.id === webtoon)
+          );
+        });
       }
       if (message.rempveImage) {
         window.do.deleteImage(message.rempveImage.saved_path);
@@ -266,8 +309,10 @@ export default function App() {
         });
       }
       if (message.removeWebtoon) {
-        setDownloaded(
-          downloaded.filter((_, index) => index !== message.removeWebtoon.index)
+        setDownloaded((prevDownloaded) =>
+          prevDownloaded.filter(
+            (_, index) => index !== message.removeWebtoon.index
+          )
         );
       }
       if (message.removeAllWebtoons) {
@@ -340,19 +385,34 @@ export default function App() {
           data.push(message.addWebtoon.webtoon);
           return data;
         });
+        dispatch({
+          type: "SUCCESS",
+          message: `Added ${message.addWebtoon.webtoon.title} to library`,
+          title: "Successful Request",
+        });
       }
       if (message.removeWebtoon) {
-        setLibrary(
-          library.filter(
+        let ww = library.find(
+          (webtoon) =>
+            `${webtoon.domain}_$_${webtoon.url}` ===
+            `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
+        );
+        setLibrary((prevLibrary) =>
+          prevLibrary.filter(
             (webtoon) =>
               `${webtoon.domain}_$_${webtoon.url}` !==
               `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
           )
         );
+        dispatch({
+          type: "SUCCESS",
+          message: `Removed ${ww.title} from library`,
+          title: "Successful Request",
+        });
       }
       if (message.updateWebtoon) {
-        setLibrary(
-          library.map((webtoon) => {
+        setLibrary((prevLibrary) =>
+          prevLibrary.map((webtoon) => {
             if (
               webtoon.domain === message.updateWebtoon.domain &&
               webtoon.url === message.updateWebtoon.url
@@ -391,7 +451,10 @@ export default function App() {
           !e.data.searchedModule &&
           !e.data.searchingModule
         ) {
-          setQueueMessages([...queueMessages, e.data]);
+          setQueueMessages((prevQueueMessages) => [
+            ...prevQueueMessages,
+            e.data,
+          ]);
         }
       };
       setDownloadWorker(dWorker);
@@ -533,6 +596,7 @@ export default function App() {
                 settings={settings}
                 setSettings={setSettings}
                 downloading={downloading}
+                dispatch={dispatch}
               />
             }
           />
@@ -572,7 +636,10 @@ export default function App() {
               onClick={() =>
                 window.do.selectFolder().then((result) => {
                   if (result) {
-                    setSettings({ ...settings, downloadPath: result });
+                    setSettings((prevSettings) => ({
+                      ...prevSettings,
+                      downloadPath: result,
+                    }));
                     const modal = document.getElementById("browse-modal");
                     modal.style.display = "none";
                     startDownloading();

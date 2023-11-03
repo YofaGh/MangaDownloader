@@ -3,6 +3,7 @@ import SearchBar from "../components/SearchBar";
 import { upload_image, saucer, get_saucers_list } from "../api/utils";
 import SaucerResult from "../components/SaucerResult";
 import Loading from "../components/Loading";
+import { useNotification } from "../NotificationProvider";
 import "../styles/Saucer.css";
 
 export default function Saucer() {
@@ -10,6 +11,7 @@ export default function Saucer() {
   const [sites, setSites] = useState([]);
   const [results, setResults] = useState([]);
   const [currentStatus, setCurrentStatus] = useState(null);
+  const dispatch = useNotification();
 
   useEffect(() => {
     const fetchSaucers = async () => {
@@ -23,11 +25,19 @@ export default function Saucer() {
     setCurrentStatus("Uploading");
     const response = await upload_image(e.target.files[0].path);
     setUrl(response);
+    dispatch({
+      type: "SUCCESS",
+      message: `Uploaded ${e.target.files[0].name}`,
+      title: "Successful Request",
+    });
     setCurrentStatus(null);
   };
 
   useEffect(() => {
     const startSaucer = async () => {
+      if (!url) {
+        return;
+      }
       setCurrentStatus("Saucing");
       for (let i = 0; i < sites.length; i++) {
         const site = sites[i];

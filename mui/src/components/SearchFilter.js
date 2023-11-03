@@ -78,8 +78,8 @@ export default function SearchFilter({
             &nbsp;&nbsp;
           </div>
           <div className="in-depth">
+            <h2>Only in Title:&nbsp;</h2>
             <label className="cyberpunk-checkbox-label">
-              Only in Title:&nbsp;
               <input
                 type="checkbox"
                 className="cyberpunk-checkbox"

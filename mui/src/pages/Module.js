@@ -114,8 +114,8 @@ export default function Module({ defaultSearchDepth, sleepTime }) {
                 &nbsp;&nbsp;
               </div>
               <div className="in-depth">
+                <h2>Only in Title:&nbsp;</h2>
                 <label className="cyberpunk-checkbox-label">
-                  Only in Title:&nbsp;
                   <input
                     type="checkbox"
                     className="cyberpunk-checkbox"
@@ -145,7 +145,10 @@ export default function Module({ defaultSearchDepth, sleepTime }) {
         <div className="header-r">
           <h2>Keyword : {input}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <button className="m-button sort-btn" onClick={() => setSortOpen(!sortOpen)}>
+          <button
+            className="m-button sort-btn"
+            onClick={() => setSortOpen(!sortOpen)}
+          >
             <img
               alt=""
               src="./assets/sort.svg"

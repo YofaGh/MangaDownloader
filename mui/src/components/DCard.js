@@ -1,7 +1,9 @@
 import "../styles/DCard.css";
 import { convert, merge } from "../components/utils";
+import { useNotification } from "../NotificationProvider";
 
 export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMethod }) {
+  const dispatch = useNotification();
 
   const deleteFolder = () => {
     window.do.removeFolder(webtoon.path);
@@ -19,11 +21,11 @@ export default function DCard({ webtoon, removeWebtoon, downloadPath, mergeMetho
         <div className="d-status">Downladed {webtoon.images + ""} Images</div>
       </div>
       <div className="button-containerrr">
-        <button className="buttonh" onClick={() => merge(webtoon, downloadPath, mergeMethod, true)}>
+        <button className="buttonh" onClick={() => merge(webtoon, downloadPath, mergeMethod, true, dispatch)}>
           <img alt="" src="./assets/merge.svg" className="icofn"></img>
           <span className="tooltip">Merge</span>
         </button>
-        <button className="buttonh" onClick={() => convert(webtoon, true)}>
+        <button className="buttonh" onClick={() => convert(webtoon, true, dispatch)}>
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>
           <span className="tooltip">Convert to PDF</span>
         </button>

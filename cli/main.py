@@ -138,25 +138,14 @@ async def merge(request_data: MergeRequest=Body(...)):
 @app.post('/search/')
 async def search(request_data: SearchRequest=Body(...)):
     from mangascraper.utils.modules_contributer import get_module
+    from mangascraper.crawlers.search_engine import search
     module = get_module(request_data.domain)
-    results = {}
-    search = module.search_by_keyword(request_data.keyword, request_data.absolute, wait=False)
-    page = 1
-    while page <= request_data.page:
-        try:
-            last = next(search)
-            if not last:
-                break
-            results.update(last)
-            page += 1
-            if page < request_data.page:
-                time.sleep(request_data.sleep_time)
-        except Exception:
-            break
+    results, _ = search(request_data.keyword, module, request_data.sleep_time, request_data.absolute, request_data.page)
     return [{'name': k, **v} for k, v in results.items()]
 
 @app.post('/retrieve_image/')
 async def retrieve_image(request_data: DownloadRequest=Body(...)):
+    print(request_data.image_url)
     from mangascraper.utils.modules_contributer import get_module
     module = get_module(request_data.domain)
     response = module.send_request(request_data.image_url, headers=module.download_images_headers, wait=False)
@@ -165,14 +154,8 @@ async def retrieve_image(request_data: DownloadRequest=Body(...)):
 
 @app.post('/upload_image/')
 async def upload_image(request_data: UploadRequest=Body(...)):
-    import requests
-    from bs4 import BeautifulSoup
-    with open(request_data.image_url, 'rb') as file:
-        bytes = file.read()
-    response = requests.post('https://imgops.com/store', files={'photo': (os.path.basename(request_data.image_url), bytes)})
-    soup = BeautifulSoup(response.text, 'html.parser')
-    link = soup.find('div', {'id': 'content'}).find('a')['href']
-    return f'https:{link}'
+    from mangascraper.utils.saucer import sauce_file
+    return sauce_file(request_data.image_url)
 
 @app.post('/saucer/')
 async def saucer(request_data: SauceRequest=Body(...)):

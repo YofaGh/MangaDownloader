@@ -6,7 +6,7 @@ import { retrieveImage } from "../api/utils";
 import { get_info, get_chapters } from "../api/webtoon";
 import FlipButton from "./FlipButton";
 import Rating from "./Rating";
-import { getDate, getDateTime, filterDict } from "./utils";
+import { getDate, getDateTime } from "./utils";
 import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
@@ -43,6 +43,7 @@ export default function Manga({
     const fetchManga = async () => {
       const response = await get_info(module, url);
       setWebtoon(response);
+      console.log(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
       setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
@@ -174,41 +175,23 @@ export default function Manga({
             {webtoon.Summary}
           </div>
           <div className="info-sec">
-            {Object.entries(
-              filterDict(webtoon, [
-                "Title",
-                "Alternative",
-                "Cover",
-                "Status",
-                "Summary",
-                "Rating",
-                "Posted On",
-                "Updated On",
-              ])
-            ).map(([key, value]) => (
+            {Object.entries(webtoon.Extras).map(([key, value]) => (
               <Infoed title={`${key}:`} info={value} />
             ))}
             <div style={{ display: "inline-flex" }}>
-              <FlipButton
-                frontText={
-                  <div>
-                    Updated On:
-                    <br />
-                    {getDate(webtoon["Updated On"])}
-                  </div>
-                }
-                backText={getDateTime(webtoon["Updated On"])}
-              />
-              <FlipButton
-                frontText={
-                  <div>
-                    Posted On:
-                    <br />
-                    {getDate(webtoon["Posted On"])}
-                  </div>
-                }
-                backText={getDateTime(webtoon["Posted On"])}
-              />
+              {webtoon.Dates &&
+                Object.entries(webtoon.Dates).map(([key, value]) => (
+                  <FlipButton
+                    frontText={
+                      <div>
+                        {key}
+                        <br />
+                        {getDate(value)}
+                      </div>
+                    }
+                    backText={getDateTime(value)}
+                  />
+                ))}
             </div>
           </div>
         </div>

@@ -59,13 +59,3 @@ export const getDateTime = (datetime) => {
     date.getMonth() + 1
   }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 };
-
-export const filterDict = (webtoon, filters) => {
-  return Object.keys(webtoon)
-    .filter((key) => !filters.includes(key))
-    .reduce((obj, key) => {
-      return Object.assign(obj, {
-        [key]: webtoon[key],
-      });
-    }, {});
-};

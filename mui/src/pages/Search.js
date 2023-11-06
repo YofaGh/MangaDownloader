@@ -131,7 +131,7 @@ export default function Search({
           <PushButton label={"Terminate"} onClick={resetSearch} />
         </div>
         <div
-          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", margin: "20px" }}
         >
           {selectedModulesForSearch.map((item) => {
             let num = searchResults.filter(

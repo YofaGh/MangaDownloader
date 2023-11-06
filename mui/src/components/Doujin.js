@@ -5,7 +5,7 @@ import Infoed from "./../components/infoed";
 import { get_info } from "../api/webtoon";
 import { retrieveImage } from "../api/utils";
 import FlipButton from "./FlipButton";
-import { getDate, getDateTime, filterDict } from "./utils";
+import { getDate, getDateTime } from "./utils";
 
 export default function Doujin({
   module,
@@ -87,28 +87,23 @@ export default function Doujin({
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="info-sec">
-            {Object.entries(
-              filterDict(webtoon, [
-                "Title",
-                "Alternative",
-                "Cover",
-                "Pages",
-                "Uploaded",
-              ])
-            ).map(([key, value]) => (
+            {Object.entries(webtoon.Extras).map(([key, value]) => (
               <Infoed title={`${key}:`} info={value} />
             ))}
             <Infoed title="Pages:" info={webtoon.Pages} />
-            <FlipButton
-              frontText={
-                <div>
-                  Uploaded:
-                  <br />
-                  {getDate(webtoon.Uploaded)}
-                </div>
-              }
-              backText={getDateTime(webtoon.Uploaded)}
-            />
+            {webtoon.Dates &&
+              Object.entries(webtoon.Dates).map(([key, value]) => (
+                <FlipButton
+                  frontText={
+                    <div>
+                      {key}
+                      <br />
+                      {getDate(value)}
+                    </div>
+                  }
+                  backText={getDateTime(value)}
+                />
+              ))}
           </div>
         </div>
       </div>

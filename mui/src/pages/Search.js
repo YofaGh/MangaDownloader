@@ -130,9 +130,7 @@ export default function Search({
           <h2>Searching For : {searchingStatus.searching.keyword}</h2>
           <PushButton label={"Terminate"} onClick={resetSearch} />
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", margin: "20px" }}
-        >
+        <div className="s-cont">
           {selectedModulesForSearch.map((item) => {
             let num = searchResults.filter(
               (result) => result.domain === item.name
@@ -178,9 +176,7 @@ export default function Search({
             </li>
           </ul>
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
-        >
+        <div className="s-cont">
           {selectedModulesForSearch.map((item) => {
             return (
               <FilterButton
@@ -196,14 +192,7 @@ export default function Search({
           })}
         </div>
         <br />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
+        <div className="s-cont">
           {searchResults.map((item, index) => (
             <WSearchCard key={index} webtoon={item} loadCovers={loadCovers} />
           ))}

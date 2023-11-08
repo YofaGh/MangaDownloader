@@ -60,8 +60,3 @@ export async function validate_truncated_image(image_path) {
   const response = await api.post("/validate_truncated_image/", { image_path });
   return response.data;
 }
-
-export async function get_doujin_title(domain, code) {
-  const response = await api.post("/doujin/title/", { domain, code });
-  return response.data;
-}

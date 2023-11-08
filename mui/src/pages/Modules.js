@@ -6,6 +6,7 @@ import {
   get_chapters,
   get_manga_images,
   get_doujin_images,
+  get_doujin_title,
   download_image,
   search,
 } from "../api/webtoon";
@@ -14,7 +15,6 @@ import {
   get_sample,
   validate_corrupted_image,
   validate_truncated_image,
-  get_doujin_title,
 } from "../api/utils";
 
 export default function Modules({ settingsPath, loadCovers }) {

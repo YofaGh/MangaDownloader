@@ -11,6 +11,7 @@ import Download from "./pages/Download";
 import Favorites from "./pages/Favorites";
 import Saucer from "./pages/Saucer";
 import Settings from "./pages/Settings";
+import About from "./pages/About";
 import { fixNameForFolder, convert, merge } from "./components/utils";
 import PushButton from "./components/PushButton";
 import { useNotification } from "./NotificationProvider";
@@ -611,7 +612,13 @@ export default function App() {
               />
             }
           />
-          <Route path="/saucer" element={<Saucer loadCovers={settings ? settings.loadCovers : true}/>} />
+          <Route path="/about" element={<About />} />
+          <Route
+            path="/saucer"
+            element={
+              <Saucer loadCovers={settings ? settings.loadCovers : true} />
+            }
+          />
           <Route
             path="/:module/webtoon/:url"
             element={

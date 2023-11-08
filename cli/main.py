@@ -1,4 +1,4 @@
-import uvicorn, signal, base64, time, sys, os
+import multiprocessing, uvicorn, signal, base64, sys, os
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -79,7 +79,9 @@ async def get_saucers_list():
 
 @app.get('/shutdown/')
 async def shutdown():
-    os.kill(os.getpid(), signal.SIGTERM)
+    gg = os.kill(os.getpid(), signal.CTRL_BREAK_EVENT)
+    print(gg)
+    return 'shuttin down'
 
 @app.post('/info/')
 async def get_info(request_data: WebtoonRequest=Body(...)):
@@ -185,4 +187,5 @@ async def validate_truncated_image(request_data: ValidateRequest=Body(...)):
     return validate_truncated_image(request_data.image_path)
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host='0.0.0.0', port=8000)
+    multiprocessing.freeze_support()
+    uvicorn.run(app='main:app', host='0.0.0.0', port=8000, workers=4)

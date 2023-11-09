@@ -5,13 +5,11 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py'],
+    ['sheller.py'],
     pathex=['mangascraper'],
     binaries=[],
     datas=[],
-    hiddenimports=[
-        'main'
-    ],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -30,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='main',
+    name='sheller',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

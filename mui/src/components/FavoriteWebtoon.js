@@ -1,19 +1,21 @@
 import React, { useState } from "react";
-import { retrieveImage } from "../api/utils";
 import "../styles/FavoriteWebtoon.css";
 import { useNotification } from "../NotificationProvider";
+import { useSheller } from "../ShellerProvider";
 
 export default function FavoriteWebtoon({ webtoon, setFavorites, loadCovers }) {
   const dispatch = useNotification();
+  const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     loadCovers ? webtoon.cover : "./assets/default-cover.svg"
   );
   const get_cover = async () => {
     try {
-      const response = await retrieveImage(
+      const response = await sheller([
+        " retrieveImage",
         webtoon.id.split("_$_")[1],
-        webtoon.cover
-      );
+        webtoon.cover,
+      ]);
       setImageSrc(response);
     } catch {
       setImageSrc("./assets/default-cover.svg");

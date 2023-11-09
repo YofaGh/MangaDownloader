@@ -1,7 +1,7 @@
 import "./../App.css";
 import Wcard from "./../components/webtoonCard";
 import HomeButton from "./../components/HomeButton";
-import { get_chapters } from "../api/webtoon";
+import { useSheller } from "../ShellerProvider";
 
 export default function LPage({
   library,
@@ -9,6 +9,7 @@ export default function LPage({
   addWebtoonToQueue,
   loadCovers,
 }) {
+  const sheller = useSheller();
   const chunkArray = (array, size) => {
     const chunkedArray = [];
     for (let i = 0; i < array.length; i += size) {
@@ -18,7 +19,11 @@ export default function LPage({
   };
 
   const updateSingle = async (webtoon) => {
-    const allChapters = await get_chapters(webtoon.domain, webtoon.url);
+    const allChapters = await sheller([
+      "get_chapters",
+      webtoon.domain,
+      webtoon.url,
+    ]);
     let chaptersToDownload = [];
     if (webtoon.last_downloaded_chapter) {
       let reached_last_downloaded_chapter = false;

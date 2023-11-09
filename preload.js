@@ -1,6 +1,19 @@
 const { contextBridge, ipcRenderer, shell } = require("electron");
+const { execFile } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+
+function executeCommand(shellerPath, args) {
+  return new Promise((resolve, reject) => {
+    execFile(shellerPath, args, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
 
 contextBridge.exposeInMainWorld("do", {
   closeApp: () => ipcRenderer.send("closeApp"),
@@ -35,4 +48,8 @@ contextBridge.exposeInMainWorld("do", {
   selectFolder: () => ipcRenderer.invoke("selectFolder"),
   getSettingsPath: () => ipcRenderer.invoke("getSettingsPath"),
   deleteImage: (path) => fs.unlinkSync(path),
+  sheller: async (shellerPath, args) => {
+    const output = await executeCommand(shellerPath, args);
+    return JSON.parse(output);
+  },
 });

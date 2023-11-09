@@ -3,6 +3,8 @@ const { execFile } = require("child_process");
 const https = require("https");
 const path = require("path");
 const fs = require("fs");
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 const defaultSettings = {
   autoMerge: false,
@@ -12,7 +14,7 @@ const defaultSettings = {
   defaultSearchDepth: 3,
   mergeMethod: "Normal",
   downloadPath: null,
-  cliPath: null,
+  shellerPath: null,
 };
 
 function createLoadingWindow() {
@@ -29,54 +31,99 @@ function createLoadingWindow() {
   });
   loadingWindow.setResizable(false);
   loadingWindow.loadFile("mui/public/splash.html");
+  axios
+    .get(
+      "https://github.com/YofaGh/MangaDownloader/releases/expanded_assets/latest"
+    )
+    .then((response) => {
+      const html = response.data;
+      const $ = cheerio.load(html);
+      const href = $("a").attr("href");
+      const shellerLatest = `https://github.com${href}`;
+      const fileName = shellerLatest.split("/").pop();
+      const exePath = path.join(app.getPath("userData"), fileName);
 
-  const fileContent = fs.readFileSync(
-    path.join(app.getPath("userData"), "settings.json"),
-    "utf8"
-  );
-  const settings = JSON.parse(fileContent);
-  const exePath = path.join(app.getPath("userData"), "cli-latest.exe");
-  if (!settings.cliPath) {
-    const fileUrl =
-      "https://github.com/YofaGh/MangaDownloader/releases/download/v1.0.0/cli-v1.0.0.exe";
-    const file = fs.createWriteStream(exePath);
-    https.get(fileUrl, (response) => {
-      https
-        .get(
-          response.headers.location,
-          { followRedirects: true },
-          (response) => {
-            response.pipe(file);
-            file.on("finish", () => {
-              file.close();
-              file.once("close", () => {
-                loadingWindow.close();
-                settings.cliPath = exePath;
-                fs.writeFileSync(
-                  path.join(app.getPath("userData"), "settings.json"),
-                  JSON.stringify(settings, null, 2),
-                  "utf8"
-                );
-                execFile(exePath);
-                createWindow();
-              })
-            });
-            const totalSize = response.headers["content-length"];
-            let downloadedSize = 0;
-            response.on("data", (chunk) => {
-              downloadedSize += chunk.length;
-              const progress = (downloadedSize / totalSize) * 100;
-              loadingWindow.webContents.send("download-progress", progress);
-            });
-          }
-        )
-        .on("error", () => loadingWindow.close());
+      const fileContent = fs.readFileSync(
+        path.join(app.getPath("userData"), "settings.json"),
+        "utf8"
+      );
+      const settings = JSON.parse(fileContent);
+      if (!settings.shellerPath) {
+        loadingWindow.webContents.send("update-status", "Downloading Bots...");
+        const file = fs.createWriteStream(exePath);
+        https.get(shellerLatest, (response) => {
+          https
+            .get(
+              response.headers.location,
+              { followRedirects: true },
+              (response) => {
+                response.pipe(file);
+                file.on("finish", () => {
+                  file.close();
+                  file.once("close", () => {
+                    loadingWindow.close();
+                    settings.shellerPath = exePath;
+                    fs.writeFileSync(
+                      path.join(app.getPath("userData"), "settings.json"),
+                      JSON.stringify(settings, null, 2),
+                      "utf8"
+                    );
+                    execFile(exePath);
+                    createWindow();
+                  });
+                });
+                const totalSize = response.headers["content-length"];
+                let downloadedSize = 0;
+                response.on("data", (chunk) => {
+                  downloadedSize += chunk.length;
+                  const progress = (downloadedSize / totalSize) * 100;
+                  loadingWindow.webContents.send("download-progress", progress);
+                });
+              }
+            )
+            .on("error", () => loadingWindow.close());
+        });
+      } else if (settings.shellerPath !== exePath) {
+        loadingWindow.webContents.send("update-status", "Updating Bots...");
+        const file = fs.createWriteStream(exePath);
+        https.get(shellerLatest, (response) => {
+          https
+            .get(
+              response.headers.location,
+              { followRedirects: true },
+              (response) => {
+                response.pipe(file);
+                file.on("finish", () => {
+                  file.close();
+                  file.once("close", () => {
+                    loadingWindow.close();
+                    fs.unlinkSync(settings.shellerPath);
+                    settings.shellerPath = exePath;
+                    fs.writeFileSync(
+                      path.join(app.getPath("userData"), "settings.json"),
+                      JSON.stringify(settings, null, 2),
+                      "utf8"
+                    );
+                    execFile(exePath);
+                    createWindow();
+                  });
+                });
+                const totalSize = response.headers["content-length"];
+                let downloadedSize = 0;
+                response.on("data", (chunk) => {
+                  downloadedSize += chunk.length;
+                  const progress = (downloadedSize / totalSize) * 100;
+                  loadingWindow.webContents.send("download-progress", progress);
+                });
+              }
+            )
+            .on("error", () => loadingWindow.close());
+        });
+      } else {
+        loadingWindow.close();
+        createWindow();
+      }
     });
-  } else {
-    loadingWindow.close();
-    execFile(settings.cliPath);
-    createWindow();
-  }
 }
 
 function createWindow() {
@@ -94,7 +141,6 @@ function createWindow() {
   });
   mainWindow.setResizable(false);
   mainWindow.loadFile("mui/build/index.html");
-  // mainWindow.loadURL("http://127.0.0.1:3000");
   mainWindow.webContents.setWindowOpenHandler((req) => {
     shell.openExternal(req.url);
     return { action: "deny" };
@@ -139,12 +185,6 @@ const loadUpChecks = () => {
 };
 
 app.whenReady().then(() => {
-  app.on("window-all-closed", () => {
-    fetch("http://127.0.0.1:8000/shutdown/").then((res) => {
-      console.log(res);
-      app.quit();
-    });
-  });
   loadUpChecks();
   createLoadingWindow();
 });

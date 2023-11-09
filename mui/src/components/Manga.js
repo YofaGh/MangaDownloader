@@ -2,8 +2,6 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
-import { retrieveImage } from "../api/utils";
-import { get_info, get_chapters } from "../api/webtoon";
 import FlipButton from "./FlipButton";
 import Rating from "./Rating";
 import { getDate, getDateTime } from "./utils";
@@ -11,6 +9,7 @@ import Loading from "./Loading";
 import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 import PushButton from "./PushButton";
+import { useSheller } from "../ShellerProvider";
 
 export default function Manga({
   module,
@@ -29,10 +28,11 @@ export default function Manga({
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
   const [imageSrc, setImageSrc] = useState("");
+  const sheller = useSheller();
 
   const get_cover = async () => {
     try {
-      const response = await retrieveImage(module, imageSrc);
+      const response = await sheller(["retrieveImage", module, imageSrc]);
       setImageSrc(response);
     } catch (error) {
       setImageSrc("./assets/default-cover.svg");
@@ -41,9 +41,8 @@ export default function Manga({
 
   useEffect(() => {
     const fetchManga = async () => {
-      const response = await get_info(module, url);
+      const response = await sheller(["get_info", module, url]);
       setWebtoon(response);
-      console.log(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
       setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
@@ -53,7 +52,7 @@ export default function Manga({
 
   useEffect(() => {
     const get_chapterss = async () => {
-      const response = await get_chapters(module, url);
+      const response = await sheller(["get_chapters", module, url]);
       setChapters(response);
       setLoadingChapters(false);
     };

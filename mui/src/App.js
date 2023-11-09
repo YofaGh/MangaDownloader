@@ -15,6 +15,7 @@ import About from "./pages/About";
 import { fixNameForFolder, convert, merge } from "./components/utils";
 import PushButton from "./components/PushButton";
 import { useNotification } from "./NotificationProvider";
+import { useSheller, useShellerPathSetter } from "./ShellerProvider";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
 
@@ -35,6 +36,8 @@ export default function App() {
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
   const [settingsPath, setSettingsPath] = useState("");
   const dispatch = useNotification();
+  const sheller = useSheller();
+  const shellerPathSetter = useShellerPathSetter();
 
   useEffect(() => {
     setSettingsPath(
@@ -69,6 +72,7 @@ export default function App() {
       } else {
         startDownloading();
       }
+      shellerPathSetter(settings.shellerPath);
     }
   }, [settings]);
 
@@ -190,11 +194,12 @@ export default function App() {
             settings.downloadPath,
             settings.mergeMethod,
             false,
-            dispatch
+            dispatch,
+            sheller
           );
         }
         if (settings.autoConvert) {
-          convert(newD, false, dispatch);
+          convert(newD, false, dispatch, sheller);
         }
       }
       if (message.removeWebtoon) {

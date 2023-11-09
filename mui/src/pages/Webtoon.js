@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { get_module_type } from "../api/webtoon";
 import { useNotification } from "../NotificationProvider";
+import { useSheller } from "../ShellerProvider";
 import Manga from "./../components/Manga";
 import Doujin from "./../components/Doujin";
 
@@ -20,9 +20,10 @@ export default function Webtoon({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isInLibrary, setIsInLibrary] = useState(false);
   const dispatch = useNotification();
+  const sheller = useSheller();
   useEffect(() => {
     const fetchModuleType = async () => {
-      const response = await get_module_type(module);
+      const response = await sheller(["get_module_type", module]);
       setModuleType(response);
       setIsFavorite(
         favorites.some(

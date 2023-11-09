@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
-import { get_modules } from "../api/webtoon";
 import SearchFilter from "../components/SearchFilter";
 import FilterButton from "../components/FilterButton";
 import WSearchCard from "../components/WSearchCard";
 import PushButton from "../components/PushButton";
+import { useSheller } from "../ShellerProvider";
 import "../styles/Search.css";
 
 export default function Search({
@@ -26,8 +26,9 @@ export default function Search({
   const [absolute, setAbsolute] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
+  const sheller = useSheller();
   const fetchModules = async () => {
-    const response = await get_modules();
+    const response = await sheller(["get_modules"]);
     updateModules(
       response
         .filter((module) => module.searchable)

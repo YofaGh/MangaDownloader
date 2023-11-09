@@ -2,10 +2,9 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
 import Infoed from "./../components/infoed";
-import { get_info } from "../api/webtoon";
-import { retrieveImage } from "../api/utils";
 import FlipButton from "./FlipButton";
 import { getDate, getDateTime } from "./utils";
+import { useSheller } from "../ShellerProvider";
 
 export default function Doujin({
   module,
@@ -18,10 +17,11 @@ export default function Doujin({
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
+  const sheller = useSheller();
 
   useEffect(() => {
     const fetchManga = async () => {
-      const response = await get_info(module, url);
+      const response = await sheller(["get_info", module, url]);
       setWebtoon(response);
       setWebtoonLoaded(true);
       setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
@@ -30,7 +30,7 @@ export default function Doujin({
   }, [module, url, loadCovers]);
   const get_cover = async () => {
     try {
-      const response = await retrieveImage(module, imageSrc);
+      const response = await sheller(["retrieveImage", module, imageSrc]);
       setImageSrc(response);
     } catch (error) {
       setImageSrc("./assets/default-cover.svg");

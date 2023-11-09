@@ -2,10 +2,10 @@ import "./../App.css";
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
-import { search } from "../api/webtoon";
 import PushButton from "../components/PushButton";
 import WSearchCard from "../components/WSearchCard";
 import Loading from "../components/Loading";
+import { useSheller } from "../ShellerProvider";
 import "../styles/Module.css";
 
 export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
@@ -18,6 +18,7 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const moduleDetm = useLocation().state.module;
+  const sheller = useSheller();
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("mod-Modal");
@@ -26,7 +27,14 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
 
   const startSearching = async () => {
     setSearchingStatus("searching");
-    const response = await search(module, input, depth, absolute, sleepTime);
+    const response = await sheller([
+      "search",
+      module,
+      input,
+      sleepTime,
+      absolute,
+      depth,
+    ]);
     setResults(response);
     setSearchingStatus("searched");
   };

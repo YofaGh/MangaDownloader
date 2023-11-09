@@ -1,30 +1,39 @@
-import {
-  get_manga_images,
-  get_doujin_images,
-  download_image,
-  search,
-} from "./api/webtoon";
-import {
-  validate_corrupted_image,
-  validate_truncated_image,
-} from "./api/utils";
+const sheller = async (shellerPath, args) => {
+  const { execFile } = global.require("child_process");
+  return new Promise((resolve, reject) => {
+    execFile(shellerPath, args, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+};
 
 onmessage = async (e) => {
   if (e.data.download) {
-    const { webtoon, dPath, dirls } = e.data.download;
+    const { webtoon, dPath, dirls, shellerPath } = e.data.download;
     let images;
     let save_names;
     let i = 0;
     if (webtoon.type === "manga") {
-      const response = await get_manga_images(
+      const response0 = await sheller(shellerPath, [
+        "get_manga_images",
         webtoon.module,
         webtoon.manga,
-        webtoon.chapter
-      );
+        webtoon.chapter,
+      ]);
+      const response = JSON.parse(response0);
       images = response[0];
       save_names = response[1];
     } else if (webtoon.type === "doujin") {
-      const response = await get_doujin_images(webtoon.module, webtoon.doujin);
+      const response0 = await sheller(shellerPath, [
+        "get_doujin_images",
+        webtoon.module,
+        webtoon.doujin,
+      ]);
+      const response = JSON.parse(response0);
       images = response[0];
       save_names = response[1];
     }
@@ -47,19 +56,27 @@ onmessage = async (e) => {
           .pop()}`;
       }
       if (!existsImages.includes(save_path)) {
-        const saved_path = await download_image(
+        const response = await sheller(shellerPath, [
+          "download_image",
           webtoon.module,
           images[i],
-          save_path
-        );
-        const notCorrupted = await validate_corrupted_image(saved_path);
-        if (!notCorrupted) {
+          save_path,
+        ]);
+        const saved_path = JSON.parse(response);
+        const notCorrupted = await sheller(shellerPath, [
+          "validate_corrupted_image",
+          saved_path,
+        ]);
+        if (!JSON.parse(notCorrupted)) {
           postMessage({ corruptedImage: { webtoon, path: saved_path } });
           i += 1;
           continue;
         }
-        const notTruncated = await validate_truncated_image(saved_path);
-        if (!notTruncated && lastTruncated !== saved_path) {
+        const notTruncated = await sheller(shellerPath, [
+          "validate_truncated_image",
+          saved_path,
+        ]);
+        if (!JSON.parse(notTruncated) && lastTruncated !== saved_path) {
           lastTruncated = saved_path;
           postMessage({ removeImage: { saved_path } });
           i -= 1;
@@ -74,17 +91,20 @@ onmessage = async (e) => {
     postMessage({ done: { webtoon, path: dPath, images: images.length } });
   }
   if (e.data.search) {
-    const { keyword, depth, absolute, modules, sleepTime } = e.data.search;
+    const { keyword, depth, absolute, modules, sleepTime, shellerPath } =
+      e.data.search;
     for (const module of modules) {
       postMessage({ searchingModule: { module, keyword } });
-      const response = await search(
+      const response = await sheller(shellerPath, [
+        "search",
         module,
         keyword,
-        depth,
+        sleepTime,
         absolute,
-        sleepTime
-      );
-      postMessage({ searchedModule: { module, response } });
+        depth,
+      ]);
+      const results = JSON.parse(response);
+      postMessage({ searchedModule: { module, response: results } });
     }
     postMessage({ doneSearching: { keyword } });
   }

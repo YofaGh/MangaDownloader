@@ -1,27 +1,16 @@
 import "./../App.css";
 import React, { useState, useEffect } from "react";
 import MCard from "../components/moduleCard";
-import {
-  get_modules,
-  get_chapters,
-  get_manga_images,
-  get_doujin_images,
-  get_doujin_title,
-  download_image,
-  search,
-} from "../api/webtoon";
 import ModuleChecker from "../components/ModuleChecker";
-import {
-  get_sample,
-  validate_corrupted_image,
-  validate_truncated_image,
-} from "../api/utils";
+import { useSheller } from "../ShellerProvider";
 
 export default function Modules({ settingsPath, loadCovers }) {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
+  const sheller = useSheller();
+
   const fetchModules = async () => {
-    const response = await get_modules();
+    const response = await sheller(["get_modules"]);
     setModules(response);
   };
 
@@ -57,13 +46,13 @@ export default function Modules({ settingsPath, loadCovers }) {
       } catch (e) {}
     }
     setModuleToCheck(module);
-    const sample = await get_sample(module.domain);
+    const sample = await sheller(["get_sample", module.domain]);
     if (module.type === "Manga") {
       let element = document.getElementById("checkChapter");
       element.classList.add("ch-active");
       let chapters = [];
       try {
-        chapters = await get_chapters(module.domain, sample.manga);
+        chapters = await sheller(["get_chapters", module.domain, sample.manga]);
       } catch (e) {}
       element.classList.remove("ch-active");
       if (chapters) {
@@ -72,11 +61,12 @@ export default function Modules({ settingsPath, loadCovers }) {
         element.classList.add("ch-active");
         let images = [];
         let save_names = [];
-        const response = await get_manga_images(
+        const response = await sheller([
+          "get_manga_images",
           module.domain,
           sample.manga,
-          chapters[0].url
-        );
+          chapters[0].url,
+        ]);
         images = response[0];
         save_names = response[1];
         if (images) {
@@ -86,22 +76,30 @@ export default function Modules({ settingsPath, loadCovers }) {
           element.classList.add("ch-active");
           let saved_path;
           if (save_names) {
-            saved_path = await download_image(
+            saved_path = await sheller([
+              "download_image",
               module.domain,
               images[0],
-              `${settingsPath}/${save_names[0]}`
-            );
+              `${settingsPath}/${save_names[0]}`,
+            ]);
           } else {
-            saved_path = await download_image(
+            saved_path = await sheller([
+              "download_image",
               module.domain,
               images[0],
               `${settingsPath}/${module.domain}_test.${
                 images[0].split(".").slice(-1)[0]
-              }`
-            );
+              }`,
+            ]);
           }
-          const notTruncated = await validate_truncated_image(saved_path);
-          const notCorrupted = await validate_corrupted_image(saved_path);
+          const notTruncated = await sheller([
+            "validate_truncated_image",
+            saved_path,
+          ]);
+          const notCorrupted = await sheller([
+            "validate_corrupted_image",
+            saved_path,
+          ]);
           element.classList.remove("ch-active");
           if (notTruncated && notCorrupted) {
             element.classList.add("ch-done");
@@ -126,13 +124,14 @@ export default function Modules({ settingsPath, loadCovers }) {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await search(
+        const results = await sheller([
+          "search",
           module.domain,
           sample.keyword ? sample.keyword : "a",
-          2,
+          0.1,
           false,
-          0.1
-        );
+          2,
+        ]);
         element.classList.remove("ch-active");
         if (results) {
           element.classList.add("ch-done");
@@ -145,7 +144,11 @@ export default function Modules({ settingsPath, loadCovers }) {
       element.classList.add("ch-active");
       let title = "";
       try {
-        title = await get_doujin_title(module.domain, String(sample.doujin));
+        title = await sheller([
+          "get_doujin_title",
+          module.domain,
+          String(sample.doujin),
+        ]);
       } catch (e) {}
       element.classList.remove("ch-active");
       if (title) {
@@ -157,10 +160,11 @@ export default function Modules({ settingsPath, loadCovers }) {
       element.classList.add("ch-active");
       let images = [];
       let save_names = [];
-      const response = await get_doujin_images(
+      const response = await sheller([
+        "get_doujin_images",
         module.domain,
-        String(sample.doujin)
-      );
+        String(sample.doujin),
+      ]);
       images = response[0];
       save_names = response[1];
       if (images) {
@@ -170,22 +174,30 @@ export default function Modules({ settingsPath, loadCovers }) {
         element.classList.add("ch-active");
         let saved_path;
         if (save_names) {
-          saved_path = await download_image(
+          saved_path = await sheller([
+            "download_image",
             module.domain,
             images[0],
-            `${settingsPath}/${save_names[0]}`
-          );
+            `${settingsPath}/${save_names[0]}`,
+          ]);
         } else {
-          saved_path = await download_image(
+          saved_path = await sheller([
+            "download_image",
             module.domain,
             images[0],
             `${settingsPath}/${module.domain}_test.${
               images[0].split(".").slice(-1)[0]
-            }`
-          );
+            }`,
+          ]);
         }
-        const notTruncated = await validate_truncated_image(saved_path);
-        const notCorrupted = await validate_corrupted_image(saved_path);
+        const notTruncated = await sheller([
+          "validate_truncated_image",
+          saved_path,
+        ]);
+        const notCorrupted = await sheller([
+          "validate_corrupted_image",
+          saved_path,
+        ]);
         element.classList.remove("ch-active");
         if (notTruncated && notCorrupted) {
           element.classList.add("ch-done");
@@ -202,13 +214,14 @@ export default function Modules({ settingsPath, loadCovers }) {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await search(
+        const results = await sheller([
+          "search",
           module.domain,
           sample.keyword ? sample.keyword : "a",
-          2,
+          0.1,
           false,
-          0.1
-        );
+          2,
+        ]);
         element.classList.remove("ch-active");
         if (results) {
           element.classList.add("ch-done");
@@ -241,7 +254,11 @@ export default function Modules({ settingsPath, loadCovers }) {
           <div key={index} className="card-row">
             {chunk.map((module) => (
               <div key={module.domain} className="card-wrapper">
-                <MCard module={module} checkModule={checkModule} loadCovers={loadCovers}/>
+                <MCard
+                  module={module}
+                  checkModule={checkModule}
+                  loadCovers={loadCovers}
+                />
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage } from "../api/utils";
+import { useSheller } from "../ShellerProvider";
 import "../styles/webtoonCard.css";
 
 export default function Wcard({
@@ -10,6 +10,7 @@ export default function Wcard({
   loadCovers,
 }) {
   const [loaded, setLoaded] = useState(false);
+  const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     loadCovers ? webtoon.cover : "./assets/default-cover.svg"
   );
@@ -23,7 +24,11 @@ export default function Wcard({
 
   const get_cover = async () => {
     try {
-      const response = await retrieveImage(webtoon.domain, webtoon.cover);
+      const response = await sheller([
+        "retrieveImage",
+        webtoon.domain,
+        webtoon.cover,
+      ]);
       setImageSrc(response);
     } catch (error) {
       setImageSrc("./assets/default-cover.svg");

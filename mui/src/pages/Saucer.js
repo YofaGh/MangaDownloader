@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
-import { upload_image, saucer, get_saucers_list } from "../api/utils";
 import SaucerResult from "../components/SaucerResult";
 import Loading from "../components/Loading";
 import { useNotification } from "../NotificationProvider";
+import { useSheller } from "../ShellerProvider";
 import "../styles/Saucer.css";
 
 export default function Saucer({ loadCovers }) {
@@ -12,10 +12,11 @@ export default function Saucer({ loadCovers }) {
   const [results, setResults] = useState([]);
   const [currentStatus, setCurrentStatus] = useState(null);
   const dispatch = useNotification();
+  const sheller = useSheller();
 
   useEffect(() => {
     const fetchSaucers = async () => {
-      const response = await get_saucers_list();
+      const response = await sheller(["get_saucers_list"]);
       setSites(response);
     };
     fetchSaucers();
@@ -23,7 +24,7 @@ export default function Saucer({ loadCovers }) {
 
   const setFile = async (e) => {
     setCurrentStatus("Uploading");
-    const response = await upload_image(e.target.files[0].path);
+    const response = await sheller(["upload_image", e.target.files[0].path]);
     setUrl(response);
     dispatch({
       type: "SUCCESS",
@@ -43,7 +44,7 @@ export default function Saucer({ loadCovers }) {
         const site = sites[i];
         let element = document.getElementById(site);
         element.classList.add("active");
-        const res = await saucer(site, url);
+        const res = await sheller(["saucer", site, url]);
         setResults((prevResults) => [
           ...prevResults,
           ...res.map((item) => ({ site, ...item })),

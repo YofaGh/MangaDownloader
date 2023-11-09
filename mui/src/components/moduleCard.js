@@ -1,16 +1,21 @@
 import React, { useState } from "react";
-import { retrieveImage } from "../api/utils";
 import "./../App.css";
 import "../styles/moduleCard.css";
 import { Link } from "react-router-dom";
+import { useSheller } from "../ShellerProvider";
 
 export default function MCard({ module, checkModule, loadCovers }) {
+  const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     loadCovers && module.logo ? module.logo : "./assets/module-cyan.svg"
   );
   const get_cover = async () => {
     try {
-      const response = await retrieveImage(module.domain, imageSrc);
+      const response = await sheller([
+        "retrieveImage",
+        module.domain,
+        imageSrc,
+      ]);
       setImageSrc(response);
     } catch (error) {
       setImageSrc("./assets/module-cyan.svg");

@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder"
   },
   "keywords": [
     "mangascraper"
@@ -13,11 +14,23 @@
   "author": "YofaGh",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^26.1.0"
+    "electron": "^26.1.0",
+    "electron-builder": "^24.6.4"
   },
   "dependencies": {
     "axios": "^1.6.1",
     "cheerio": "^1.0.0-rc.12",
     "python-shell": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.yofagh.mangadownloader",
+    "productName": "Manga Downloader",
+    "target": "NSIS",
+    "directories": {
+      "output": "release/"
+    },
+    "nsis": {
+      "oneClick": false
+    }
   }
 }

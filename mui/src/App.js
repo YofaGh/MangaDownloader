@@ -450,7 +450,7 @@ export default function App() {
       const dWorker = new Worker();
       // new URL("./downloadWorker.js", import.meta.url), {type: "module"}
       //"./downloadWorker.js", {type: "module"}
-      dWorker.postMessage({ download: { webtoon, dPath, dirls } });
+      dWorker.postMessage({ download: { webtoon, dPath, dirls, shellerPath: settings.shellerPath } });
       dWorker.onmessage = (e) => {
         if (
           !e.data.doneSearching &&
@@ -501,6 +501,7 @@ export default function App() {
         depth,
         absolute,
         sleepTime: settings.sleepTime,
+        shellerPath: settings.shellerPath
       },
     });
     sWorker.onmessage = (e) => {

@@ -30,7 +30,7 @@ function createLoadingWindow() {
     },
   });
   loadingWindow.setResizable(false);
-  loadingWindow.loadFile("mui/public/splash.html");
+  loadingWindow.loadFile("mui/build/splash.html");
   axios
     .get(
       "https://github.com/YofaGh/MangaDownloader/releases/expanded_assets/latest"
@@ -38,7 +38,11 @@ function createLoadingWindow() {
     .then((response) => {
       const html = response.data;
       const $ = cheerio.load(html);
-      const href = $("a").attr("href");
+      const href = $("a")
+        .filter((i, el) => {
+          return el.attribs.href && el.attribs.href.includes("sheller");
+        })
+        .attr("href");
       const shellerLatest = `https://github.com${href}`;
       const fileName = shellerLatest.split("/").pop();
       const exePath = path.join(app.getPath("userData"), fileName);

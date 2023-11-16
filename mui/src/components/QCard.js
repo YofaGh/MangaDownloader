@@ -2,13 +2,13 @@ import "../styles/QCard.css";
 
 export default function QCard({ webtoon, addQueueMessage }) {
 
-  const removeWebtoon = (webtoon) => {
+  const removeWebtoon = () => {
     addQueueMessage({
       removeWebtoon: { webtoon },
     });
   };
 
-  const setWebtoonStatus = (webtoon, status) => {
+  const setWebtoonStatus = (status) => {
     addQueueMessage({
       setWebtoonStatus: { webtoon, status }
     });
@@ -39,13 +39,13 @@ export default function QCard({ webtoon, addQueueMessage }) {
         <></>
       )}
       <div className="button-containerrr">
-        <button className="buttonh" onClick={() => removeWebtoon(webtoon)}>
+        <button className="buttonh" onClick={removeWebtoon}>
           <img alt="" src="./assets/trash.svg" className="icon"></img>
           <span className="tooltip">Delete</span>
         </button>
         <button
           className="buttonh"
-          onClick={() => setWebtoonStatus(webtoon, "Not Started")}
+          onClick={() => setWebtoonStatus("Not Started")}
         >
           <img alt="" src="./assets/stop.svg" className="icon"></img>
           <span className="tooltip">Stop</span>
@@ -53,7 +53,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
         {webtoon.status === "Not Started" || webtoon.status === "Paused" ? (
           <button
             className="buttonh"
-            onClick={() => setWebtoonStatus(webtoon, "Started")}
+            onClick={() => setWebtoonStatus("Started")}
           >
             <img alt="" src="./assets/start.svg" className="icon"></img>
             <span className="tooltip">Start</span>
@@ -61,7 +61,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
         ) : (
           <button
             className="buttonh"
-            onClick={() => setWebtoonStatus(webtoon, "Paused")}
+            onClick={() => setWebtoonStatus("Paused")}
           >
             <img alt="" src="./assets/pause.svg" className="icon"></img>
             <span className="tooltip">Pause</span>

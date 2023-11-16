@@ -8,7 +8,7 @@ a = Analysis(
     ['sheller.py'],
     pathex=['mangascraper'],
     binaries=[],
-    datas=[],
+    datas=[('mangascraper\\test_samples.json', 'mangascraper')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

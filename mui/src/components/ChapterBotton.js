@@ -8,14 +8,14 @@ export default function ChapterButton({ chapter, addManga }) {
       </div>
       <ul>
         <li>
-          <button className="mg-button download-btn" onClick={() => addManga(chapter, "Started")}>
+          <span className="mg-button download-btn" onClick={() => addManga(chapter, "Started")}>
             <img alt="" src="./assets/download.svg" className="btng-icon"></img>
-          </button>
+          </span>
         </li>
         <li>
-          <button className="mg-button queue-btn" onClick={() => addManga(chapter, "Not Started")}>
+          <span className="mg-button queue-btn" onClick={() => addManga(chapter, "Not Started")}>
             <img alt="" src="./assets/queue.svg" className="btng-icon"></img>
-          </button>
+          </span>
         </li>
       </ul>
     </button>

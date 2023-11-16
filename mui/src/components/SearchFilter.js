@@ -18,13 +18,6 @@ export default function SearchFilter({
     const newTypes = [...types];
     newTypes[index].selected = checked;
     updateTypes(newTypes);
-    // const newModules = modules.map((module) => {
-    //   if (module.type === types[index].name) {
-    //     module.selected = checked;
-    //   }
-    //   return module;
-    // });
-    // updateModules(newModules);
   };
 
   const checkAllModules = (checked) => {

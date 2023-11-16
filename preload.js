@@ -20,10 +20,6 @@ contextBridge.exposeInMainWorld("do", {
   minimizeApp: () => ipcRenderer.send("minimizeApp"),
   openFolder: (path) => shell.openExternal(path),
   showItemInFolder: (path) => shell.showItemInFolder(path),
-  createFolder: (path) => fs.mkdirSync(path, { recursive: true }, (err) => {}),
-  ls: (path) => {
-    return fs.readdirSync(path);
-  },
   removeFolder: (path) => {
     try {
       fs.rmSync(path, { recursive: true });

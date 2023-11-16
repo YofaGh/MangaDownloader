@@ -1,5 +1,8 @@
+import { fixNameForFolder } from "./components/utils";
+const { execFile } = global.require("child_process");
+const fs = global.require("fs");
+
 const sheller = async (shellerPath, args) => {
-  const { execFile } = global.require("child_process");
   return new Promise((resolve, reject) => {
     execFile(shellerPath, args, (error, stdout, stderr) => {
       if (error) {
@@ -13,7 +16,7 @@ const sheller = async (shellerPath, args) => {
 
 onmessage = async (e) => {
   if (e.data.download) {
-    const { webtoon, dPath, dirls, shellerPath } = e.data.download;
+    const { webtoon, downloadPath, shellerPath } = e.data.download;
     let images;
     let save_names;
     let i = 0;
@@ -37,7 +40,14 @@ onmessage = async (e) => {
       images = response[0];
       save_names = response[1];
     }
+    const folderName =
+      webtoon.type === "manga"
+        ? fixNameForFolder(webtoon.title) + "\\" + webtoon.info
+        : fixNameForFolder(webtoon.title);
+    const dPath = downloadPath + "\\" + folderName;
+    await fs.mkdirSync(dPath, { recursive: true }, (err) => {});
     postMessage({ totalImages: { webtoon, total: images.length } });
+    const dirls = await fs.readdirSync(dPath);
     const existsImages = dirls.map((inp) => `${dPath}/${inp}`);
     let lastTruncated = null;
     while (i < images.length) {

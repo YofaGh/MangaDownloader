@@ -75,10 +75,7 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
             <img alt="" src="./assets/filter.svg" className="btn-icon"></img>
           </button>
           <SearchBar input={input} setInput={setInput} />
-          <Link
-            to={`/${module}/webtoon/${input}`}
-            state={{ backUrl: "library" }}
-          >
+          <Link to={`/${module}/webtoon/${input}`}>
             <button className="m-button goto-btn">
               <img
                 alt=""

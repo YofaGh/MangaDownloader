@@ -3,6 +3,9 @@ import base64, json, sys, os
 sys.path.append(f'{os.getcwd()}\\mangascraper')
 sys.path.append(f'{os.getcwd()}\\cli\\mangascraper')
 
+def verify():
+    return True
+
 def get_modules():
     from mangascraper.utils.modules_contributer import get_all_modules
     return [{
@@ -91,7 +94,7 @@ def saucer(site_p, url):
 
 def get_sample(domain):
     from mangascraper.utils.assets import load_dict_from_file
-    samples = load_dict_from_file('cli/mangascraper/test_samples.json')
+    samples = load_dict_from_file(os.path.join(sys._MEIPASS, 'mangascraper/test_samples.json'))
     return samples[domain]
 
 def validate_corrupted_image(image_path):
@@ -102,7 +105,13 @@ def validate_truncated_image(image_path):
     from mangascraper.utils.assets import validate_truncated_image
     return validate_truncated_image(image_path)
 
+def is_module_coded(domain):
+    from mangascraper.utils.modules_contributer import get_module
+    module = get_module(domain)
+    return module.type == 'Doujin' and module.is_coded
+
 FUNCTIONS = {
+    'verify': verify,
     'get_modules': get_modules,
     'get_saucers_list': get_saucers_list,
     'get_info': get_info,
@@ -120,7 +129,8 @@ FUNCTIONS = {
     'saucer': saucer,
     'get_sample': get_sample,
     'validate_corrupted_image': validate_corrupted_image,
-    'validate_truncated_image': validate_truncated_image
+    'validate_truncated_image': validate_truncated_image,
+    'is_module_coded': is_module_coded
 }
 
 print(json.dumps(FUNCTIONS[sys.argv[1]](*sys.argv[2:])))

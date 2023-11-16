@@ -10,6 +10,7 @@ import "../styles/infoed.css";
 import ChapterButton from "./ChapterBotton";
 import PushButton from "./PushButton";
 import { useSheller } from "../ShellerProvider";
+import { useNavigate } from "react-router-dom";
 
 export default function Manga({
   module,
@@ -29,6 +30,7 @@ export default function Manga({
   const [chapters, setChapters] = useState([]);
   const [imageSrc, setImageSrc] = useState("");
   const sheller = useSheller();
+  const navigate = useNavigate();
 
   const get_cover = async () => {
     try {
@@ -121,6 +123,13 @@ export default function Manga({
 
   return webtoonLoaded ? (
     <div className="container">
+      <button
+        className="buttonht"
+        onClick={() => navigate(-1)}
+        style={{ marginTop: "50px", marginRight: "auto", marginLeft: "50px" }}
+      >
+        <img alt="" src="./assets/goto.svg" className="icon" style={{rotate: "180deg"}}></img>
+      </button>
       <div className="basic-info">
         <div className="fixed">
           <img
@@ -175,12 +184,13 @@ export default function Manga({
           </div>
           <div className="info-sec">
             {Object.entries(webtoon.Extras).map(([key, value]) => (
-              <Infoed title={`${key}:`} info={value} />
+              <Infoed key={key} title={`${key}:`} info={value} />
             ))}
             <div style={{ display: "inline-flex" }}>
               {webtoon.Dates &&
                 Object.entries(webtoon.Dates).map(([key, value]) => (
-                  <FlipButton
+                  <FlipButton 
+                    key={key}
                     frontText={
                       <div>
                         {key}
@@ -225,7 +235,7 @@ export default function Manga({
             {chunkArray(chapters, 3).map((chunk, index) => (
               <div key={index} className="card-row">
                 {chunk.map((chapter) => (
-                  <div key={webtoon} className="card-wrapper">
+                  <div key={chapter.url} className="card-wrapper">
                     <ChapterButton chapter={chapter} addManga={addManga} />
                   </div>
                 ))}

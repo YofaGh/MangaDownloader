@@ -27,7 +27,6 @@ export default function WSearchCard({ webtoon, loadCovers }) {
           ? `/${webtoon.domain}/webtoon/${webtoon.url}`
           : `/${webtoon.domain}/webtoon/${webtoon.code}`
       }
-      state={{ backUrl: "search" }}
       style={{ textDecoration: "none" }}
     >
       <div className="search-card">

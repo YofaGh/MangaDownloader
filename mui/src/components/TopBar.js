@@ -35,16 +35,17 @@ export default function TopBar({ currentDownloadStatus }) {
             id="menu-checkbox"
             type="checkbox"
             onChange={showHideMenus}
-            defaultChecked={isMenuOpen}
+            checked={isMenuOpen}
           ></input>
-          <label class="menu-toggle" htmlFor="menu-checkbox">
-            <div id="menu-bar1" class="menu-bars"></div>
-            <div id="menu-bar2" class="menu-bars"></div>
-            <div id="menu-bar3" class="menu-bars"></div>
+          <label className="menu-toggle" htmlFor="menu-checkbox">
+            <div id="menu-bar1" className="menu-bars"></div>
+            <div id="menu-bar2" className="menu-bars"></div>
+            <div id="menu-bar3" className="menu-bars"></div>
           </label>
         </div>
-        {/* <img alt="" src="./assets/icon.svg"style={{width: "40px", height: "40px"}}></img> */}
-        <div className="titleBarText">Manga Downloader</div>
+        <div className="titleBarText">
+          <div className="titleText">Manga Downloader</div>
+        </div>
         <div className="titleBarBtns">
           <button
             className="d-buttonh"
@@ -56,7 +57,7 @@ export default function TopBar({ currentDownloadStatus }) {
               alt=""
               src="./assets/download-st.svg"
               className="icon-t"
-              style={{ width: "20px", height: "20px" }}
+              style={{ width: "20px", height: "20px", marginRight: "3px" }}
             ></img>
             {currentDownloadLabel && (
               <span className="d-tooltip">{currentDownloadLabel}</span>
@@ -78,7 +79,7 @@ export default function TopBar({ currentDownloadStatus }) {
       </div>
       <div className="contentArea">
         <div id="mySidebar" className="leftMenu">
-          {isMenuOpen && <Sidebar />}
+          {isMenuOpen && <Sidebar showHideMenus={showHideMenus} />}
         </div>
       </div>
     </div>

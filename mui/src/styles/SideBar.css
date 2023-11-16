@@ -24,10 +24,10 @@
 }
 
 .buttonhg:hover {
-  animation: spin 5s linear infinite;
+  animation: buttonhover-rotate 5s linear infinite;
 }
 
-@keyframes buttonhover {
+@keyframes buttonhover-rotate {
   0% {
     transform: rotate(0deg);
   }
@@ -35,9 +35,4 @@
   100% {
     transform: rotate(360deg);
   }
-}
-
-.buttonhg:hover .tooltip {
-  opacity: 1;
-  transition-duration: 0.5s;
 }

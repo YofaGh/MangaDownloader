@@ -1,8 +1,8 @@
 .basic-info {
   display: flex;
   margin: 50px;
+  margin-top: 0px;
   height: 100%;
-  padding-top: 50px;
   color: #dfd9d9;
 }
 .fixed {

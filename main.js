@@ -17,6 +17,41 @@ const defaultSettings = {
   shellerPath: null,
 };
 
+const downloadSheller = (shellerLatest, exePath, loadingWindow, settings, status) => {
+  loadingWindow.webContents.send("update-status", status);
+  const file = fs.createWriteStream(exePath);
+  https.get(shellerLatest, (response) => {
+    https
+      .get(response.headers.location, { followRedirects: true }, (response) => {
+        response.pipe(file);
+        file.on("finish", () => {
+          file.close();
+          file.once("close", () => {
+            loadingWindow.close();
+            if (fs.existsSync(settings.shellerPath)) {
+              fs.unlinkSync(settings.shellerPath);
+            }
+            settings.shellerPath = exePath;
+            fs.writeFileSync(
+              path.join(app.getPath("userData"), "settings.json"),
+              JSON.stringify(settings, null, 2),
+              "utf8"
+            );
+            createWindow();
+          });
+        });
+        const totalSize = response.headers["content-length"];
+        let downloadedSize = 0;
+        response.on("data", (chunk) => {
+          downloadedSize += chunk.length;
+          const progress = (downloadedSize / totalSize) * 100;
+          loadingWindow.webContents.send("download-progress", progress);
+        });
+      })
+      .on("error", () => loadingWindow.close());
+  });
+};
+
 function createLoadingWindow() {
   const loadingWindow = new BrowserWindow({
     width: 400,
@@ -35,7 +70,7 @@ function createLoadingWindow() {
     .get(
       "https://github.com/YofaGh/MangaDownloader/releases/expanded_assets/latest"
     )
-    .then((response) => {
+    .then(async (response) => {
       const html = response.data;
       const $ = cheerio.load(html);
       const href = $("a")
@@ -53,79 +88,25 @@ function createLoadingWindow() {
       );
       const settings = JSON.parse(fileContent);
       if (!settings.shellerPath) {
-        loadingWindow.webContents.send("update-status", "Downloading Bots...");
-        const file = fs.createWriteStream(exePath);
-        https.get(shellerLatest, (response) => {
-          https
-            .get(
-              response.headers.location,
-              { followRedirects: true },
-              (response) => {
-                response.pipe(file);
-                file.on("finish", () => {
-                  file.close();
-                  file.once("close", () => {
-                    loadingWindow.close();
-                    settings.shellerPath = exePath;
-                    fs.writeFileSync(
-                      path.join(app.getPath("userData"), "settings.json"),
-                      JSON.stringify(settings, null, 2),
-                      "utf8"
-                    );
-                    execFile(exePath);
-                    createWindow();
-                  });
-                });
-                const totalSize = response.headers["content-length"];
-                let downloadedSize = 0;
-                response.on("data", (chunk) => {
-                  downloadedSize += chunk.length;
-                  const progress = (downloadedSize / totalSize) * 100;
-                  loadingWindow.webContents.send("download-progress", progress);
-                });
-              }
-            )
-            .on("error", () => loadingWindow.close());
-        });
+        downloadSheller(shellerLatest, exePath, loadingWindow, settings, "Downloading Bots...");
       } else if (settings.shellerPath !== exePath) {
-        loadingWindow.webContents.send("update-status", "Updating Bots...");
-        const file = fs.createWriteStream(exePath);
-        https.get(shellerLatest, (response) => {
-          https
-            .get(
-              response.headers.location,
-              { followRedirects: true },
-              (response) => {
-                response.pipe(file);
-                file.on("finish", () => {
-                  file.close();
-                  file.once("close", () => {
-                    loadingWindow.close();
-                    fs.unlinkSync(settings.shellerPath);
-                    settings.shellerPath = exePath;
-                    fs.writeFileSync(
-                      path.join(app.getPath("userData"), "settings.json"),
-                      JSON.stringify(settings, null, 2),
-                      "utf8"
-                    );
-                    execFile(exePath);
-                    createWindow();
-                  });
-                });
-                const totalSize = response.headers["content-length"];
-                let downloadedSize = 0;
-                response.on("data", (chunk) => {
-                  downloadedSize += chunk.length;
-                  const progress = (downloadedSize / totalSize) * 100;
-                  loadingWindow.webContents.send("download-progress", progress);
-                });
-              }
-            )
-            .on("error", () => loadingWindow.close());
-        });
+        downloadSheller(shellerLatest, exePath, loadingWindow, settings, "Updating Bots...");
       } else {
-        loadingWindow.close();
-        createWindow();
+        try {
+          let valid = await execFile(settings.shellerPath, ["verify"], (error, stdout, stderr) => {
+            if (error) {
+              throw error;
+            }
+            return stdout;
+          });
+          if (!valid) {
+            throw error;
+          }
+          loadingWindow.close();
+          createWindow();
+        } catch (error) {
+          downloadSheller(shellerLatest, exePath, loadingWindow, settings, "Downloading Bots...");
+        }
       }
     });
 }

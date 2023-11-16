@@ -78,10 +78,7 @@ export default function Wcard({
                 <small className="badge">{webtoon.domain}</small>
               </div>
               <div className="front-buttons">
-                <Link
-                  to={`/${webtoon.domain}/webtoon/${webtoon.url}`}
-                  state={{ backUrl: "library" }}
-                >
+                <Link to={`/${webtoon.domain}/webtoon/${webtoon.url}`}>
                   <button className="mm-button info-btn">
                     <img
                       alt=""

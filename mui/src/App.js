@@ -92,16 +92,18 @@ export default function App() {
           );
           delete updatedList[indexOfTodo].downloading;
           delete updatedList[indexOfTodo].totalImages;
-          window.do.removeFolder(
+          let folderName =
             message.setWebtoonStatus.webtoon.type === "manga"
               ? `${fixNameForFolder(message.setWebtoonStatus.webtoon.title)}/${
                   message.setWebtoonStatus.webtoon.info
                 }`
-              : fixNameForFolder(message.setWebtoonStatus.webtoon.title)
-          );
-          window.do.removeFolderIfEmpty(
-            fixNameForFolder(message.setWebtoonStatus.webtoon.title)
-          );
+              : fixNameForFolder(message.setWebtoonStatus.webtoon.title);
+          window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
+          if (message.setWebtoonStatus.webtoon.type === "manga") {
+            window.do.removeFolderIfEmpty(
+              `${settings.downloadPath}/${fixNameForFolder(message.setWebtoonStatus.webtoon.title)}`
+            );
+          }
         }
         setQueue(updatedList);
         if (
@@ -134,13 +136,15 @@ export default function App() {
             delete webtoon.totalImages;
           }
           for (const webtoon of queue) {
-            window.do.removeFolder(
+            let folderName =
               webtoon.type === "manga"
                 ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
-                : fixNameForFolder(webtoon.title)
-            );
+                : fixNameForFolder(webtoon.title);
+            window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
             if (webtoon.type === "manga") {
-              window.do.removeFolderIfEmpty(fixNameForFolder(webtoon.title));
+              window.do.removeFolderIfEmpty(
+                `${settings.downloadPath}/${fixNameForFolder(webtoon.title)}`
+              );
             }
           }
         }
@@ -223,13 +227,13 @@ export default function App() {
           downloadWorker.terminate();
           setDownloading(null);
         }
-        window.do.removeFolder(
+        let folderName =
           message.removeWebtoon.webtoon.type === "manga"
             ? `${fixNameForFolder(message.removeWebtoon.webtoon.title)}/${
                 message.removeWebtoon.webtoon.info
               }`
-            : fixNameForFolder(message.removeWebtoon.webtoon.title)
-        );
+            : fixNameForFolder(message.removeWebtoon.webtoon.title);
+        window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
       }
       if (message.addWebtoon) {
         if (!queue.find((item) => item.id === message.addWebtoon.webtoon.id)) {
@@ -440,17 +444,14 @@ export default function App() {
     const webtoon = queue.find((item) => item.status === "Started");
     if (webtoon) {
       setDownloading(webtoon);
-      const folderName =
-        webtoon.type === "manga"
-          ? fixNameForFolder(webtoon.title) + "\\" + webtoon.info
-          : fixNameForFolder(webtoon.title);
-      const dPath = settings.downloadPath + "\\" + folderName;
-      await window.do.createFolder(dPath);
-      const dirls = window.do.ls(dPath);
       const dWorker = new Worker();
-      // new URL("./downloadWorker.js", import.meta.url), {type: "module"}
-      //"./downloadWorker.js", {type: "module"}
-      dWorker.postMessage({ download: { webtoon, dPath, dirls, shellerPath: settings.shellerPath } });
+      dWorker.postMessage({
+        download: {
+          webtoon,
+          downloadPath: settings.downloadPath,
+          shellerPath: settings.shellerPath,
+        },
+      });
       dWorker.onmessage = (e) => {
         if (
           !e.data.doneSearching &&
@@ -501,7 +502,7 @@ export default function App() {
         depth,
         absolute,
         sleepTime: settings.sleepTime,
-        shellerPath: settings.shellerPath
+        shellerPath: settings.shellerPath,
       },
     });
     sWorker.onmessage = (e) => {

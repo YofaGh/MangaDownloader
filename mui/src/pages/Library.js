@@ -64,14 +64,15 @@ export default function LPage({
   };
 
   const chunkedWebtoons = chunkArray(library, 3);
+
   return (
     <div>
       <div className="container">
         <div className="top-header">
           Library
           <HomeButton
-            svg={"./assets/download.svg"}
-            label={"Update All"}
+            svg="./assets/download.svg"
+            label="Update All"
             onClick={updateAll}
           />
         </div>
@@ -79,7 +80,7 @@ export default function LPage({
           {chunkedWebtoons.map((chunk, index) => (
             <div key={index} className="card-row">
               {chunk.map((webtoon) => (
-                <div key={webtoon} className="card-wrapper">
+                <div key={webtoon.title} className="card-wrapper">
                   <Wcard
                     webtoon={webtoon}
                     addLibraryMessage={addLibraryMessage}

@@ -35,7 +35,19 @@
   color: #009788;
   font-weight: bold;
   margin-right: auto;
-  margin-left: 10px;
+  margin-left: 4px;
+  border-left: 1.5px solid transparent;
+  border-image: linear-gradient(
+    180deg,
+    rgba(0, 151, 136, 0) 10%,
+    rgba(0, 151, 136, 1) 50%,
+    rgba(0, 151, 136, 0) 90%
+  );
+  border-image-slice: 1;
+}
+
+.titleText {
+  margin-left: 5px;
 }
 
 .titleBar > .toggleButton {
@@ -81,6 +93,9 @@
   background-position: center;
   transition: 0.2s;
   cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  display: flex;
 }
 
 .icon-t {
@@ -90,16 +105,20 @@
     brightness(95%) contrast(101%);
 }
 
-.titleBarBtns > .topBtn:hover {
-  background-color: #272c36;
+.titleBarBtns > .minimizeBtn:hover {
+  background-color: #009788;
+}
+
+.titleBarBtns > .minimizeBtn:hover > img {
+  filter: brightness(0) saturate(100%) invert(9%) sepia(4%) saturate(18%) hue-rotate(33deg) brightness(94%) contrast(90%);
 }
 
 .titleBarBtns > .closeBtn:hover {
   background-color: #910000;
 }
 
-.titleBarBtns > .topBtn:active {
-  background-color: #4f9fee;
+.titleBarBtns > .closeBtn:hover > img {
+  filter: brightness(0) saturate(100%) invert(9%) sepia(4%) saturate(18%) hue-rotate(33deg) brightness(94%) contrast(90%);
 }
 
 .mainApp > .contentArea {

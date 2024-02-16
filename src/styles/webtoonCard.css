@@ -1,0 +1,254 @@
+.card {
+  overflow: visible;
+  width: 193px;
+  height: 278px;
+}
+
+.top-header{
+  margin-top: 50px;
+  color: rgb(255, 255, 255);
+  font-size: 50px;
+}
+
+.info {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.img-back{
+  width: 100%;
+  height: 90%;
+  border-radius: 20px;
+  margin-top: 5px;
+  position: relative;
+  mask-image: linear-gradient(to bottom, rgb(0, 0, 0) 0%, transparent 90%);
+}
+
+.img-front {
+  filter: blur(10px);
+  width: 100%;
+  height: 90%;
+  border-radius: 20px;
+  margin-top: 5px;
+  transform: scaleX(-1);
+  position: relative;
+  z-index: 1;
+  mask-image: linear-gradient(to bottom, rgb(0, 0, 0) 0%, transparent 90%);
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 300ms;
+  border-radius: 5px;
+}
+
+.front, .back, .backloaded {
+  background-color: #212121;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 5px;
+  overflow: hidden;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.back::before {
+  position: absolute;
+  content: ' ';
+  display: block;
+  width: 160px;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, #009788, #009788, #009788, #009788, transparent);
+  animation: rotation_481 5000ms infinite linear;
+}
+
+.backloaded::before {
+  position: absolute;
+  content: ' ';
+  display: block;
+  top: 0;
+  width: 160px;
+  height: 10%;
+  background: linear-gradient(90deg, transparent, #009788, #009788, #009788, #009788, transparent);
+  animation: initial;
+}
+
+.front::before {
+  position: absolute;
+  content: ' ';
+  display: block;
+  top: 0;
+  width: 160px;
+  height: 10%;
+  background: linear-gradient(90deg, transparent, #009788, #009788, #009788, #009788, transparent);
+  animation: initial;
+}
+
+.back-content {
+  position: relative;
+  width: 98.5%;
+  height: 98.5%;
+  background-color: #212121;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.front-content {
+  position: absolute;
+  width: 98.5%;
+  height: 98.5%;
+  background-color: #212121;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card:hover .content {
+  transform: rotateY(180deg);
+}
+
+@keyframes rotation_481 {
+  0% {
+    transform: rotateZ(0deg);
+  }
+
+  0% {
+    transform: rotateZ(360deg);
+  }
+}
+
+.front {
+  transform: rotateY(180deg);
+  color: white;
+}
+
+.front-content .badge {
+  padding: 2px 10px;
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.badge{
+  z-index: 10;
+  color: #1b1b1b;
+  font-size: large;
+}
+
+.front .img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.front-buttons {
+  z-index: 10;
+}
+
+@keyframes floating {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.mm-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #212121;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 20px #212121;
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+  margin-right: 5px;
+  margin-left: 5px;
+  justify-self: center;
+  align-self: center;
+  vertical-align: middle;
+}
+
+.btn-icon-n {
+  width: 12px;
+  transition-duration: 0.3s;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
+  background-size: 40px;
+}
+
+.btn-icon-n path {
+  fill: white;
+}
+
+.mm-button:hover {
+  width: 100px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  align-items: center;
+}
+
+.mm-button:hover .btn-icon-n {
+  width: 50px;
+  transition-duration: 0.3s;
+  transform: translateY(60%);
+}
+
+.mm-button::before {
+  position: absolute;
+  top: -10px;
+  color: #009788;
+  transition-duration: 0.3s;
+  font-size: 2px;
+}
+
+.info-btn::before {
+  content: "Info";
+}
+
+.update-btn::before {
+  content: "Update";
+}
+
+.remove-btn::before {
+  content: "Remove";
+}
+
+.mm-button:hover::before {
+  font-size: 16px;
+  opacity: 1;
+  transform: translateY(30px);
+  transition-duration: 0.3s;
+}
+
+.mm-button:hover .btn-icon-n {
+  opacity: 0;
+}

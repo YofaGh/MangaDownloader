@@ -1,0 +1,99 @@
+.f-header {
+  color: rgb(255, 255, 255);
+  font-size: 35px;
+  margin-bottom: 20px;
+}
+
+.f-container {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.f-card {
+  overflow: visible;
+  width: 193px;
+  height: 278px;
+}
+
+.f-top-header {
+  margin-top: 50px;
+  color: rgb(255, 255, 255);
+  font-size: 50px;
+}
+
+.f-info {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.f-infoo {
+  position: fixed;
+  right: 0;
+  margin-right: 15px;
+}
+
+.f-img-back {
+  width: 100%;
+  height: 90%;
+  border-radius: 20px;
+  margin-top: 5px;
+  position: relative;
+  mask-image: linear-gradient(to bottom, rgb(0, 0, 0) 0%, transparent 90%);
+}
+
+.f-content {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 300ms;
+  border-radius: 5px;
+}
+
+.f-backloaded {
+  background-color: #212121;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 5px;
+  overflow: hidden;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.f-backloaded::before {
+  position: absolute;
+  content: " ";
+  display: block;
+  top: 0;
+  width: 160px;
+  height: 10%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #009788,
+    #009788,
+    #009788,
+    #009788,
+    transparent
+  );
+  animation: initial;
+}
+
+.f-back-content {
+  position: relative;
+  width: 98.5%;
+  height: 98.5%;
+  background-color: #212121;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

@@ -1,0 +1,57 @@
+.a-card {
+  display: flex;
+  height: 70px;
+  width: 270px;
+  justify-content: center;
+}
+
+.a-img {
+  width: 70%;
+  height: 100%;
+  opacity: 1;
+  transition: opacity 0.25s;
+  z-index: 2;
+  cursor: pointer;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
+}
+
+.social-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25%;
+  font-size: 24px;
+  text-decoration: none;
+  transition: 0.25s;
+  border-radius: 50px;
+  margin-left: 10px;
+}
+
+.social-link:hover {
+  background-color: #009788;
+  animation: bounce_613 0.4s linear;
+}
+
+.social-link:hover .a-img {
+  filter: invert(9%) sepia(11%) saturate(16%) hue-rotate(49deg) brightness(98%) contrast(90%);;
+}
+
+@keyframes bounce_613 {
+  40% {
+    transform: scale(1.4);
+  }
+
+  60% {
+    transform: scale(0.8);
+  }
+
+  80% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

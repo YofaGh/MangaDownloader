@@ -1,0 +1,46 @@
+.search-card {
+  width: 400px;
+  height: 220px;
+  background: #212121;
+  box-shadow: rgba(0, 0, 0, 0.4) 10px 20px 30px,
+    rgba(0, 0, 0, 0.3) 10px 1px 53px 3px, rgba(1, 0, 0, 0.2) 0px -1px 3px inset;
+  text-align: center;
+  cursor: pointer;
+  align-items: center;
+  user-select: none;
+  color: #fff;
+  margin: 10px;
+  transition: all 0.1s;
+  border-radius: 10%;
+  font-size: small;
+}
+
+.info-searched-w {
+  padding: 10px;
+}
+
+.search-card:hover {
+  transform: scale(1.021);
+}
+
+.search-card:active {
+  transform: scale(0.95) rotateZ(1.1deg);
+}
+
+.search-info{
+  display: flex;
+  margin-top: 0;
+  justify-content: space-around;
+}
+
+.search-i{
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  float: left;
+  left: 0;
+  border-top-left-radius: 20%;
+  border-bottom-left-radius: 20%;
+  object-fit: fill;
+  max-width: 150px;
+}

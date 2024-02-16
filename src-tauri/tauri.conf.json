@@ -12,7 +12,10 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "window": {
+        "startDragging": false
+      }
     },
     "bundle": {
       "active": true,
@@ -59,7 +62,8 @@
         "height": 600,
         "resizable": true,
         "title": "Manga Downloader",
-        "width": 800
+        "width": 1000,
+        "decorations": true
       }
     ]
   }

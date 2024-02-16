@@ -1,0 +1,160 @@
+.basic-info {
+  display: flex;
+  margin: 50px;
+  margin-top: 0px;
+  height: 100%;
+  color: #dfd9d9;
+}
+.fixed {
+  width: 200px;
+}
+.flex-item {
+  flex-grow: 1;
+  margin-left: 50px;
+}
+.rate {
+  color: rgb(255, 255, 0);
+}
+.title {
+  font-size: xx-large;
+  display: flex;
+}
+.alternatives {
+  font-size: large;
+}
+.summary-sec {
+  font-size: medium;
+}
+.info-sec {
+  font-size: small;
+}
+
+.btnn {
+  padding: 20px 20px;
+  background-color: #121212;
+  border: none;
+  font-size: 18px;
+  position: relative;
+  transition: 500ms;
+  margin-left: 20px;
+  margin-right: 20px;
+  cursor:pointer;
+}
+
+.btnn span {
+  color: gray;
+  position: relative;
+  transition: 500ms;
+  transition-delay: 100ms;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.btnn:before {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 0%;
+  left: 50%;
+  right: 50%;
+  top: 50%;
+  bottom: 50%;
+  transition: 500ms;
+  transition-delay: 50ms;
+  background-color: #009788;
+}
+
+.btnn div {
+  transition: 500ms;
+  position: absolute;
+  background-color: #009788;
+}
+
+.btnn .top {
+  width: 15px;
+  height: 2px;
+  top: 0;
+  left: 0;
+}
+
+.btnn .bottom {
+  width: 15px;
+  height: 2px;
+  bottom: 0;
+  right: 0;
+}
+
+.btnn .left {
+  width: 2px;
+  height: 15px;
+  top: 0;
+  left: 0;
+}
+
+.btnn .right {
+  width: 2px;
+  height: 15px;
+  bottom: 0;
+  right: 0;
+}
+
+.btnn:hover {
+  color: #000;
+}
+
+.btnn:hover span {
+  color: #000;
+}
+
+.btnn:hover:before {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.btnn:hover .top,
+.btnn:hover .bottom {
+  width: 100%;
+}
+
+.btnn:hover .left,
+.btnn:hover .right {
+  height: 100%;
+}
+
+
+.buttonht {
+  outline: 0 !important;
+  border: 0 !important;
+  height: 50px;
+  border-radius: 50%;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: all ease-in-out;
+  cursor: pointer;
+  transition-duration: 1s;
+}
+
+.buttonht:hover .tooltip {
+  opacity: 1;
+  transition-duration: 0.5s;
+}
+
+.icongt {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.webtoon-i{
+  width: 200px;
+  background-size: cover;
+  background-position: center;
+}

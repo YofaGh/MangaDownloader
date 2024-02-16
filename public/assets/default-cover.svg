@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 162.7 220.25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #009888;
+        stroke-miterlimit: 10;
+        stroke-width: 3px;
+      }
+
+      .cls-2 {
+        fill: #009888;
+        font-family: 'ae_AlMothnna-Bold', ae_AlMothnna;
+        font-size: 46px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <rect class="cls-1" x="1.5" y="1.5" width="159.7" height="217.25"/>
+    <text class="cls-2" transform="translate(24.74 63.64)"><tspan x="0" y="0">WEB</tspan><tspan x="-15.43" y="55.2">TOON</tspan></text>
+  </g>
+</svg>

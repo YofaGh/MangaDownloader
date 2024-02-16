@@ -1,0 +1,27 @@
+#s-folder {
+  display: none;
+}
+.s-utils{
+  display: flex;
+  margin-top: 20px;
+}
+.s-utils .filter-toggle{
+  margin-top: 0px;
+}
+.s-utils .input-depth{
+  height: 30px;
+  max-width: 30px;
+  font-size: medium;
+}
+
+.cyb-checkbox-label {
+  color: #fff;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.playstore-button{
+  cursor: pointer;
+  color: #009788;
+}

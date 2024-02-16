@@ -1,0 +1,144 @@
+.m-card {
+  --background: linear-gradient(to left, #00c778 0%, #009788 100%);
+  width: 190px;
+  height: 250px;
+  padding: 5px;
+  border-radius: 1rem;
+  overflow: visible;
+  background: var(--background);
+  position: relative;
+  z-index: 1;
+}
+
+.m-card::after {
+  position: absolute;
+  content: "";
+  top: 30px;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+  transform: scale(0.75);
+  filter: blur(25px);
+  background: var(--background);
+  transition: opacity 0.5s;
+}
+
+.m-card-info {
+  --color: #181818;
+  background: var(--color);
+  color: var(--color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border-radius: 0.7rem;
+}
+
+.m-card .m-title {
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+
+.m-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #009788;
+  padding: 5px;
+  border-radius: 10px;
+  font-size: small;
+}
+
+.m-logo {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+.m-name {
+  text-align: center;
+  margin-top: 10px;
+  font-size: small;
+  color: #ededed;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.m-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #212121;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 20px #212121;
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.btn-icon {
+  width: 12px;
+  transition-duration: 0.3s;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
+  background-size: 40px;
+}
+
+.btn-icon path {
+  fill: white;
+}
+
+.m-button:hover {
+  width: 100px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  align-items: center;
+}
+
+.m-button:hover .btn-icon {
+  width: 50px;
+  transition-duration: 0.3s;
+  transform: translateY(60%);
+}
+
+.m-button::before {
+  position: absolute;
+  top: -20px;
+  color: #009788;
+  transition-duration: 0.3s;
+  font-size: 2px;
+}
+
+.search-btn::before {
+  content: "Search";
+}
+
+.check-btn::before {
+  content: "Check";
+}
+
+.m-button:hover::before {
+  font-size: 13px;
+  opacity: 1;
+  transform: translateY(30px);
+  transition-duration: 0.3s;
+}
+
+.m-button:hover .btn-icon {
+  opacity: 0;
+}

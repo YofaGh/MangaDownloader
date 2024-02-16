@@ -1,0 +1,48 @@
+.filter-toggle {
+  margin-top: 25px;
+  margin-left: 5px;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.ni {
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 8px 20px;
+  border-radius: 0.8rem;
+  min-width: 124px;
+  text-align: center;
+  border: 0.5px solid #009788;
+  color: #009788;
+  cursor: pointer;
+}
+
+.ni:before {
+  color: #4ebe96;
+}
+
+.ni:active {
+  transform: scale(0.94);
+}
+
+.nio {
+  position: fixed;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.nio:checked + .ni {
+  background: #009788;
+  color: #000;
+}
+
+.nio:checked + .ni:before {
+  color: #d84f68;
+}

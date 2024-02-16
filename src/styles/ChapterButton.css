@@ -1,0 +1,175 @@
+.btn-cssbuttons {
+  --btn-color: #009788;
+  position: relative;
+  font-size: 1vw;
+  line-height: 1;
+  color: white;
+  background: none;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  border-radius: 24px;
+  align-items: center;
+  width: 190px;
+  height: 85px;
+}
+.chapter {
+  justify-content: center;
+  width: 100px;
+  white-space: nowrap;
+  text-align: center;
+  align-items: center;
+}
+
+.btn-cssbuttons::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: var(--btn-color);
+  border-radius: 24px;
+  transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.btn-cssbuttons div,
+.btn-cssbuttons div div {
+  display: inline-flex;
+  vertical-align: middle;
+  transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.btn-cssbuttons div {
+  transition-delay: 0.05s;
+}
+
+.btn-cssbuttons div:first-child {
+  padding-right: 7px;
+}
+
+.btn-cssbuttons div div {
+  margin-left: 8px;
+  transition-delay: 0.1s;
+}
+
+.btn-cssbuttons ul {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  transform: translateY(-50%);
+}
+
+.btn-cssbuttons ul li {
+  flex: 1;
+}
+
+.btn-cssbuttons ul li span {
+  display: inline-flex;
+  vertical-align: middle;
+  transform: translateY(55px);
+  transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.btn-cssbuttons:hover::before {
+  transform: scale(1.2);
+}
+
+.btn-cssbuttons:hover div,
+.btn-cssbuttons:hover div div {
+  transform: translateY(-55px);
+}
+
+.btn-cssbuttons:hover ul li span {
+  transform: translateY(0);
+}
+
+.btn-cssbuttons:hover ul li:nth-child(1) span {
+  transition-delay: 0.15s;
+}
+
+.btn-cssbuttons:hover ul li:nth-child(2) span {
+  transition-delay: 0.2s;
+}
+
+.btn-cssbuttons:hover ul li:nth-child(3) span {
+  transition-delay: 0.25s;
+}
+
+.download-btn::before {
+  content: "Download";
+}
+
+.queue-btn::before {
+  content: "Add to Queue";
+}
+
+.mg-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #212121;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 20px #212121;
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+}
+
+.btng-icon {
+  width: 20px;
+  height: 20px;
+  transition-duration: 0.3s;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
+  background-size: 40px;
+}
+
+.btng-icon path {
+  fill: white;
+}
+
+.mg-button:hover {
+  width: 120px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  align-items: center;
+}
+
+.mg-button:hover .btng-icon {
+  width: 50px;
+  transition-duration: 0.3s;
+  transform: translateY(60%);
+}
+
+.mg-button::before {
+  position: absolute;
+  top: -10px;
+  color: #009788;
+  transition-duration: 0.3s;
+  font-size: 2px;
+}
+
+.mg-button:hover::before {
+  font-size: 13px;
+  opacity: 1;
+  transform: translateY(30px);
+  transition-duration: 0.3s;
+}
+
+.mg-button:hover .btng-icon {
+  opacity: 0;
+}

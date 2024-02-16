@@ -1,0 +1,38 @@
+.sidebar {
+  width: 45px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: fixed;
+}
+
+.buttonhg {
+  outline: 0 !important;
+  border: 0 !important;
+  height: 50px;
+  border-radius: 50%;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: all ease-in-out;
+  cursor: pointer;
+  transition-duration: 1s;
+}
+
+.buttonhg:hover {
+  animation: buttonhover-rotate 5s linear infinite;
+}
+
+@keyframes buttonhover-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

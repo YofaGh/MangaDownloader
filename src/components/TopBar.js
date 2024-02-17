@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./../styles/Topbar.css";
 import Sidebar from "./SideBar";
 import { useNavigate } from "react-router-dom";
-import { invoke } from '@tauri-apps/api/tauri'
+import { appWindow } from '@tauri-apps/api/window';
 
 export default function TopBar({ currentDownloadStatus }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,8 +29,8 @@ export default function TopBar({ currentDownloadStatus }) {
   }
 
   return (
-    <div className="mainApp">
-      <div className="topBar">
+    <div data-tauri-drag-region className="mainApp">
+      <div data-tauri-drag-region className="topBar">
         <div className="titleBar">
           <input
             id="menu-checkbox"
@@ -66,19 +66,19 @@ export default function TopBar({ currentDownloadStatus }) {
           </button>
           <button
             className="topBtn minimizeBtn"
-            onClick={() => window.do.minimizeApp()}
+            onClick={() => appWindow.minimize()}
           >
             <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
           </button>
           <button
             className="topBtn closeBtn"
-            onClick={() => invoke('close_app')}
+            onClick={() => appWindow.close()}
           >
             <img alt="" src="./assets/delete.svg" className="icon-t"></img>
           </button>
         </div>
       </div>
-      <div className="contentArea">
+      <div data-tauri-drag-region className="contentArea">
         <div id="mySidebar" className="leftMenu">
           {isMenuOpen && <Sidebar showHideMenus={showHideMenus} />}
         </div>

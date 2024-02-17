@@ -2,7 +2,7 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[\/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
-export const convert = async (webtoon, openPath, dispatch, sheller) => {
+export const convert = async (webtoon, openPath, dispatch, sheller, openFile) => {
   let pdfName =
     webtoon.type === "manga"
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
@@ -17,7 +17,7 @@ export const convert = async (webtoon, openPath, dispatch, sheller) => {
       title: "Successful Request",
     });
     if (openPath) {
-      window.do.showItemInFolder(`${webtoon.path}\\${pdfName}.pdf`);
+      openFile(`${webtoon.path}\\${pdfName}.pdf`);
     }
   });
 };
@@ -28,7 +28,8 @@ export const merge = async (
   mergeMethod,
   openPath,
   dispatch,
-  sheller
+  sheller,
+  openFolder
 ) => {
   const mergePath =
     webtoon.type === "manga"
@@ -48,7 +49,7 @@ export const merge = async (
       title: "Successful Request",
     });
     if (openPath) {
-      window.do.openFolder(mergePath, { activate: true });
+      openFolder(mergePath);
     }
   });
 };

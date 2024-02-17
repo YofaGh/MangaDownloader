@@ -18,6 +18,14 @@ import { useNotification } from "./NotificationProvider";
 import { useSheller, useShellerPathSetter } from "./ShellerProvider";
 // eslint-disable-next-line
 import Worker from "worker-loader!./worker.js";
+import { open } from "@tauri-apps/api/dialog";
+import {
+  readTextFile,
+  writeTextFile,
+  BaseDirectory,
+  removeDir,
+  removeFile,
+} from "@tauri-apps/api/fs";
 
 export default function App() {
   const [settings, setSettings] = useState(null);
@@ -34,34 +42,82 @@ export default function App() {
   const [libraryMessages, setLibraryMessages] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
-  const [settingsPath, setSettingsPath] = useState("");
   const dispatch = useNotification();
   const sheller = useSheller();
   const shellerPathSetter = useShellerPathSetter();
 
+  const readFile = async (fileName, setter) => {
+    const contents = await readTextFile(fileName, {
+      dir: BaseDirectory.AppLocalData,
+    });
+    if (fileName === "library.json") {
+      const libraryRaw = JSON.parse(contents);
+      setter(
+        Object.entries(libraryRaw).map(([manga, detm]) => {
+          return {
+            title: manga,
+            status: detm.include,
+            domain: detm.domain,
+            url: detm.url,
+            cover: detm.cover,
+            last_downloaded_chapter: detm.last_downloaded_chapter,
+          };
+        })
+      );
+    } else {
+      setter(JSON.parse(contents));
+    }
+  };
+
+  const writeFile = async (fileName, data) => {
+    if (fileName === "library.json") {
+      await writeTextFile(
+        fileName,
+        JSON.stringify(
+          data.reduce(
+            (
+              acc,
+              { title, status, domain, url, cover, last_downloaded_chapter }
+            ) => {
+              acc[title] = {
+                include: status,
+                domain,
+                url,
+                cover,
+                last_downloaded_chapter,
+              };
+              return acc;
+            },
+            {}
+          ),
+          null,
+          2
+        ),
+        {
+          dir: BaseDirectory.AppLocalData,
+        }
+      );
+    } else {
+      await writeTextFile(fileName, JSON.stringify(data, null, 2), {
+        dir: BaseDirectory.AppLocalData,
+      });
+    }
+  };
+
+  const removeDirectory = async (path, recursive) => {
+    await removeDir(path, { dir: BaseDirectory.AppLocalData, recursive });
+  };
+
+  const removeF = async (path) => {
+    await removeFile(path, { dir: BaseDirectory.AppLocalData });
+  };
+
   useEffect(() => {
-    // setSettingsPath(
-    //   window.do.getSettingsPath().then((result) => {
-    //     setSettingsPath(result);
-    //     setQueue(window.do.getJsonFile(result, "queue.json"));
-    //     setDownloaded(window.do.getJsonFile(result, "downloaded.json"));
-    //     setFavorites(window.do.getJsonFile(result, "favorites.json"));
-    //     setSettings(window.do.getJsonFile(result, "settings.json"));
-    //     const libraryRaw = window.do.getJsonFile(result, "library.json");
-    //     setLibrary(
-    //       Object.entries(libraryRaw).map(([manga, detm]) => {
-    //         return {
-    //           title: manga,
-    //           status: detm.include,
-    //           domain: detm.domain,
-    //           url: detm.url,
-    //           cover: detm.cover,
-    //           last_downloaded_chapter: detm.last_downloaded_chapter,
-    //         };
-    //       })
-    //     );
-    //   })
-    // );
+    readFile("settings.json", setSettings);
+    readFile("queue.json", setQueue);
+    readFile("downloaded.json", setDownloaded);
+    readFile("favorites.json", setFavorites);
+    readFile("library.json", setLibrary);
   }, []);
 
   useEffect(() => {
@@ -98,10 +154,13 @@ export default function App() {
                   message.setWebtoonStatus.webtoon.info
                 }`
               : fixNameForFolder(message.setWebtoonStatus.webtoon.title);
-          window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
+          removeDirectory(`${settings.downloadPath}/${folderName}`, true);
           if (message.setWebtoonStatus.webtoon.type === "manga") {
-            window.do.removeFolderIfEmpty(
-              `${settings.downloadPath}/${fixNameForFolder(message.setWebtoonStatus.webtoon.title)}`
+            removeDirectory(
+              `${settings.downloadPath}/${fixNameForFolder(
+                message.setWebtoonStatus.webtoon.title
+              )}`,
+              false
             );
           }
         }
@@ -140,10 +199,11 @@ export default function App() {
               webtoon.type === "manga"
                 ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
                 : fixNameForFolder(webtoon.title);
-            window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
+            removeDirectory(`${settings.downloadPath}/${folderName}`, true);
             if (webtoon.type === "manga") {
-              window.do.removeFolderIfEmpty(
-                `${settings.downloadPath}/${fixNameForFolder(webtoon.title)}`
+              removeDirectory(
+                `${settings.downloadPath}/${fixNameForFolder(webtoon.title)}`,
+                false
               );
             }
           }
@@ -199,11 +259,12 @@ export default function App() {
             settings.mergeMethod,
             false,
             dispatch,
-            sheller
+            sheller,
+            null
           );
         }
         if (settings.autoConvert) {
-          convert(newD, false, dispatch, sheller);
+          convert(newD, false, dispatch, sheller, null);
         }
       }
       if (message.removeWebtoon) {
@@ -233,7 +294,7 @@ export default function App() {
                 message.removeWebtoon.webtoon.info
               }`
             : fixNameForFolder(message.removeWebtoon.webtoon.title);
-        window.do.removeFolder(`${settings.downloadPath}/${folderName}`);
+        removeDirectory(`${settings.downloadPath}/${folderName}`, true);
       }
       if (message.addWebtoon) {
         if (!queue.find((item) => item.id === message.addWebtoon.webtoon.id)) {
@@ -303,7 +364,7 @@ export default function App() {
         });
       }
       if (message.rempveImage) {
-        window.do.deleteImage(message.rempveImage.saved_path);
+        removeF(message.rempveImage.saved_path);
       }
     }
   }, [queueMessages, queue, downloading]);
@@ -338,52 +399,23 @@ export default function App() {
   }, [downloading, queue]);
 
   useEffect(() => {
-    if (settingsPath !== "") {
-      window.do.setJsonFile(settingsPath, "queue.json", queue);
-    }
+    writeFile("queue.json", queue);
   }, [queue]);
 
   useEffect(() => {
-    if (settingsPath !== "") {
-      window.do.setJsonFile(settingsPath, "downloaded.json", downloaded);
-    }
+    writeFile("downloaded.json", downloaded);
   }, [downloaded]);
 
   useEffect(() => {
-    if (settingsPath !== "") {
-      window.do.setJsonFile(settingsPath, "settings.json", settings);
-    }
+    writeFile("settings.json", settings);
   }, [settings]);
 
   useEffect(() => {
-    if (settingsPath !== "") {
-      window.do.setJsonFile(settingsPath, "favorites.json", favorites);
-    }
+    writeFile("favorites.json", favorites);
   }, [favorites]);
 
   useEffect(() => {
-    if (settingsPath !== "") {
-      window.do.setJsonFile(
-        settingsPath,
-        "library.json",
-        library.reduce(
-          (
-            acc,
-            { title, status, domain, url, cover, last_downloaded_chapter }
-          ) => {
-            acc[title] = {
-              include: status,
-              domain,
-              url,
-              cover,
-              last_downloaded_chapter,
-            };
-            return acc;
-          },
-          {}
-        )
-      );
-    }
+    writeFile("library.json", library);
   }, [library]);
 
   useEffect(() => {
@@ -603,7 +635,6 @@ export default function App() {
             path="/modules"
             element={
               <Modules
-                settingsPath={settingsPath}
                 loadCovers={settings ? settings.loadCovers : true}
               />
             }
@@ -660,19 +691,20 @@ export default function App() {
             <br />
             <PushButton
               label={"Browse"}
-              onClick={() =>
-                window.do.selectFolder().then((result) => {
-                  if (result) {
-                    setSettings((prevSettings) => ({
-                      ...prevSettings,
-                      downloadPath: result,
-                    }));
-                    const modal = document.getElementById("browse-modal");
-                    modal.style.display = "none";
-                    startDownloading();
-                  }
-                })
-              }
+              onClick={() => {
+                let selectedPath = open({
+                  directory: true,
+                });
+                if (selectedPath) {
+                  setSettings((prevSettings) => ({
+                    ...prevSettings,
+                    downloadPath: selectedPath,
+                  }));
+                  const modal = document.getElementById("browse-modal");
+                  modal.style.display = "none";
+                  startDownloading();
+                }
+              }}
             />
           </div>
         </div>

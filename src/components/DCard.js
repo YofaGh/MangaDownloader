@@ -2,6 +2,8 @@ import "../styles/DCard.css";
 import { convert, merge } from "../components/utils";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
+import { BaseDirectory, removeDir } from "@tauri-apps/api/fs";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function DCard({
   webtoon,
@@ -12,9 +14,16 @@ export default function DCard({
   const dispatch = useNotification();
   const sheller = useSheller();
 
-  const deleteFolder = () => {
-    window.do.removeFolder(webtoon.path);
+  const deleteFolder = async () => {
+    await removeDir(webtoon.path, {
+      dir: BaseDirectory.AppLocalData,
+      recursive: true,
+    });
     removeWebtoon(webtoon);
+  };
+
+  const openFolder = (path) => {
+    invoke("open_folder", { path });
   };
 
   return (
@@ -31,7 +40,15 @@ export default function DCard({
         <button
           className="buttonh"
           onClick={() =>
-            merge(webtoon, downloadPath, mergeMethod, true, dispatch, sheller)
+            merge(
+              webtoon,
+              downloadPath,
+              mergeMethod,
+              true,
+              dispatch,
+              sheller,
+              openFolder
+            )
           }
         >
           <img alt="" src="./assets/merge.svg" className="icofn"></img>
@@ -39,7 +56,7 @@ export default function DCard({
         </button>
         <button
           className="buttonh"
-          onClick={() => convert(webtoon, true, dispatch, sheller)}
+          onClick={() => convert(webtoon, true, dispatch, sheller, openFolder)}
         >
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>
           <span className="tooltip">Convert to PDF</span>

@@ -1,5 +1,6 @@
 import "../styles/Settings.css";
 import FilterToggleButton from "../components/FilterToggleButton";
+import { open } from "@tauri-apps/api/dialog";
 
 export default function Settings({
   settings,
@@ -142,14 +143,15 @@ export default function Settings({
               });
               return;
             }
-            window.do.selectFolder().then((result) => {
-              if (result) {
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  downloadPath: result,
-                }));
-              }
+            let selectedPath = open({
+              directory: true,
             });
+            if (selectedPath) {
+              setSettings((prevSettings) => ({
+                ...prevSettings,
+                downloadPath: selectedPath,
+              }));
+            }
           }}
         >
           <span className="text-2">Browse</span>

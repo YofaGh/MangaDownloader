@@ -3,8 +3,10 @@ import React, { useState, useEffect } from "react";
 import MCard from "../components/moduleCard";
 import ModuleChecker from "../components/ModuleChecker";
 import { useSheller } from "../ShellerProvider";
+import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
+import { appLocalDataDir } from '@tauri-apps/api/path';
 
-export default function Modules({ settingsPath, loadCovers }) {
+export default function Modules({ loadCovers }) {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const sheller = useSheller();
@@ -12,6 +14,10 @@ export default function Modules({ settingsPath, loadCovers }) {
   const fetchModules = async () => {
     const response = await sheller(["get_modules"]);
     setModules(response);
+  };
+
+  const removeF = async (path) => {
+    await removeFile(path, { dir: BaseDirectory.AppLocalData });
   };
 
   useEffect(() => {
@@ -29,6 +35,7 @@ export default function Modules({ settingsPath, loadCovers }) {
   });
 
   const checkModule = async (module) => {
+    const appDataDir = await appLocalDataDir();
     showHideModal(true);
     const funcs = [
       "checkChapter",
@@ -80,14 +87,14 @@ export default function Modules({ settingsPath, loadCovers }) {
               "download_image",
               module.domain,
               images[0],
-              `${settingsPath}/${save_names[0]}`,
+              `${appDataDir}/${save_names[0]}`,
             ]);
           } else {
             saved_path = await sheller([
               "download_image",
               module.domain,
               images[0],
-              `${settingsPath}/${module.domain}_test.${
+              `${appDataDir}/${module.domain}_test.${
                 images[0].split(".").slice(-1)[0]
               }`,
             ]);
@@ -103,7 +110,7 @@ export default function Modules({ settingsPath, loadCovers }) {
           element.classList.remove("ch-active");
           if (notTruncated && notCorrupted) {
             element.classList.add("ch-done");
-            window.do.deleteImage(saved_path);
+            removeF(saved_path);
           } else {
             element.classList.add("ch-dead");
           }
@@ -178,14 +185,14 @@ export default function Modules({ settingsPath, loadCovers }) {
             "download_image",
             module.domain,
             images[0],
-            `${settingsPath}/${save_names[0]}`,
+            `${appDataDir}/${save_names[0]}`,
           ]);
         } else {
           saved_path = await sheller([
             "download_image",
             module.domain,
             images[0],
-            `${settingsPath}/${module.domain}_test.${
+            `${appDataDir}/${module.domain}_test.${
               images[0].split(".").slice(-1)[0]
             }`,
           ]);
@@ -201,7 +208,7 @@ export default function Modules({ settingsPath, loadCovers }) {
         element.classList.remove("ch-active");
         if (notTruncated && notCorrupted) {
           element.classList.add("ch-done");
-          window.do.deleteImage(saved_path);
+          removeF(saved_path);
         } else {
           element.classList.add("ch-dead");
         }

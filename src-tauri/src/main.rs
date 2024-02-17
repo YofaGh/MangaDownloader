@@ -1,14 +1,26 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+
+use::std::process::Command;
+use tauri::Manager;
+
 #[tauri::command]
-fn close_app() {
-  std::process::exit(0);
+fn open_folder(path: String) {
+  Command::new("explorer")
+    .args(["/select,", &path])
+    .spawn()
+    .unwrap();
 }
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![close_app])
+    .invoke_handler(tauri::generate_handler![open_folder])
+    .setup(|app| {
+      #[cfg(debug_assertions)] // only include this code on debug builds
+      app.get_window("main").unwrap().open_devtools();
+      Ok(())
+    })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

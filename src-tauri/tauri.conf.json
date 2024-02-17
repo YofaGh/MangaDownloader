@@ -58,9 +58,18 @@
       "path": {
         "all": true
       },
-      "fs":{
+      "fs": {
         "all": true,
         "scope": ["$APPLOCALDATA/*"]
+      },
+      "shell": {
+        "all": true,
+        "sidecar": true,
+        "scope": [{
+          "name": "../bin/gsheller",
+          "sidecar": true,
+          "args": true
+        }]
       }
     },
     "bundle": {
@@ -70,7 +79,9 @@
       "deb": {
         "depends": []
       },
-      "externalBin": [],
+      "externalBin": [
+        "../bin/gsheller"
+      ],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -106,7 +117,7 @@
       {
         "fullscreen": false,
         "height": 600,
-        "resizable": true,
+        "resizable": false,
         "title": "Manga Downloader",
         "width": 1000,
         "decorations": false

@@ -70,37 +70,39 @@ export default function App() {
   };
 
   const writeFile = async (fileName, data) => {
-    if (fileName === "library.json") {
-      await writeTextFile(
-        fileName,
-        JSON.stringify(
-          data.reduce(
-            (
-              acc,
-              { title, status, domain, url, cover, last_downloaded_chapter }
-            ) => {
-              acc[title] = {
-                include: status,
-                domain,
-                url,
-                cover,
-                last_downloaded_chapter,
-              };
-              return acc;
-            },
-            {}
+    if (data) {
+      if (fileName === "library.json") {
+        await writeTextFile(
+          fileName,
+          JSON.stringify(
+            data.reduce(
+              (
+                acc,
+                { title, status, domain, url, cover, last_downloaded_chapter }
+              ) => {
+                acc[title] = {
+                  include: status,
+                  domain,
+                  url,
+                  cover,
+                  last_downloaded_chapter,
+                };
+                return acc;
+              },
+              {}
+            ),
+            null,
+            2
           ),
-          null,
-          2
-        ),
-        {
+          {
+            dir: BaseDirectory.AppLocalData,
+          }
+        );
+      } else {
+        await writeTextFile(fileName, JSON.stringify(data, null, 2), {
           dir: BaseDirectory.AppLocalData,
-        }
-      );
-    } else {
-      await writeTextFile(fileName, JSON.stringify(data, null, 2), {
-        dir: BaseDirectory.AppLocalData,
-      });
+        });
+      }
     }
   };
 
@@ -114,10 +116,10 @@ export default function App() {
 
   useEffect(() => {
     readFile("settings.json", setSettings);
-    readFile("queue.json", setQueue);
-    readFile("downloaded.json", setDownloaded);
-    readFile("favorites.json", setFavorites);
-    readFile("library.json", setLibrary);
+    // readFile("queue.json", setQueue);
+    // readFile("downloaded.json", setDownloaded);
+    // readFile("favorites.json", setFavorites);
+    // readFile("library.json", setLibrary);
   }, []);
 
   useEffect(() => {
@@ -407,7 +409,9 @@ export default function App() {
   }, [downloaded]);
 
   useEffect(() => {
-    writeFile("settings.json", settings);
+    if (settings) {
+      writeFile("settings.json", settings);
+    }
   }, [settings]);
 
   useEffect(() => {
@@ -634,9 +638,7 @@ export default function App() {
           <Route
             path="/modules"
             element={
-              <Modules
-                loadCovers={settings ? settings.loadCovers : true}
-              />
+              <Modules loadCovers={settings ? settings.loadCovers : true} />
             }
           />
           <Route

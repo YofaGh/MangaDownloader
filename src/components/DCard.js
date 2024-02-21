@@ -2,7 +2,6 @@ import "../styles/DCard.css";
 import { convert, merge } from "../components/utils";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
-import { BaseDirectory, removeDir } from "@tauri-apps/api/fs";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function DCard({
@@ -14,11 +13,8 @@ export default function DCard({
   const dispatch = useNotification();
   const sheller = useSheller();
 
-  const deleteFolder = async () => {
-    await removeDir(webtoon.path, {
-      dir: BaseDirectory.AppLocalData,
-      recursive: true,
-    });
+  const deleteFolder = () => {
+    invoke("remove_directory", { path: webtoon.path, recursive: true });
     removeWebtoon(webtoon);
   };
 

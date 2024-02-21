@@ -1,10 +1,9 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import { Command } from '@tauri-apps/api/shell';
 
 const Sheller = createContext();
 
 const ShellProvider = ({ children }) => {
-  const [shellerPath, setShellerPath] = useState(null);
 
   const sheller = async (args) => {
     const command = Command.sidecar("../bin/sheller", args);
@@ -13,7 +12,7 @@ const ShellProvider = ({ children }) => {
   };
 
   return (
-    <Sheller.Provider value={{ sheller, setShellerPath }}>
+    <Sheller.Provider value={{ sheller }}>
       {children}
     </Sheller.Provider>
   );
@@ -21,10 +20,6 @@ const ShellProvider = ({ children }) => {
 
 export const useSheller = () => {
   return useContext(Sheller).sheller;
-};
-
-export const useShellerPathSetter = () => {
-  return useContext(Sheller).setShellerPath;
 };
 
 export default ShellProvider;

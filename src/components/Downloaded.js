@@ -1,5 +1,5 @@
 import DCard from "./DCard";
-import { BaseDirectory, removeDir } from "@tauri-apps/api/fs";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Downloaded({
   downloaded,
@@ -13,9 +13,9 @@ export default function Downloaded({
   const removeAllWebtoons = () => {
     addDownloadedMessage({ removeAllWebtoons: {} });
   };
-  const deleteAllWebtoons = async () => {
-    downloaded.forEach(async (webtoon) => {
-      await removeDir(webtoon.path, { dir: BaseDirectory.AppLocalData, recursive: true });
+  const deleteAllWebtoons = () => {
+    downloaded.forEach((webtoon) => {
+      invoke("remove_directory", { path: webtoon.path, recursive: true });
     });
     addDownloadedMessage({ removeAllWebtoons: {} });
   };

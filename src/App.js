@@ -15,27 +15,23 @@ import About from "./pages/About";
 import { fixNameForFolder, convert, merge } from "./components/utils";
 import PushButton from "./components/PushButton";
 import { useNotification } from "./NotificationProvider";
-import { useSheller, useShellerPathSetter } from "./ShellerProvider";
+import { useSheller } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import {
   readTextFile,
   writeTextFile,
   BaseDirectory,
-  removeDir,
-  removeFile,
 } from "@tauri-apps/api/fs";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function App() {
   const [settings, setSettings] = useState(null);
   const [queue, setQueue] = useState([]);
-  const [downloadListeners, setDownloadListeners] = useState([]);
   const [queueMessages, setQueueMessages] = useState([]);
   const [downloadedMessages, setDownloadedMessages] = useState([]);
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
-  const [searchListeners, setSearchListeners] = useState([]);
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [library, setLibrary] = useState([]);
@@ -44,7 +40,6 @@ export default function App() {
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
   const dispatch = useNotification();
   const sheller = useSheller();
-  const shellerPathSetter = useShellerPathSetter();
 
   const readFile = async (fileName, setter) => {
     const contents = await readTextFile(fileName, {
@@ -106,12 +101,8 @@ export default function App() {
     }
   };
 
-  const removeDirectory = async (path, recursive) => {
-    await removeDir(path, { dir: BaseDirectory.AppLocalData, recursive });
-  };
-
-  const removeF = async (path) => {
-    await removeFile(path, { dir: BaseDirectory.AppLocalData });
+  const removeDirectory = (path, recursive) => {
+    invoke("remove_directory", { path, recursive });
   };
 
   useEffect(() => {
@@ -130,7 +121,6 @@ export default function App() {
       } else {
         startDownloading();
       }
-      shellerPathSetter(settings.shellerPath);
     }
   }, [settings]);
 
@@ -173,10 +163,6 @@ export default function App() {
           (message.setWebtoonStatus.status === "Paused" ||
             message.setWebtoonStatus.status === "Not Started")
         ) {
-          for (let downloadListener in downloadListeners) {
-            downloadListener.then(() => {});
-          }
-          setDownloadListeners([]);
           setDownloading(null);
         }
         if (message.setWebtoonStatus.status === "Started" && !downloading) {
@@ -219,10 +205,6 @@ export default function App() {
             message.setAllWebtoonsStatus.status === "Not Started") &&
           downloading
         ) {
-          for (let downloadListener in downloadListeners) {
-            downloadListener.then(() => {});
-          }
-          setDownloadListeners([]);
           setDownloading(null);
         }
         if (message.setAllWebtoonsStatus.status === "Started" && !downloading) {
@@ -295,10 +277,6 @@ export default function App() {
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
         ) {
-          for (let downloadListener in downloadListeners) {
-            downloadListener.then(() => {});
-          }
-          setDownloadListeners([]);
           setDownloading(null);
         }
         let folderName =
@@ -375,9 +353,6 @@ export default function App() {
             prevQueue.find((item) => item.id === webtoon)
           );
         });
-      }
-      if (message.rempveImage) {
-        removeF(message.rempveImage.saved_path);
       }
     }
   }, [queueMessages, queue, downloading]);
@@ -493,7 +468,7 @@ export default function App() {
         webtoon,
         downloadPath: settings.downloadPath,
       });
-      let totalImagesListener = await listen("totalImages", (event) => {
+      await listen("totalImages", (event) => {
         let totalImages = {
           totalImages: {
             id: event.payload.webtoon_id,
@@ -505,7 +480,7 @@ export default function App() {
           totalImages,
         ]);
       });
-      let downladingListener = await listen("downloading", (event) => {
+      await listen("downloading", (event) => {
         let downloading = {
           downloading: {
             id: event.payload.webtoon_id,
@@ -517,7 +492,7 @@ export default function App() {
           downloading,
         ]);
       });
-      let doneListener = await listen("done", (event) => {
+      await listen("done", (event) => {
         let done = {
           done: {
             id: event.payload.webtoon_id,
@@ -526,11 +501,6 @@ export default function App() {
         };
         setQueueMessages((prevQueueMessages) => [...prevQueueMessages, done]);
       });
-      setDownloadListeners([
-        totalImagesListener,
-        downladingListener,
-        doneListener,
-      ]);
     }
   };
 
@@ -563,15 +533,15 @@ export default function App() {
     invoke("search_keyword", {
       modules: modules.map((item) => item.name),
       keyword,
-      depth,
+      depth: depth.toString(),
       absolute: absolute.toString(),
     });
-    let doneSearchingListener = await listen("doneSearching", (event) => {
+    await listen("doneSearching", (event) => {
       setSearchingStatus({
         searched: { keyword: event.payload },
       });
     });
-    let searchingModuleListener = await listen("searchingModule", (event) => {
+    await listen("searchingModule", (event) => {
       setSearchingStatus({
         searching: {
           module: event.payload.module,
@@ -579,29 +549,18 @@ export default function App() {
         },
       });
     });
-    let searchedModuleListener = await listen("searchedModule", (event) => {
+    await listen("searchedModule", (event) => {
       setSearchResults((prevSearchResults) => [
         ...prevSearchResults,
         ...JSON.parse(event.payload),
       ]);
     });
-    setSearchListeners([
-      doneSearchingListener,
-      searchingModuleListener,
-      searchedModuleListener,
-    ]);
   };
 
   const resetSearch = () => {
     setSearchingStatus(null);
     setSearchResults([]);
     setSelectedModulesForSearch([]);
-    if (searchListeners) {
-      for (let searchListener in searchListeners) {
-        searchListener.then(() => {});
-      }
-    }
-    setDownloadListeners([]);
   };
 
   return (

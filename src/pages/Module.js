@@ -31,9 +31,9 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
       "search",
       module,
       input,
-      sleepTime,
-      absolute,
-      depth,
+      sleepTime.toString(),
+      absolute.toString(),
+      depth.toString(),
     ]);
     setResults(response);
     setSearchingStatus("searched");

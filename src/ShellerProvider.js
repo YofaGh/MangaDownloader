@@ -7,7 +7,7 @@ const ShellProvider = ({ children }) => {
   const [shellerPath, setShellerPath] = useState(null);
 
   const sheller = async (args) => {
-    const command = Command.sidecar("../bin/gsheller", args);
+    const command = Command.sidecar("../bin/sheller", args);
     const response = await command.execute();
     return JSON.parse(response.stdout);
   };

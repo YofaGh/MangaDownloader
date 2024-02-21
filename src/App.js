@@ -16,8 +16,7 @@ import { fixNameForFolder, convert, merge } from "./components/utils";
 import PushButton from "./components/PushButton";
 import { useNotification } from "./NotificationProvider";
 import { useSheller, useShellerPathSetter } from "./ShellerProvider";
-// eslint-disable-next-line
-import Worker from "worker-loader!./worker.js";
+import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import {
   readTextFile,
@@ -26,16 +25,17 @@ import {
   removeDir,
   removeFile,
 } from "@tauri-apps/api/fs";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function App() {
   const [settings, setSettings] = useState(null);
   const [queue, setQueue] = useState([]);
-  const [downloadWorker, setDownloadWorker] = useState(null);
+  const [downloadListeners, setDownloadListeners] = useState([]);
   const [queueMessages, setQueueMessages] = useState([]);
   const [downloadedMessages, setDownloadedMessages] = useState([]);
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
-  const [searchWorker, setSearchWorker] = useState(null);
+  const [searchListeners, setSearchListeners] = useState([]);
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [library, setLibrary] = useState([]);
@@ -116,10 +116,10 @@ export default function App() {
 
   useEffect(() => {
     readFile("settings.json", setSettings);
-    // readFile("queue.json", setQueue);
-    // readFile("downloaded.json", setDownloaded);
-    // readFile("favorites.json", setFavorites);
-    // readFile("library.json", setLibrary);
+    readFile("queue.json", setQueue);
+    readFile("downloaded.json", setDownloaded);
+    readFile("favorites.json", setFavorites);
+    readFile("library.json", setLibrary);
   }, []);
 
   useEffect(() => {
@@ -173,7 +173,10 @@ export default function App() {
           (message.setWebtoonStatus.status === "Paused" ||
             message.setWebtoonStatus.status === "Not Started")
         ) {
-          downloadWorker.terminate();
+          for (let downloadListener in downloadListeners) {
+            downloadListener.then(() => {});
+          }
+          setDownloadListeners([]);
           setDownloading(null);
         }
         if (message.setWebtoonStatus.status === "Started" && !downloading) {
@@ -216,7 +219,10 @@ export default function App() {
             message.setAllWebtoonsStatus.status === "Not Started") &&
           downloading
         ) {
-          downloadWorker.terminate();
+          for (let downloadListener in downloadListeners) {
+            downloadListener.then(() => {});
+          }
+          setDownloadListeners([]);
           setDownloading(null);
         }
         if (message.setAllWebtoonsStatus.status === "Started" && !downloading) {
@@ -225,38 +231,40 @@ export default function App() {
       }
       if (message.done) {
         setDownloading(null);
+        let webtoon = queue.find((item) => item.id === message.done.id);
         setQueue((prevQueue) =>
-          prevQueue.filter((item) => item.id !== message.done.webtoon.id)
+          prevQueue.filter((item) => item.id !== message.done.id)
         );
-        if (message.done.webtoon.in_library) {
+        if (webtoon.in_library) {
           addLibraryMessage({
             updateWebtoon: {
-              domain: message.done.webtoon.module,
-              url: message.done.webtoon.manga,
+              domain: webtoon.module,
+              url: webtoon.manga,
               last_downloaded_chapter: {
-                name: message.done.webtoon.info,
-                url: message.done.webtoon.chapter,
+                name: webtoon.info,
+                url: webtoon.chapter,
               },
             },
           });
         }
-        let newD = message.done.webtoon;
-        delete newD.status;
-        delete newD.in_library;
-        newD.images = message.done.images;
-        newD.path = message.done.path;
-        addDownloadedMessage({ addWebtoon: { webtoon: newD } });
+        webtoon.images = webtoon.totalImages;
+        webtoon.path = message.done.download_path;
+        delete webtoon.status;
+        delete webtoon.in_library;
+        delete webtoon.downloading;
+        delete webtoon.totalImages;
+        addDownloadedMessage({ addWebtoon: { webtoon } });
         dispatch({
           type: "SUCCESS",
           message:
-            message.done.webtoon.type === "manga"
-              ? `Downloaded ${message.done.webtoon.title} - ${message.done.webtoon.info}`
-              : `Downloaded ${message.done.webtoon.title}`,
+            webtoon.type === "manga"
+              ? `Downloaded ${webtoon.title} - ${webtoon.info}`
+              : `Downloaded ${webtoon.title}`,
           title: "Successful Request",
         });
         if (settings.autoMerge) {
           merge(
-            newD,
+            webtoon,
             settings.downloadPath,
             settings.mergeMethod,
             false,
@@ -266,7 +274,7 @@ export default function App() {
           );
         }
         if (settings.autoConvert) {
-          convert(newD, false, dispatch, sheller, null);
+          convert(webtoon, false, dispatch, sheller, null);
         }
       }
       if (message.removeWebtoon) {
@@ -287,7 +295,10 @@ export default function App() {
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
         ) {
-          downloadWorker.terminate();
+          for (let downloadListener in downloadListeners) {
+            downloadListener.then(() => {});
+          }
+          setDownloadListeners([]);
           setDownloading(null);
         }
         let folderName =
@@ -336,7 +347,7 @@ export default function App() {
         setQueue((queue) => {
           let data = [...queue];
           let indexOfTodo = data.findIndex(
-            (item) => item.id === message.downloading.webtoon.id
+            (item) => item.id === message.downloading.id
           );
           data[indexOfTodo] = {
             ...data[indexOfTodo],
@@ -349,7 +360,7 @@ export default function App() {
         setQueue((queue) => {
           let data = [...queue];
           let indexOfTodo = data.findIndex(
-            (item) => item.id === message.totalImages.webtoon.id
+            (item) => item.id === message.totalImages.id
           );
           data[indexOfTodo] = {
             ...data[indexOfTodo],
@@ -409,9 +420,7 @@ export default function App() {
   }, [downloaded]);
 
   useEffect(() => {
-    if (settings) {
-      writeFile("settings.json", settings);
-    }
+    writeFile("settings.json", settings);
   }, [settings]);
 
   useEffect(() => {
@@ -480,27 +489,48 @@ export default function App() {
     const webtoon = queue.find((item) => item.status === "Started");
     if (webtoon) {
       setDownloading(webtoon);
-      const dWorker = new Worker();
-      dWorker.postMessage({
-        download: {
-          webtoon,
-          downloadPath: settings.downloadPath,
-          shellerPath: settings.shellerPath,
-        },
+      invoke("download", {
+        webtoon,
+        downloadPath: settings.downloadPath,
       });
-      dWorker.onmessage = (e) => {
-        if (
-          !e.data.doneSearching &&
-          !e.data.searchedModule &&
-          !e.data.searchingModule
-        ) {
-          setQueueMessages((prevQueueMessages) => [
-            ...prevQueueMessages,
-            e.data,
-          ]);
-        }
-      };
-      setDownloadWorker(dWorker);
+      let totalImagesListener = await listen("totalImages", (event) => {
+        let totalImages = {
+          totalImages: {
+            id: event.payload.webtoon_id,
+            total: event.payload.total_images,
+          },
+        };
+        setQueueMessages((prevQueueMessages) => [
+          ...prevQueueMessages,
+          totalImages,
+        ]);
+      });
+      let downladingListener = await listen("downloading", (event) => {
+        let downloading = {
+          downloading: {
+            id: event.payload.webtoon_id,
+            image: event.payload.image,
+          },
+        };
+        setQueueMessages((prevQueueMessages) => [
+          ...prevQueueMessages,
+          downloading,
+        ]);
+      });
+      let doneListener = await listen("done", (event) => {
+        let done = {
+          done: {
+            id: event.payload.webtoon_id,
+            download_path: event.payload.download_path,
+          },
+        };
+        setQueueMessages((prevQueueMessages) => [...prevQueueMessages, done]);
+      });
+      setDownloadListeners([
+        totalImagesListener,
+        downladingListener,
+        doneListener,
+      ]);
     }
   };
 
@@ -526,53 +556,52 @@ export default function App() {
     addQueueMessage({ addWebtoon: { webtoon } });
   };
 
-  const startSearching = (modules, keyword, depth, absolute) => {
+  const startSearching = async (modules, keyword, depth, absolute) => {
     setSelectedModulesForSearch(modules);
     setSearchResults([]);
     setSearchingStatus({ searching: { keyword } });
-    const sWorker = new Worker();
-    sWorker.postMessage({
-      search: {
-        modules: modules.map((item) => item.name),
-        keyword,
-        depth,
-        absolute,
-        sleepTime: settings.sleepTime,
-        shellerPath: settings.shellerPath,
-      },
+    invoke("search_keyword", {
+      modules: modules.map((item) => item.name),
+      keyword,
+      depth,
+      absolute: absolute.toString(),
     });
-    sWorker.onmessage = (e) => {
-      if (e.data.doneSearching) {
-        setSearchingStatus({
-          searched: { keyword: e.data.doneSearching.keyword },
-        });
-      }
-      if (e.data.searchingModule) {
-        setSearchingStatus({
-          searching: {
-            module: e.data.searchingModule.module,
-            keyword: e.data.searchingModule.keyword,
-          },
-        });
-      }
-      if (e.data.searchedModule) {
-        setSearchResults((prevSearchResults) => [
-          ...prevSearchResults,
-          ...e.data.searchedModule.response,
-        ]);
-      }
-    };
-    setSearchWorker(sWorker);
+    let doneSearchingListener = await listen("doneSearching", (event) => {
+      setSearchingStatus({
+        searched: { keyword: event.payload },
+      });
+    });
+    let searchingModuleListener = await listen("searchingModule", (event) => {
+      setSearchingStatus({
+        searching: {
+          module: event.payload.module,
+          keyword: event.payload.keyword,
+        },
+      });
+    });
+    let searchedModuleListener = await listen("searchedModule", (event) => {
+      setSearchResults((prevSearchResults) => [
+        ...prevSearchResults,
+        ...JSON.parse(event.payload),
+      ]);
+    });
+    setSearchListeners([
+      doneSearchingListener,
+      searchingModuleListener,
+      searchedModuleListener,
+    ]);
   };
 
   const resetSearch = () => {
     setSearchingStatus(null);
     setSearchResults([]);
     setSelectedModulesForSearch([]);
-    if (searchWorker) {
-      searchWorker.terminate();
+    if (searchListeners) {
+      for (let searchListener in searchListeners) {
+        searchListener.then(() => {});
+      }
     }
-    setSearchWorker(null);
+    setDownloadListeners([]);
   };
 
   return (

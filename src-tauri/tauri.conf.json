@@ -4,7 +4,8 @@
     "beforeBuildCommand": "yarn build",
     "beforeDevCommand": "yarn cross-env BROWSER=none yarn start",
     "devPath": "http://localhost:3000",
-    "distDir": "../build"
+    "distDir": "../build",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "Manga Downloader",
@@ -21,7 +22,7 @@
         "hide": false,
         "maximize": false,
         "minimize": true,
-        "print": false,
+        "print": true,
         "requestUserAttention": false,
         "setAlwaysOnTop": false,
         "setClosable": false,
@@ -66,7 +67,7 @@
         "all": true,
         "sidecar": true,
         "scope": [{
-          "name": "../bin/gsheller",
+          "name": "../bin/sheller",
           "sidecar": true,
           "args": true
         }]
@@ -80,7 +81,7 @@
         "depends": []
       },
       "externalBin": [
-        "../bin/gsheller"
+        "../bin/sheller"
       ],
       "icon": [
         "icons/32x32.png",

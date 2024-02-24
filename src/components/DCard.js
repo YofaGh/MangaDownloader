@@ -7,7 +7,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 export default function DCard({
   webtoon,
   removeWebtoon,
-  downloadPath,
+  download_path,
   mergeMethod,
 }) {
   const dispatch = useNotification();
@@ -38,7 +38,7 @@ export default function DCard({
           onClick={() =>
             merge(
               webtoon,
-              downloadPath,
+              download_path,
               mergeMethod,
               true,
               dispatch,

@@ -18,11 +18,11 @@ export default function Settings({
             <input
               type="checkbox"
               className="cyberpunk-checkbox"
-              checked={settings.autoMerge}
+              checked={settings.auto_merge}
               onChange={() =>
                 setSettings((prevSettings) => ({
                   ...prevSettings,
-                  autoMerge: !prevSettings.autoMerge,
+                  auto_merge: !prevSettings.auto_merge,
                 }))
               }
             ></input>
@@ -34,11 +34,11 @@ export default function Settings({
             <input
               type="checkbox"
               className="cyberpunk-checkbox"
-              checked={settings.autoConvert}
+              checked={settings.auto_convert}
               onChange={() =>
                 setSettings((prevSettings) => ({
                   ...prevSettings,
-                  autoConvert: !prevSettings.autoConvert,
+                  auto_convert: !prevSettings.auto_convert,
                 }))
               }
             ></input>
@@ -48,24 +48,24 @@ export default function Settings({
           Merge Method:&nbsp;
           <FilterToggleButton
             label={"Normal"}
-            selected={settings.mergeMethod === "Normal"}
+            selected={settings.merge_method === "Normal"}
             onChange={() => {
-              if (settings.mergeMethod === "Fit") {
+              if (settings.merge_method === "Fit") {
                 setSettings((prevSettings) => ({
                   ...prevSettings,
-                  mergeMethod: "Normal",
+                  merge_method: "Normal",
                 }));
               }
             }}
           />
           <FilterToggleButton
             label={"Fit"}
-            selected={settings.mergeMethod === "Fit"}
+            selected={settings.merge_method === "Fit"}
             onChange={() => {
-              if (settings.mergeMethod === "Normal") {
+              if (settings.merge_method === "Normal") {
                 setSettings((prevSettings) => ({
                   ...prevSettings,
-                  mergeMethod: "Fit",
+                  merge_method: "Fit",
                 }));
               }
             }}
@@ -79,11 +79,11 @@ export default function Settings({
             <input
               type="checkbox"
               className="cyberpunk-checkbox"
-              checked={settings.loadCovers}
+              checked={settings.load_covers}
               onChange={() =>
                 setSettings((prevSettings) => ({
                   ...prevSettings,
-                  loadCovers: !prevSettings.loadCovers,
+                  load_covers: !prevSettings.load_covers,
                 }))
               }
             ></input>
@@ -95,12 +95,12 @@ export default function Settings({
             type="number"
             name="text"
             className="input-depth"
-            defaultValue={settings.sleepTime}
+            defaultValue={settings.sleep_time}
             onChange={(e) =>
               e.target.valueAsNumber > 0 &&
               setSettings((prevSettings) => ({
                 ...prevSettings,
-                sleepTime: e.target.valueAsNumber,
+                sleep_time: e.target.valueAsNumber,
               }))
             }
           ></input>
@@ -112,12 +112,12 @@ export default function Settings({
             type="number"
             name="text"
             className="input-depth"
-            defaultValue={settings.defaultSearchDepth}
+            defaultValue={settings.default_search_depth}
             onChange={(e) =>
               e.target.valueAsNumber > 0 &&
               setSettings((prevSettings) => ({
                 ...prevSettings,
-                defaultSearchDepth: e.target.valueAsNumber,
+                default_search_depth: e.target.valueAsNumber,
               }))
             }
           ></input>
@@ -130,7 +130,7 @@ export default function Settings({
           className="input"
           name="text"
           type="text"
-          value={settings.downloadPath}
+          value={settings.download_path}
         ></input>
         <span
           className="playstore-button texts"
@@ -149,7 +149,7 @@ export default function Settings({
             if (selectedPath) {
               setSettings((prevSettings) => ({
                 ...prevSettings,
-                downloadPath: selectedPath,
+                download_path: selectedPath,
               }));
             }
           }}

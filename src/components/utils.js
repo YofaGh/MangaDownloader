@@ -24,7 +24,7 @@ export const convert = async (webtoon, openPath, dispatch, sheller, openFile) =>
 
 export const merge = async (
   webtoon,
-  downloadPath,
+  download_path,
   mergeMethod,
   openPath,
   dispatch,
@@ -33,12 +33,12 @@ export const merge = async (
 ) => {
   const mergePath =
     webtoon.type === "manga"
-      ? downloadPath +
+      ? download_path +
         "\\Merged\\" +
         fixNameForFolder(webtoon.title) +
         "\\" +
         webtoon.info
-      : downloadPath + "\\Merged\\" + fixNameForFolder(webtoon.title);
+      : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
   await sheller(["merge", webtoon.path, mergePath, mergeMethod]).then(() => {
     dispatch({
       type: "SUCCESS",

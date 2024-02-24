@@ -18,11 +18,7 @@ import { useNotification } from "./NotificationProvider";
 import { useSheller } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
-import {
-  readTextFile,
-  writeTextFile,
-  BaseDirectory,
-} from "@tauri-apps/api/fs";
+import { readTextFile, writeTextFile, BaseDirectory } from "@tauri-apps/api/fs";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function App() {
@@ -115,7 +111,7 @@ export default function App() {
 
   useEffect(() => {
     if (settings) {
-      if (!settings.downloadPath) {
+      if (!settings.download_path) {
         const modal = document.getElementById("browse-modal");
         modal.style.display = "block";
       } else {
@@ -146,10 +142,10 @@ export default function App() {
                   message.setWebtoonStatus.webtoon.info
                 }`
               : fixNameForFolder(message.setWebtoonStatus.webtoon.title);
-          removeDirectory(`${settings.downloadPath}/${folderName}`, true);
+          removeDirectory(`${settings.download_path}/${folderName}`, true);
           if (message.setWebtoonStatus.webtoon.type === "manga") {
             removeDirectory(
-              `${settings.downloadPath}/${fixNameForFolder(
+              `${settings.download_path}/${fixNameForFolder(
                 message.setWebtoonStatus.webtoon.title
               )}`,
               false
@@ -190,10 +186,10 @@ export default function App() {
               webtoon.type === "manga"
                 ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
                 : fixNameForFolder(webtoon.title);
-            removeDirectory(`${settings.downloadPath}/${folderName}`, true);
+            removeDirectory(`${settings.download_path}/${folderName}`, true);
             if (webtoon.type === "manga") {
               removeDirectory(
-                `${settings.downloadPath}/${fixNameForFolder(webtoon.title)}`,
+                `${settings.download_path}/${fixNameForFolder(webtoon.title)}`,
                 false
               );
             }
@@ -244,18 +240,18 @@ export default function App() {
               : `Downloaded ${webtoon.title}`,
           title: "Successful Request",
         });
-        if (settings.autoMerge) {
+        if (settings.auto_merge) {
           merge(
             webtoon,
-            settings.downloadPath,
-            settings.mergeMethod,
+            settings.download_path,
+            settings.merge_method,
             false,
             dispatch,
             sheller,
             null
           );
         }
-        if (settings.autoConvert) {
+        if (settings.auto_convert) {
           convert(webtoon, false, dispatch, sheller, null);
         }
       }
@@ -285,7 +281,7 @@ export default function App() {
                 message.removeWebtoon.webtoon.info
               }`
             : fixNameForFolder(message.removeWebtoon.webtoon.title);
-        removeDirectory(`${settings.downloadPath}/${folderName}`, true);
+        removeDirectory(`${settings.download_path}/${folderName}`, true);
       }
       if (message.addWebtoon) {
         if (!queue.find((item) => item.id === message.addWebtoon.webtoon.id)) {
@@ -466,7 +462,7 @@ export default function App() {
       setDownloading(webtoon);
       invoke("download", {
         webtoon,
-        downloadPath: settings.downloadPath,
+        downloadPath: settings.download_path,
       });
       await listen("totalImages", (event) => {
         let totalImages = {
@@ -582,7 +578,7 @@ export default function App() {
                 library={library}
                 addLibraryMessage={addLibraryMessage}
                 addWebtoonToQueue={addWebtoonToQueue}
-                loadCovers={settings ? settings.loadCovers : true}
+                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -595,8 +591,8 @@ export default function App() {
                 searchResults={searchResults}
                 resetSearch={resetSearch}
                 selectedModulesForSearch={selectedModulesForSearch}
-                defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
-                loadCovers={settings ? settings.loadCovers : true}
+                defaultSearchDepth={settings ? settings.default_search_depth : 3}
+                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -608,8 +604,8 @@ export default function App() {
                 addQueueMessage={addQueueMessage}
                 downloaded={downloaded}
                 addDownloadedMessage={addDownloadedMessage}
-                downloadPath={settings ? settings.downloadPath : ""}
-                mergeMethod={settings ? settings.mergeMethod : "Normal"}
+                download_path={settings ? settings.download_path : ""}
+                mergeMethod={settings ? settings.merge_method : "Normal"}
               />
             }
           />
@@ -619,14 +615,14 @@ export default function App() {
               <Favorites
                 favorites={favorites}
                 setFavorites={setFavorites}
-                loadCovers={settings ? settings.loadCovers : true}
+                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
           <Route
             path="/modules"
             element={
-              <Modules loadCovers={settings ? settings.loadCovers : true} />
+              <Modules loadCovers={settings ? settings.load_covers : true} />
             }
           />
           <Route
@@ -644,7 +640,7 @@ export default function App() {
           <Route
             path="/saucer"
             element={
-              <Saucer loadCovers={settings ? settings.loadCovers : true} />
+              <Saucer loadCovers={settings ? settings.load_covers : true} />
             }
           />
           <Route
@@ -656,7 +652,7 @@ export default function App() {
                 setFavorites={setFavorites}
                 addLibraryMessage={addLibraryMessage}
                 library={library}
-                loadCovers={settings ? settings.loadCovers : true}
+                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -664,9 +660,9 @@ export default function App() {
             path="/:module"
             element={
               <Module
-                defaultSearchDepth={settings ? settings.defaultSearchDepth : 3}
-                sleepTime={settings ? settings.sleepTime : 0.1}
-                loadCovers={settings ? settings.loadCovers : true}
+                defaultSearchDepth={settings ? settings.default_search_depth : 3}
+                sleepTime={settings ? settings.sleep_time : 0.1}
+                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -681,14 +677,14 @@ export default function App() {
             <br />
             <PushButton
               label={"Browse"}
-              onClick={() => {
-                let selectedPath = open({
+              onClick={async () => {
+                let selectedPath = await open({
                   directory: true,
                 });
                 if (selectedPath) {
                   setSettings((prevSettings) => ({
                     ...prevSettings,
-                    downloadPath: selectedPath,
+                    download_path: selectedPath,
                   }));
                   const modal = document.getElementById("browse-modal");
                   modal.style.display = "none";

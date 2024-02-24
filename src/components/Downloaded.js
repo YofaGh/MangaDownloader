@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 export default function Downloaded({
   downloaded,
   addDownloadedMessage,
-  downloadPath,
+  download_path,
   mergeMethod,
 }) {
   const removeWebtoon = (index) => {
@@ -42,7 +42,7 @@ export default function Downloaded({
                 <DCard
                   webtoon={webtoon}
                   removeWebtoon={() => removeWebtoon(index)}
-                  downloadPath={downloadPath}
+                  download_path={download_path}
                   mergeMethod={mergeMethod}
                 />
               </li>

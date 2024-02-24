@@ -1,4 +1,4 @@
-use tauri::api::process::CommandEvent;
+use tauri::api::process::{Command, CommandEvent};
 
 #[derive(Clone, serde::Serialize)]
 struct SearchingModule {
@@ -24,7 +24,7 @@ pub async fn search_keyword(
                 },
             )
             .unwrap();
-        let (mut rx, mut child) = tauri::api::process::Command::new_sidecar("sheller")
+        let (mut rx, _child) = Command::new_sidecar("sheller")
             .expect("failed to create `my-sidecar` binary command")
             .args(&["search", &module, &keyword, "0.1", &absolute, &depth])
             .spawn()
@@ -36,7 +36,7 @@ pub async fn search_keyword(
                     cloned_window
                         .emit("searchedModule", Some(format!("{}", line)))
                         .expect("failed to emit event");
-                    child.write("message from Rust\n".as_bytes()).unwrap();
+                    break;
                 }
             }
         });

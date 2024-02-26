@@ -50,7 +50,7 @@
         "removeFile": true,
         "readFile": true,
         "writeFile": true,
-        "scope": ["$APPLOCALDATA/*"]
+        "scope": ["$APPDATA/*"]
       },
       "shell": {
         "sidecar": true,

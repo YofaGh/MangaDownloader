@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serde_json::{Value, to_writer_pretty, from_str, to_value};
-use std::fs::{read_dir, remove_dir, remove_dir_all, File};
+use serde_json::{from_str, to_value, to_writer_pretty, Value};
+use std::fs::{read_dir, remove_dir, remove_dir_all, create_dir_all, File};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
@@ -42,7 +42,8 @@ fn save_file(path: String, data: Value) {
     }
 }
 
-fn load_up_checks(local_data_dir: String) {
+fn load_up_checks(data_dir: String) {
+    let _ = create_dir_all(&data_dir);
     let default_settings: DefaultSettings = DefaultSettings {
         auto_merge: false,
         auto_convert: false,
@@ -59,12 +60,12 @@ fn load_up_checks(local_data_dir: String) {
         "favorites.json",
     ];
     save_file(
-        format!("{}\\settings.json", local_data_dir),
+        format!("{}\\settings.json", data_dir),
         to_value(&default_settings).unwrap(),
     );
     for file in file_array {
         save_file(
-            format!("{}\\{}", local_data_dir, file),
+            format!("{}\\{}", data_dir, file),
             from_str("[]").unwrap(),
         );
     }
@@ -81,7 +82,7 @@ fn main() {
         .setup(|app: &mut tauri::App| {
             load_up_checks(
                 app.path_resolver()
-                    .app_local_data_dir()
+                    .app_data_dir()
                     .unwrap_or(PathBuf::new())
                     .to_string_lossy()
                     .to_string(),

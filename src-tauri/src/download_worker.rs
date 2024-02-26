@@ -1,8 +1,8 @@
-use std::fs::{create_dir_all, read_dir};
-use serde_json::{Value, from_str};
-use std::{thread, time::Duration};
+use serde_json::{from_str, Value};
 use std::collections::HashMap;
+use std::fs::{create_dir_all, read_dir};
 use std::io::{self, Write};
+use std::{thread, time::Duration};
 use tauri::regex::Regex;
 
 fn fix_name_for_folder(manga: &str) -> String {
@@ -69,10 +69,8 @@ pub async fn download(
         args.push(webtoon.get("doujin").unwrap().to_string());
     }
     let response: String = call_sheller(args).await;
-    let json_data: Value =
-        from_str(&response).expect("Failed to parse JSON");
-    let re: &Vec<Value> = json_data.as_array().unwrap();
-    let images: &Vec<Value> = re.get(0).unwrap().as_array().unwrap();
+    let json_data: Value = from_str(&response).expect("Failed to parse JSON");
+    let images: &Vec<Value> = json_data.as_array().unwrap().get(0).unwrap().as_array().unwrap();
     let d_path: String = format!("{}\\{}", download_path, folder_name);
     create_dir_all(d_path.clone()).expect("Failed to create dir");
     window
@@ -92,7 +90,7 @@ pub async fn download(
     let mut last_truncated: String = "".to_string();
     let mut has_saved_names: bool = false;
     let mut saved_names: Vec<String> = Vec::new();
-    if let Some(obj) = re.get(1).and_then(|v| v.as_array()) {
+    if let Some(obj) = json_data.as_array().unwrap().get(1).and_then(|v| v.as_array()) {
         has_saved_names = true;
         saved_names.extend(obj.iter().map(|v| v.as_str().unwrap().to_string()));
     }

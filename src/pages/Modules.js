@@ -1,28 +1,27 @@
-import "./../App.css";
 import React, { useState, useEffect } from "react";
 import MCard from "../components/moduleCard";
 import ModuleChecker from "../components/ModuleChecker";
 import { useSheller } from "../ShellerProvider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
-import { appLocalDataDir } from '@tauri-apps/api/path';
+import { appLocalDataDir } from "@tauri-apps/api/path";
 
 export default function Modules({ loadCovers }) {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const sheller = useSheller();
 
-  const fetchModules = async () => {
-    const response = await sheller(["get_modules"]);
-    setModules(response);
-  };
-
   const removeF = async (path) => {
     await removeFile(path, { dir: BaseDirectory.AppLocalData });
   };
 
   useEffect(() => {
+    const fetchModules = async () => {
+      const response = await sheller(["get_modules"]);
+      setModules(response);
+    };
+    
     fetchModules();
-  }, []);
+  }, [sheller]);
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("checkModal");

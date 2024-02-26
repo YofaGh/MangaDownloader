@@ -27,24 +27,25 @@ export default function Search({
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const sheller = useSheller();
-  const fetchModules = async () => {
-    const response = await sheller(["get_modules"]);
-    updateModules(
-      response
-        .filter((module) => module.searchable)
-        .map((module) => {
-          const item = { ...module };
-          item.name = item.domain;
-          delete item.domain;
-          item.selected = true;
-          return item;
-        })
-    );
-  };
 
   useEffect(() => {
+    const fetchModules = async () => {
+      const response = await sheller(["get_modules"]);
+      updateModules(
+        response
+          .filter((module) => module.searchable)
+          .map((module) => {
+            const item = { ...module };
+            item.name = item.domain;
+            delete item.domain;
+            item.selected = true;
+            return item;
+          })
+      );
+    };
+
     fetchModules();
-  }, []);
+  }, [sheller]);
 
   useEffect(() => {
     if (searchingStatus && searchingStatus.searched) {

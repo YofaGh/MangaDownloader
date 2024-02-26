@@ -39,61 +39,47 @@ export default function App() {
 
   const readFile = async (fileName, setter) => {
     const contents = await readTextFile(fileName, {
-      dir: BaseDirectory.AppLocalData,
+      dir: BaseDirectory.AppData,
     });
+    let data = JSON.parse(contents);
     if (fileName === "library.json") {
-      const libraryRaw = JSON.parse(contents);
-      setter(
-        Object.entries(libraryRaw).map(([manga, detm]) => {
-          return {
-            title: manga,
-            status: detm.include,
-            domain: detm.domain,
-            url: detm.url,
-            cover: detm.cover,
-            last_downloaded_chapter: detm.last_downloaded_chapter,
-          };
-        })
-      );
-    } else {
-      setter(JSON.parse(contents));
+      data = Object.entries(data).map(([manga, detm]) => {
+        return {
+          title: manga,
+          status: detm.include,
+          domain: detm.domain,
+          url: detm.url,
+          cover: detm.cover,
+          last_downloaded_chapter: detm.last_downloaded_chapter,
+        };
+      });
     }
+    setter(data);
   };
 
   const writeFile = async (fileName, data) => {
     if (data) {
       if (fileName === "library.json") {
-        await writeTextFile(
-          fileName,
-          JSON.stringify(
-            data.reduce(
-              (
-                acc,
-                { title, status, domain, url, cover, last_downloaded_chapter }
-              ) => {
-                acc[title] = {
-                  include: status,
-                  domain,
-                  url,
-                  cover,
-                  last_downloaded_chapter,
-                };
-                return acc;
-              },
-              {}
-            ),
-            null,
-            2
-          ),
-          {
-            dir: BaseDirectory.AppLocalData,
-          }
+        data = data.reduce(
+          (
+            acc,
+            { title, status, domain, url, cover, last_downloaded_chapter }
+          ) => {
+            acc[title] = {
+              include: status,
+              domain,
+              url,
+              cover,
+              last_downloaded_chapter,
+            };
+            return acc;
+          },
+          {}
         );
-      } else {
-        await writeTextFile(fileName, JSON.stringify(data, null, 2), {
-          dir: BaseDirectory.AppLocalData,
-        });
       }
+      await writeTextFile(fileName, JSON.stringify(data, null, 2), {
+        dir: BaseDirectory.AppData,
+      });
     }
   };
 
@@ -591,7 +577,9 @@ export default function App() {
                 searchResults={searchResults}
                 resetSearch={resetSearch}
                 selectedModulesForSearch={selectedModulesForSearch}
-                defaultSearchDepth={settings ? settings.default_search_depth : 3}
+                defaultSearchDepth={
+                  settings ? settings.default_search_depth : 3
+                }
                 loadCovers={settings ? settings.load_covers : true}
               />
             }
@@ -660,7 +648,9 @@ export default function App() {
             path="/:module"
             element={
               <Module
-                defaultSearchDepth={settings ? settings.default_search_depth : 3}
+                defaultSearchDepth={
+                  settings ? settings.default_search_depth : 3
+                }
                 sleepTime={settings ? settings.sleep_time : 0.1}
                 loadCovers={settings ? settings.load_covers : true}
               />

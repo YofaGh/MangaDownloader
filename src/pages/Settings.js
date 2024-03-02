@@ -8,6 +8,17 @@ export default function Settings({
   downloading,
   dispatch,
 }) {
+  const changeFilePath = async () => {
+    const path = await open({
+      directory: true,
+    });
+    if (path) {
+      setSettings((prevSettings) => ({
+        ...prevSettings,
+        download_path: path,
+      }));
+    }
+  };
   return (
     <div className="container">
       <div className="f-header">Settings</div>
@@ -131,6 +142,7 @@ export default function Settings({
           name="text"
           type="text"
           value={settings.download_path}
+          readOnly
         ></input>
         <span
           className="playstore-button texts"
@@ -143,15 +155,7 @@ export default function Settings({
               });
               return;
             }
-            let selectedPath = open({
-              directory: true,
-            });
-            if (selectedPath) {
-              setSettings((prevSettings) => ({
-                ...prevSettings,
-                download_path: selectedPath,
-              }));
-            }
+            changeFilePath();
           }}
         >
           <span className="text-2">Browse</span>

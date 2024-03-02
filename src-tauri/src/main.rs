@@ -1,7 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serde_json::{from_str, to_value, to_writer_pretty, Value};
-use std::fs::{read_dir, remove_dir, remove_dir_all, create_dir_all, File};
+use serde_json::{from_str, to_value, Value};
+use std::fs::{read_dir, remove_dir, remove_dir_all, create_dir_all, OpenOptions};
+use std::io::{Write, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
@@ -17,10 +18,35 @@ fn open_folder(path: String) {
 }
 
 #[tauri::command]
+fn write_file(path: String, data: String) {
+    let mut f = OpenOptions::new()
+        .write(true)
+        .read(true)
+        .create(true)
+        .open(&path)
+        .unwrap();
+    let _ = f.set_len(0);
+    write!(f, "{}", &data).unwrap();
+    f.rewind().unwrap();
+}
+
+#[tauri::command]
+fn read_file(path: String) -> String {
+    let mut f = OpenOptions::new()
+        .write(true)
+        .read(true)
+        .open(&path)
+        .unwrap();
+    let mut buf = String::new();
+    f.read_to_string(&mut buf).unwrap();
+    buf
+}
+
+#[tauri::command]
 fn remove_directory(path: String, recursive: bool) {
     if recursive {
         remove_dir_all(path).unwrap();
-    } else if read_dir(path.clone()).unwrap().count() == 0 {
+    } else if read_dir(&path).unwrap().count() == 0 {
         remove_dir(path).unwrap();
     }
 }
@@ -38,7 +64,7 @@ struct DefaultSettings {
 
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
-        let _ = to_writer_pretty(&File::create(path).unwrap(), &data);
+        let _ = write_file(path, serde_json::to_string_pretty(&data).unwrap());
     }
 }
 
@@ -76,6 +102,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             open_folder,
             remove_directory,
+            read_file,
+            write_file,
             search_worker::search_keyword,
             download_worker::download
         ])

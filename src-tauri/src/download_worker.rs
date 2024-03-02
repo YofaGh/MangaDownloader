@@ -72,7 +72,7 @@ pub async fn download(
     let json_data: Value = from_str(&response).expect("Failed to parse JSON");
     let images: &Vec<Value> = json_data.as_array().unwrap().get(0).unwrap().as_array().unwrap();
     let d_path: String = format!("{}\\{}", download_path, folder_name);
-    create_dir_all(d_path.clone()).expect("Failed to create dir");
+    create_dir_all(&d_path).expect("Failed to create dir");
     window
         .emit(
             "totalImages",
@@ -82,7 +82,7 @@ pub async fn download(
             },
         )
         .expect("failed to emit event");
-    let dirs: std::fs::ReadDir = read_dir(d_path.clone()).unwrap();
+    let dirs: std::fs::ReadDir = read_dir(&d_path).unwrap();
     let mut exists_images: Vec<String> = Vec::new();
     for dir in dirs {
         exists_images.push(dir.unwrap().path().to_str().unwrap().to_string());

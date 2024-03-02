@@ -18,7 +18,7 @@ import { useNotification } from "./NotificationProvider";
 import { useSheller } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
-import { readTextFile, writeTextFile, BaseDirectory } from "@tauri-apps/api/fs";
+import { appDataDir } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function App() {
@@ -38,9 +38,10 @@ export default function App() {
   const sheller = useSheller();
 
   const readFile = async (fileName, setter) => {
-    const contents = await readTextFile(fileName, {
-      dir: BaseDirectory.AppData,
-    });
+    let dataDirPath = await appDataDir();
+    const contents = await invoke("read_file", {
+      path: `${dataDirPath}/${fileName}`,
+    })
     let data = JSON.parse(contents);
     if (fileName === "library.json") {
       data = Object.entries(data).map(([manga, detm]) => {
@@ -77,9 +78,11 @@ export default function App() {
           {}
         );
       }
-      await writeTextFile(fileName, JSON.stringify(data, null, 2), {
-        dir: BaseDirectory.AppData,
-      });
+      let dataDirPath = await appDataDir();
+      await invoke("write_file", {
+        path: `${dataDirPath}/${fileName}`,
+        data: JSON.stringify(data, null, 2),
+      })
     }
   };
 
@@ -368,13 +371,13 @@ export default function App() {
     }
   }, [downloading, queue]);
 
-  useEffect(() => {
-    writeFile("queue.json", queue);
-  }, [queue]);
+  // useEffect(() => {
+  //   writeFile("queue.json", queue);
+  // }, [queue]);
 
-  useEffect(() => {
-    writeFile("downloaded.json", downloaded);
-  }, [downloaded]);
+  // useEffect(() => {
+  //   writeFile("downloaded.json", downloaded);
+  // }, [downloaded]);
 
   useEffect(() => {
     writeFile("settings.json", settings);
@@ -384,9 +387,9 @@ export default function App() {
     writeFile("favorites.json", favorites);
   }, [favorites]);
 
-  useEffect(() => {
-    writeFile("library.json", library);
-  }, [library]);
+  // useEffect(() => {
+  //   writeFile("library.json", library);
+  // }, [library]);
 
   useEffect(() => {
     while (libraryMessages.length > 0) {

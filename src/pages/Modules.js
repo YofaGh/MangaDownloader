@@ -3,7 +3,7 @@ import MCard from "../components/moduleCard";
 import ModuleChecker from "../components/ModuleChecker";
 import { useSheller } from "../ShellerProvider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
-import { appLocalDataDir } from "@tauri-apps/api/path";
+import { appDataDir } from "@tauri-apps/api/path";
 
 export default function Modules({ loadCovers }) {
   const [modules, setModules] = useState([]);
@@ -34,7 +34,7 @@ export default function Modules({ loadCovers }) {
   });
 
   const checkModule = async (module) => {
-    const appDataDir = await appLocalDataDir();
+    const dataDir = await appDataDir();
     showHideModal(true);
     const funcs = [
       "checkChapter",
@@ -86,14 +86,14 @@ export default function Modules({ loadCovers }) {
               "download_image",
               module.domain,
               images[0],
-              `${appDataDir}/${save_names[0]}`,
+              `${dataDir}/${save_names[0]}`,
             ]);
           } else {
             saved_path = await sheller([
               "download_image",
               module.domain,
               images[0],
-              `${appDataDir}/${module.domain}_test.${
+              `${dataDir}/${module.domain}_test.${
                 images[0].split(".").slice(-1)[0]
               }`,
             ]);
@@ -184,14 +184,14 @@ export default function Modules({ loadCovers }) {
             "download_image",
             module.domain,
             images[0],
-            `${appDataDir}/${save_names[0]}`,
+            `${dataDir}/${save_names[0]}`,
           ]);
         } else {
           saved_path = await sheller([
             "download_image",
             module.domain,
             images[0],
-            `${appDataDir}/${module.domain}_test.${
+            `${dataDir}/${module.domain}_test.${
               images[0].split(".").slice(-1)[0]
             }`,
           ]);

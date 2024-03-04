@@ -29,6 +29,7 @@ export default function App() {
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
   const [searchingStatus, setSearchingStatus] = useState(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [library, setLibrary] = useState([]);
   const [libraryMessages, setLibraryMessages] = useState([]);
@@ -41,7 +42,7 @@ export default function App() {
     let dataDirPath = await appDataDir();
     const contents = await invoke("read_file", {
       path: `${dataDirPath}/${fileName}`,
-    })
+    });
     let data = JSON.parse(contents);
     if (fileName === "library.json") {
       data = Object.entries(data).map(([manga, detm]) => {
@@ -82,12 +83,16 @@ export default function App() {
       await invoke("write_file", {
         path: `${dataDirPath}/${fileName}`,
         data: JSON.stringify(data, null, 2),
-      })
+      });
     }
   };
 
-  const removeDirectory = (path, recursive) => {
-    invoke("remove_directory", { path, recursive });
+  const removeDirectory = async (path, recursive) => {
+    await invoke("remove_directory", { path, recursive });
+  };
+
+  const stopWorker = async (command) => {
+    await invoke(command);
   };
 
   useEffect(() => {
@@ -119,6 +124,15 @@ export default function App() {
           }
           return item;
         });
+        if (
+          downloading &&
+          message.setWebtoonStatus.webtoon.id === downloading.id &&
+          (message.setWebtoonStatus.status === "Paused" ||
+            message.setWebtoonStatus.status === "Not Started")
+        ) {
+          stopWorker("stop_download");
+          setDownloading(null);
+        }
         if (message.setWebtoonStatus.status === "Not Started") {
           let indexOfTodo = updatedList.findIndex(
             (item) => item.id === message.setWebtoonStatus.webtoon.id
@@ -142,14 +156,6 @@ export default function App() {
           }
         }
         setQueue(updatedList);
-        if (
-          downloading &&
-          message.setWebtoonStatus.webtoon.id === downloading.id &&
-          (message.setWebtoonStatus.status === "Paused" ||
-            message.setWebtoonStatus.status === "Not Started")
-        ) {
-          setDownloading(null);
-        }
         if (message.setWebtoonStatus.status === "Started" && !downloading) {
           startDownloading();
         }
@@ -165,6 +171,14 @@ export default function App() {
           }
           return item;
         });
+        if (
+          (message.setAllWebtoonsStatus.status === "Paused" ||
+            message.setAllWebtoonsStatus.status === "Not Started") &&
+          downloading
+        ) {
+          stopWorker("stop_download");
+          setDownloading(null);
+        }
         if (message.setAllWebtoonsStatus.status === "Not Started") {
           for (let webtoon of updatedList) {
             delete webtoon.downloading;
@@ -185,13 +199,6 @@ export default function App() {
           }
         }
         setQueue(updatedList);
-        if (
-          (message.setAllWebtoonsStatus.status === "Paused" ||
-            message.setAllWebtoonsStatus.status === "Not Started") &&
-          downloading
-        ) {
-          setDownloading(null);
-        }
         if (message.setAllWebtoonsStatus.status === "Started" && !downloading) {
           startDownloading();
         }
@@ -262,6 +269,7 @@ export default function App() {
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
         ) {
+          stopWorker("stop_download");
           setDownloading(null);
         }
         let folderName =
@@ -371,13 +379,13 @@ export default function App() {
     }
   }, [downloading, queue]);
 
-  // useEffect(() => {
-  //   writeFile("queue.json", queue);
-  // }, [queue]);
+  useEffect(() => {
+    writeFile("queue.json", queue);
+  }, [queue]);
 
-  // useEffect(() => {
-  //   writeFile("downloaded.json", downloaded);
-  // }, [downloaded]);
+  useEffect(() => {
+    writeFile("downloaded.json", downloaded);
+  }, [downloaded]);
 
   useEffect(() => {
     writeFile("settings.json", settings);
@@ -387,9 +395,9 @@ export default function App() {
     writeFile("favorites.json", favorites);
   }, [favorites]);
 
-  // useEffect(() => {
-  //   writeFile("library.json", library);
-  // }, [library]);
+  useEffect(() => {
+    writeFile("library.json", library);
+  }, [library]);
 
   useEffect(() => {
     while (libraryMessages.length > 0) {
@@ -449,8 +457,11 @@ export default function App() {
     const webtoon = queue.find((item) => item.status === "Started");
     if (webtoon) {
       setDownloading(webtoon);
+      const { totalImages, downloading, ...rest } = webtoon;
       invoke("download", {
-        webtoon,
+        webtoon: rest,
+        fixedTitle: fixNameForFolder(webtoon.title),
+        sleepTime: settings.sleep_time,
         downloadPath: settings.download_path,
       });
       await listen("totalImages", (event) => {
@@ -477,7 +488,7 @@ export default function App() {
           downloading,
         ]);
       });
-      await listen("done", (event) => {
+      await listen("doneDownloading", (event) => {
         let done = {
           done: {
             id: event.payload.webtoon_id,
@@ -512,37 +523,38 @@ export default function App() {
   };
 
   const startSearching = async (modules, keyword, depth, absolute) => {
+    setSearchKeyword(keyword);
     setSelectedModulesForSearch(modules);
     setSearchResults([]);
-    setSearchingStatus({ searching: { keyword } });
+    setSearchingStatus({ searching: { module: modules[0].name } });
     invoke("search_keyword", {
       modules: modules.map((item) => item.name),
       keyword,
+      sleepTime: settings.sleep_time.toString(),
       depth: depth.toString(),
       absolute: absolute.toString(),
     });
-    await listen("doneSearching", (event) => {
-      setSearchingStatus({
-        searched: { keyword: event.payload },
-      });
+    await listen("doneSearching", (even) => {
+      setSearchingStatus("searched");
     });
     await listen("searchingModule", (event) => {
       setSearchingStatus({
         searching: {
           module: event.payload.module,
-          keyword: event.payload.keyword,
         },
       });
     });
     await listen("searchedModule", (event) => {
       setSearchResults((prevSearchResults) => [
         ...prevSearchResults,
-        ...JSON.parse(event.payload),
+        ...JSON.parse(event.payload.result),
       ]);
     });
   };
 
   const resetSearch = () => {
+    stopWorker("stop_search");
+    setSearchKeyword("");
     setSearchingStatus(null);
     setSearchResults([]);
     setSelectedModulesForSearch([]);
@@ -583,6 +595,7 @@ export default function App() {
                 defaultSearchDepth={
                   settings ? settings.default_search_depth : 3
                 }
+                searchKeyword={searchKeyword}
                 loadCovers={settings ? settings.load_covers : true}
               />
             }

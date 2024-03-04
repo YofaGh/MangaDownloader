@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::{from_str, to_value, Value};
-use std::fs::{read_dir, remove_dir, remove_dir_all, create_dir_all, OpenOptions};
-use std::io::{Write, Read, Seek};
+use std::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, OpenOptions};
+use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
@@ -45,9 +45,11 @@ fn read_file(path: String) -> String {
 #[tauri::command]
 fn remove_directory(path: String, recursive: bool) {
     if recursive {
-        remove_dir_all(path).unwrap();
-    } else if read_dir(&path).unwrap().count() == 0 {
-        remove_dir(path).unwrap();
+        let _ = remove_dir_all(path);
+    } else if let Ok(entries) = read_dir(&path) {
+        if entries.count() == 0 {
+            let _ = remove_dir(path);
+        }
     }
 }
 
@@ -90,10 +92,7 @@ fn load_up_checks(data_dir: String) {
         to_value(&default_settings).unwrap(),
     );
     for file in file_array {
-        save_file(
-            format!("{}\\{}", data_dir, file),
-            from_str("[]").unwrap(),
-        );
+        save_file(format!("{}\\{}", data_dir, file), from_str("[]").unwrap());
     }
 }
 
@@ -105,7 +104,9 @@ fn main() {
             read_file,
             write_file,
             search_worker::search_keyword,
-            download_worker::download
+            search_worker::stop_search,
+            download_worker::download,
+            download_worker::stop_download,
         ])
         .setup(|app: &mut tauri::App| {
             load_up_checks(

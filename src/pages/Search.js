@@ -14,6 +14,7 @@ export default function Search({
   resetSearch,
   selectedModulesForSearch,
   defaultSearchDepth,
+  searchKeyword,
   loadCovers,
 }) {
   const [input, setInput] = useState("");
@@ -129,7 +130,7 @@ export default function Search({
     return (
       <div className="container">
         <div className="header-r">
-          <h2>Searching For : {searchingStatus.searching.keyword}</h2>
+          <h2>Searching For : {searchKeyword}</h2>
           <PushButton label={"Terminate"} onClick={resetSearch} />
         </div>
         <div className="s-cont">
@@ -152,11 +153,11 @@ export default function Search({
         </div>
       </div>
     );
-  } else if (searchingStatus.searched) {
+  } else if (searchingStatus === "searched") {
     return (
       <div className="container">
         <div className="header-r">
-          <h2>Keyword : {searchingStatus.searched.keyword}</h2>
+          <h2>Keyword : {searchKeyword}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
           <button
             className="m-button sort-btn"

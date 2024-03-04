@@ -2,34 +2,10 @@ use serde_json::{from_str, Value};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir};
 use std::io::{self, Write};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
-use tauri::regex::Regex;
 
-fn fix_name_for_folder(manga: &str) -> String {
-    let replaced_slash = Regex::new(r#"[\/:*?"><|]+"#)
-        .unwrap()
-        .replace_all(manga, "");
-    let final_name = Regex::new(r#"\.*$"#)
-        .unwrap()
-        .replace_all(&replaced_slash, "");
-    final_name.to_string()
-}
-
-async fn call_sheller(args: Vec<String>) -> String {
-    let (mut rx, _child) = tauri::api::process::Command::new_sidecar("sheller")
-        .expect("failed to create `my-sidecar` binary command")
-        .args(&args)
-        .spawn()
-        .expect("Failed to spawn sidecar");
-    let mut response: String = String::new();
-    while let Some(event) = rx.recv().await {
-        if let tauri::api::process::CommandEvent::Stdout(line) = event {
-            response.push_str(&line);
-            break;
-        }
-    }
-    response
-}
+static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, serde::Serialize)]
 struct DoneDownloading {
@@ -49,14 +25,38 @@ struct Downloading {
     image: i32,
 }
 
+async fn call_sheller(args: Vec<String>) -> String {
+    let (mut rx, _child) = tauri::api::process::Command::new_sidecar("sheller")
+        .expect("failed to create `my-sidecar` binary command")
+        .args(&args)
+        .spawn()
+        .expect("Failed to spawn sidecar");
+    let mut response: String = String::new();
+    while let Some(event) = rx.recv().await {
+        if let tauri::api::process::CommandEvent::Stdout(line) = event {
+            response.push_str(&line);
+            break;
+        }
+    }
+    response
+}
+
+#[tauri::command]
+pub fn stop_download() {
+    STOP_DOWNLOAD.store(true, Ordering::Relaxed);
+}
+
 #[tauri::command]
 pub async fn download(
     webtoon: HashMap<String, String>,
+    fixed_title: String,
+    sleep_time: f64,
     download_path: String,
     window: tauri::Window,
 ) {
+    STOP_DOWNLOAD.store(false, Ordering::Relaxed);
     let mut args: Vec<String> = Vec::new();
-    let mut folder_name: String = fix_name_for_folder(&webtoon.get("title").unwrap());
+    let mut folder_name: String = fixed_title.clone();
     if webtoon.get("type").unwrap() == "manga" {
         args.push("get_manga_images".to_string());
         args.push(webtoon.get("module").unwrap().to_string());
@@ -70,7 +70,13 @@ pub async fn download(
     }
     let response: String = call_sheller(args).await;
     let json_data: Value = from_str(&response).expect("Failed to parse JSON");
-    let images: &Vec<Value> = json_data.as_array().unwrap().get(0).unwrap().as_array().unwrap();
+    let images: &Vec<Value> = json_data
+        .as_array()
+        .unwrap()
+        .get(0)
+        .unwrap()
+        .as_array()
+        .unwrap();
     let d_path: String = format!("{}\\{}", download_path, folder_name);
     create_dir_all(&d_path).expect("Failed to create dir");
     window
@@ -90,12 +96,20 @@ pub async fn download(
     let mut last_truncated: String = "".to_string();
     let mut has_saved_names: bool = false;
     let mut saved_names: Vec<String> = Vec::new();
-    if let Some(obj) = json_data.as_array().unwrap().get(1).and_then(|v| v.as_array()) {
+    if let Some(obj) = json_data
+        .as_array()
+        .unwrap()
+        .get(1)
+        .and_then(|v: &Value| v.as_array())
+    {
         has_saved_names = true;
-        saved_names.extend(obj.iter().map(|v| v.as_str().unwrap().to_string()));
+        saved_names.extend(obj.iter().map(|v: &Value| v.as_str().unwrap().to_string()));
     }
     let mut i: i32 = 0;
     while i < images.len() as i32 {
+        if STOP_DOWNLOAD.load(Ordering::Relaxed) {
+            return;
+        }
         window
             .emit(
                 "downloading",
@@ -178,13 +192,13 @@ pub async fn download(
                     continue;
                 }
             }
-            thread::sleep(Duration::from_millis(1000));
+            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
         i += 1;
     }
     window
         .emit(
-            "done",
+            "doneDownloading",
             DoneDownloading {
                 webtoon_id: webtoon.get("id").unwrap().to_string(),
                 download_path: d_path,

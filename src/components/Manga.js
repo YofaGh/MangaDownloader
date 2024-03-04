@@ -1,14 +1,16 @@
-import "./../App.css";
-import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
-import Infoed from "./../components/infoed";
-import FlipButton from "./FlipButton";
-import Rating from "./Rating";
-import { getDate, getDateTime } from "./utils";
-import Loading from "./Loading";
 import "../styles/infoed.css";
-import ChapterButton from "./ChapterBotton";
-import PushButton from "./PushButton";
+import { useState, useEffect } from "react";
+import {
+  Infoed,
+  FlipButton,
+  Rating,
+  getDate,
+  getDateTime,
+  Loading,
+  ChapterButton,
+  PushButton,
+} from ".";
 import { useSheller } from "../ShellerProvider";
 import { useNavigate } from "react-router-dom";
 
@@ -128,7 +130,12 @@ export default function Manga({
         onClick={() => navigate(-1)}
         style={{ marginTop: "50px", marginRight: "auto", marginLeft: "50px" }}
       >
-        <img alt="" src="./assets/goto.svg" className="icon" style={{rotate: "180deg"}}></img>
+        <img
+          alt=""
+          src="./assets/goto.svg"
+          className="icon"
+          style={{ rotate: "180deg" }}
+        ></img>
       </button>
       <div className="basic-info">
         <div className="fixed">
@@ -189,7 +196,7 @@ export default function Manga({
             <div style={{ display: "inline-flex" }}>
               {webtoon.Dates &&
                 Object.entries(webtoon.Dates).map(([key, value]) => (
-                  <FlipButton 
+                  <FlipButton
                     key={key}
                     frontText={
                       <div>

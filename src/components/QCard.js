@@ -1,7 +1,6 @@
 import "../styles/QCard.css";
 
 export default function QCard({ webtoon, addQueueMessage }) {
-
   const removeWebtoon = () => {
     addQueueMessage({
       removeWebtoon: { webtoon },
@@ -10,7 +9,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
 
   const setWebtoonStatus = (status) => {
     addQueueMessage({
-      setWebtoonStatus: { webtoon, status }
+      setWebtoonStatus: { webtoon, status },
     });
   };
 
@@ -27,11 +26,13 @@ export default function QCard({ webtoon, addQueueMessage }) {
             <div className="d-status">
               Downlading Image
               <br />
-              {(webtoon.downloading || 0) + ""}/{(webtoon.totalImages || 0) + ""}
+              {(webtoon.downloading || 0) + ""}/
+              {(webtoon.totalImages || 0) + ""}
             </div>
           ) : (
             <div className="d-status">
-              Downladed {(webtoon.downloading || 0) + ""}/{(webtoon.totalImages || 0) + ""} Images
+              Downladed {(webtoon.downloading || 0) + ""}/
+              {(webtoon.totalImages || 0) + ""} Images
             </div>
           )}
         </div>

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import MCard from "../components/moduleCard";
-import ModuleChecker from "../components/ModuleChecker";
+import { useState, useEffect } from "react";
+import { MCard, ModuleChecker } from "../components";
 import { useSheller } from "../ShellerProvider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";

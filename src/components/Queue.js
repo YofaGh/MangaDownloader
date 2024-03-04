@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import QCard from "../components/QCard";
+import { useEffect, useState } from "react";
 import "../styles/Queue.css";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { QCard } from ".";
 
 export default function Queue({ queue, addQueueMessage }) {
   const [queueEditable, setQueueEditable] = useState(false);
@@ -137,6 +137,8 @@ export default function Queue({ queue, addQueueMessage }) {
       </div>
     </div>
   ) : (
-    <div className="no-info"><h2>There are no webtoons</h2></div>
+    <div className="no-info">
+      <h2>There are no webtoons</h2>
+    </div>
   );
 }

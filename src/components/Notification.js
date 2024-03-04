@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Notification = (props) => {
   const [exit, setExit] = useState(false);
@@ -35,13 +35,13 @@ const Notification = (props) => {
     }, 400);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (width === 100) {
       handleCloseNotification();
     }
   }, [width]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     handleStartTimer();
   }, []);
 

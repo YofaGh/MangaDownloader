@@ -1,7 +1,5 @@
-import "./../App.css";
-import "./../styles/Home.css"
-import React from "react";
-import HomeButton from "../components/HomeButton";
+import "./../styles/Home.css";
+import { HomeButton } from "../components";
 import { Link } from "react-router-dom";
 
 export default function HomePage() {

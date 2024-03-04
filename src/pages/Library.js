@@ -1,6 +1,4 @@
-import "./../App.css";
-import Wcard from "./../components/webtoonCard";
-import HomeButton from "./../components/HomeButton";
+import { Wcard, HomeButton } from "./../components";
 import { useSheller } from "../ShellerProvider";
 
 export default function LPage({

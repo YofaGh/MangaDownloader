@@ -1,5 +1,5 @@
 export const fixNameForFolder = (manga) => {
-  return manga.replace(/[\/:*?"><|]+/g, "").replace(/\.*$/, "");
+  return manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
 export const convert = async (webtoon, openPath, dispatch, sheller, openFile) => {

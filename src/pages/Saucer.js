@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
-import SearchBar from "../components/SearchBar";
-import SaucerResult from "../components/SaucerResult";
-import Loading from "../components/Loading";
+import "../styles/Saucer.css";
+import { useState, useEffect } from "react";
+import { SearchBar, SaucerResult, Loading } from "../components";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
-import "../styles/Saucer.css";
 
 export default function Saucer({ loadCovers }) {
   const [url, setUrl] = useState("");

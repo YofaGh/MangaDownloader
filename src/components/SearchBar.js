@@ -1,4 +1,3 @@
-import React from "react";
 import "../styles/SearchBar.css";
 
 export default function SearchBar({ input, setInput, placeHolder }) {

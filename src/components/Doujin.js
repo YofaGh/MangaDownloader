@@ -1,9 +1,6 @@
-import "./../App.css";
-import React, { useState, useEffect } from "react";
 import "../styles/Webtoon.css";
-import Infoed from "./../components/infoed";
-import FlipButton from "./FlipButton";
-import { getDate, getDateTime } from "./utils";
+import { useState, useEffect } from "react";
+import { Infoed, FlipButton, getDate, getDateTime } from ".";
 import { useSheller } from "../ShellerProvider";
 
 export default function Doujin({

@@ -1,11 +1,7 @@
-import React, { useState, useEffect } from "react";
-import SearchBar from "../components/SearchBar";
-import SearchFilter from "../components/SearchFilter";
-import FilterButton from "../components/FilterButton";
-import WSearchCard from "../components/WSearchCard";
-import PushButton from "../components/PushButton";
-import { useSheller } from "../ShellerProvider";
 import "../styles/Search.css";
+import { useState, useEffect } from "react";
+import { SearchBar, SearchFilter, FilterButton, WSearchCard, PushButton } from "../components";
+import { useSheller } from "../ShellerProvider";
 
 export default function Search({
   startSearching,

@@ -1,7 +1,5 @@
-import React from "react";
 import "../styles/SearchFilter.css";
-import FilterToggleButton from "./FilterToggleButton";
-import PushButton from "./PushButton";
+import { FilterToggleButton, PushButton } from ".";
 
 export default function SearchFilter({
   types,

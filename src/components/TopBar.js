@@ -1,8 +1,8 @@
-import React, { useState } from "react";
 import "./../styles/Topbar.css";
-import Sidebar from "./SideBar";
+import { useState } from "react";
+import { SideBar } from ".";
 import { useNavigate } from "react-router-dom";
-import { appWindow } from '@tauri-apps/api/window';
+import { appWindow } from "@tauri-apps/api/window";
 
 export default function TopBar({ currentDownloadStatus }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,17 +70,14 @@ export default function TopBar({ currentDownloadStatus }) {
           >
             <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
           </button>
-          <button
-            className="topBtn closeBtn"
-            onClick={() => appWindow.close()}
-          >
+          <button className="topBtn closeBtn" onClick={() => appWindow.close()}>
             <img alt="" src="./assets/delete.svg" className="icon-t"></img>
           </button>
         </div>
       </div>
       <div data-tauri-drag-region className="contentArea">
         <div id="mySidebar" className="leftMenu">
-          {isMenuOpen && <Sidebar showHideMenus={showHideMenus} />}
+          {isMenuOpen && <SideBar showHideMenus={showHideMenus} />}
         </div>
       </div>
     </div>

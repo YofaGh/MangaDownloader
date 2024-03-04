@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from "react";
+import "./App.css";
+import { useState, useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import Modules from "./pages/Modules";
-import LPage from "./pages/Library";
-import TopBar from "./components/TopBar";
-import Search from "./pages/Search";
-import HomePage from "./pages/Home";
-import Webtoon from "./pages/Webtoon";
-import Module from "./pages/Module";
-import Download from "./pages/Download";
-import Favorites from "./pages/Favorites";
-import Saucer from "./pages/Saucer";
-import Settings from "./pages/Settings";
-import About from "./pages/About";
-import { fixNameForFolder, convert, merge } from "./components/utils";
-import PushButton from "./components/PushButton";
+import {
+  Modules,
+  LPage,
+  Search,
+  HomePage,
+  Webtoon,
+  Module,
+  Download,
+  Favorites,
+  Saucer,
+  Settings,
+  About,
+} from "./pages";
+import { TopBar, PushButton, fixNameForFolder, convert, merge } from "./components";
 import { useNotification } from "./NotificationProvider";
 import { useSheller } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";

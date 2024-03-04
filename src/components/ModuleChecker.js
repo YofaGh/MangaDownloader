@@ -1,5 +1,5 @@
 import "../styles/ModuleChecker.css";
-import PushButton from "./PushButton";
+import { PushButton } from ".";
 
 export default function ModuleChecker({ module, showHideModal, checkModule }) {
   return (

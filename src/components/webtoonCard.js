@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import "../styles/webtoonCard.css";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSheller } from "../ShellerProvider";
-import "../styles/webtoonCard.css";
 
 export default function Wcard({
   webtoon,

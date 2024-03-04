@@ -1,8 +1,6 @@
-import React, { useState } from "react";
-import Queue from "./../components/Queue";
+import { useState } from "react";
 import "../styles/Download.css";
-import Downloaded from "./../components/Downloaded";
-import PushButton from "./../components/PushButton";
+import { Queue, Downloaded, PushButton } from "./../components";
 
 export default function Download({
   queue,

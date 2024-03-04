@@ -1,5 +1,5 @@
 import "../styles/DCard.css";
-import { convert, merge } from "../components/utils";
+import { convert, merge } from ".";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
 import { invoke } from "@tauri-apps/api/tauri";

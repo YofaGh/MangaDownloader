@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import FavoriteWebtoon from "../components/FavoriteWebtoon";
+import { FavoriteWebtoon } from "../components";
 
 export default function Favorites({ favorites, setFavorites, loadCovers }) {
   return (

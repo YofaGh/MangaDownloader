@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import "../styles/WSearchCard.css";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSheller } from "../ShellerProvider";
-import "../styles/WSearchCard.css";
 
 export default function WSearchCard({ webtoon, loadCovers }) {
   const sheller = useSheller();

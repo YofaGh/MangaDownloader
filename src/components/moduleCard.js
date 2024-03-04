@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import "./../App.css";
 import "../styles/moduleCard.css";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSheller } from "../ShellerProvider";
 

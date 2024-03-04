@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
-import Manga from "./../components/Manga";
-import Doujin from "./../components/Doujin";
+import { Manga, Doujin } from "./../components";
 
 export default function Webtoon({
   addWebtoonToQueue,

@@ -1,4 +1,4 @@
-import DCard from "./DCard";
+import { DCard } from ".";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Downloaded({

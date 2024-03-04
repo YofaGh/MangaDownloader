@@ -1,8 +1,7 @@
-import React from "react";
 import "./../styles/SideBar.css";
 import { Link } from "react-router-dom";
 
-export default function Sidebar({ showHideMenus }) {
+export default function SideBar({ showHideMenus }) {
   return (
     <div className="sidebar">
       <Link to={{ pathname: "/" }}>
@@ -40,18 +39,12 @@ export default function Sidebar({ showHideMenus }) {
           <img alt="" src="./assets/saucer.svg" className="icon"></img>
         </button>
       </Link>
-      <Link
-        to={{ pathname: "about" }}
-        style={{ marginTop: "auto" }}
-      >
+      <Link to={{ pathname: "about" }} style={{ marginTop: "auto" }}>
         <button className="buttonh" onClick={showHideMenus}>
           <img alt="" src="./assets/about.svg" className="icon"></img>
         </button>
       </Link>
-      <Link
-        to={{ pathname: "settings" }}
-        style={{ marginBottom: "40px" }}
-      >
+      <Link to={{ pathname: "settings" }} style={{ marginBottom: "40px" }}>
         <button className="buttonhg" onClick={showHideMenus}>
           <img alt="" src="./assets/settings.svg" className="icon"></img>
         </button>

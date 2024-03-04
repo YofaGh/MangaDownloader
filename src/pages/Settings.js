@@ -1,5 +1,5 @@
 import "../styles/Settings.css";
-import FilterToggleButton from "../components/FilterToggleButton";
+import { FilterToggleButton } from "../components";
 import { open } from "@tauri-apps/api/dialog";
 
 export default function Settings({

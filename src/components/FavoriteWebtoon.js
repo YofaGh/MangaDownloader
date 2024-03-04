@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import "../styles/FavoriteWebtoon.css";
+import { useState } from "react";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
 

@@ -1,12 +1,8 @@
-import "./../App.css";
-import React, { useState, useEffect } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
-import SearchBar from "../components/SearchBar";
-import PushButton from "../components/PushButton";
-import WSearchCard from "../components/WSearchCard";
-import Loading from "../components/Loading";
-import { useSheller } from "../ShellerProvider";
 import "../styles/Module.css";
+import { useState, useEffect } from "react";
+import { Link, useParams, useLocation } from "react-router-dom";
+import { SearchBar, PushButton, WSearchCard, Loading} from "../components";
+import { useSheller } from "../ShellerProvider";
 
 export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
   const { module } = useParams();

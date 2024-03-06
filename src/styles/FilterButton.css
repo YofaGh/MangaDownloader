@@ -21,12 +21,12 @@
 
 .filter-selected-color {
   color: #000;
-  background: #009788;
+  background: var(--cyan);
 }
 
 .filter-color {
   background: #00000000;
-  color: #009788;
+  color: var(--cyan);
 }
 
 .spinnerrr {
@@ -36,7 +36,7 @@
   display: grid;
   border: 4.5px solid #0000;
   border-radius: 50%;
-  border-color: #009788 #0000;
+  border-color: var(--cyan) #0000;
   animation: spinnerrr-e04l1k 1s infinite linear;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .spinnerrr::before {
-  border-color: #009788 #0000;
+  border-color: var(--cyan) #0000;
   animation: inherit;
   animation-duration: 2.5s;
   animation-direction: reverse;

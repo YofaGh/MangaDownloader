@@ -1,4 +1,3 @@
-import "../styles/Settings.css";
 import { FilterToggleButton } from "../components";
 import { open } from "@tauri-apps/api/dialog";
 

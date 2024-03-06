@@ -1,5 +1,3 @@
-import "../styles/SearchBar.css";
-
 export default function SearchBar({ input, setInput, placeHolder }) {
   return (
     <input

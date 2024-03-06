@@ -1,5 +1,3 @@
-import "../styles/FlipButton.css";
-
 export default function FlipButton({ frontText, backText }) {
   return (
     <div className="scene">

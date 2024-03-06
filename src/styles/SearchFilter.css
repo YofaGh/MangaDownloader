@@ -18,8 +18,8 @@
 }
 
 .input-depth {
-  color: #009788;
-  border: 2px solid #009788;
+  color: var(--cyan);
+  border: 2px solid var(--cyan);
   border-radius: 10px;
   background: transparent;
   height: 40px;
@@ -28,8 +28,8 @@
  }
  
  .input-depth:focus {
-  color: #009788;
-  border: 2px solid #009788;
+  color: var(--cyan);
+  border: 2px solid var(--cyan);
   outline: none;
  }
  
@@ -52,10 +52,10 @@ input::-webkit-inner-spin-button {
 }
 
 .modal-content {
-  background-color: #212121;
+  background-color: var(--gray);
   margin: 15% auto;
   padding: 20px;
-  border: 1px solid #009788;
+  border: 1px solid var(--cyan);
   width: 75%;
 }
 
@@ -63,7 +63,7 @@ input::-webkit-inner-spin-button {
   appearance: none;
   width: 20px;
   height: 20px;
-  border: 2px solid #009788;
+  border: 2px solid var(--cyan);
   border-radius: 5px;
   background-color: transparent;
   display: inline-block;
@@ -74,7 +74,7 @@ input::-webkit-inner-spin-button {
 
 .cyberpunk-checkbox:before {
   content: "";
-  background-color: #009788;
+  background-color: var(--cyan);
   display: block;
   position: absolute;
   top: 50%;

@@ -1,5 +1,3 @@
-import "../styles/QCard.css";
-
 export default function QCard({ webtoon, addQueueMessage }) {
   const removeWebtoon = () => {
     addQueueMessage({

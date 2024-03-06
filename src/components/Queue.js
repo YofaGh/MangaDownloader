@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "../styles/Queue.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { QCard } from ".";
 

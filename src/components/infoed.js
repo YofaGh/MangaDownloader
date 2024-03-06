@@ -1,5 +1,3 @@
-import "../styles/infoed.css";
-
 export default function Infoed({ title, info }) {
   function isEmpty(input) {
     switch (typeof input) {

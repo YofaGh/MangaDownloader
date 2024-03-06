@@ -1,5 +1,3 @@
-import "../styles/HomeButton.css";
-
 export default function HomeButton({ label, svg, onClick }) {
   return (
     <button className="playstore-button" onClick={onClick ? onClick : null}>

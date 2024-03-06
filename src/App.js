@@ -1,4 +1,3 @@
-import "./App.css";
 import { useState, useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import {
@@ -14,7 +13,13 @@ import {
   Settings,
   About,
 } from "./pages";
-import { TopBar, PushButton, fixNameForFolder, convert, merge } from "./components";
+import {
+  TopBar,
+  PushButton,
+  fixNameForFolder,
+  convert,
+  merge,
+} from "./components";
 import { useNotification } from "./NotificationProvider";
 import { useSheller } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";

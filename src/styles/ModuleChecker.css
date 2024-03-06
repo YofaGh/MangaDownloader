@@ -27,33 +27,33 @@
   color: #999;
   font-size: 15px;
   border-radius: 50%;
-  background: #212121;
-  border: 4px solid #009788;
+  background: var(--gray);
+  border: 4px solid var(--cyan);
   transition: all 200ms ease;
   transition-delay: 0s;
   margin: 10px;
 }
 .ch-steps .ch-steps-circle.ch-active {
   transition-delay: 100ms;
-  border-color: #009788;
-  color: #009788;
+  border-color: var(--cyan);
+  color: var(--cyan);
 }
 .ch-steps .ch-steps-circle.ch-done {
   transition-delay: 100ms;
-  border-color: #00978800;
-  background-color: #009788;
-  color: #212121;
+  border-color: var(--cyan)00;
+  background-color: var(--cyan);
+  color: var(--gray);
 }
 .ch-steps .ch-steps-circle.ch-dead {
   transition-delay: 100ms;
-  border-color: #00978800;
+  border-color: var(--cyan)00;
   background-color: #970000;
-  color: #212121;
+  color: var(--gray);
 }
 .ch-steps .ch-steps-progress-bar {
   position: absolute;
   height: 4px;
   width: 100%;
-  background: #212121;
+  background: var(--gray);
   z-index: -1;
 }

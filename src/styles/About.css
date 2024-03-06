@@ -30,7 +30,7 @@
 }
 
 .social-link:hover {
-  background-color: #009788;
+  background-color: var(--cyan);
   animation: bounce_613 0.4s linear;
 }
 

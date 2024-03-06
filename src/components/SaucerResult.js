@@ -1,5 +1,3 @@
-import "../styles/Saucer.css";
-
 export default function SaucerResult({ result, loadCovers }) {
   return (
     <div className="sr-card">

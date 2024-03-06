@@ -1,4 +1,3 @@
-import "../styles/Module.css";
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { SearchBar, PushButton, WSearchCard, Loading} from "../components";

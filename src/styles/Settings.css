@@ -23,5 +23,5 @@
 
 .playstore-button{
   cursor: pointer;
-  color: #009788;
+  color: var(--cyan);
 }

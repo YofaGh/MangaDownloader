@@ -30,7 +30,7 @@
 }
 
 .topp {
-  color: #009788;
+  color: var(--cyan);
   transform: rotateX(90deg) translate3d(0, 0, 2em);
 }
 

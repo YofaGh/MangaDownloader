@@ -1,4 +1,4 @@
-import { Wcard, HomeButton } from "./../components";
+import { Wcard, HomeButton } from "../components";
 import { useSheller } from "../ShellerProvider";
 
 export default function LPage({

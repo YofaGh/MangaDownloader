@@ -1,4 +1,3 @@
-import "../styles/SearchFilter.css";
 import { FilterToggleButton, PushButton } from ".";
 
 export default function SearchFilter({

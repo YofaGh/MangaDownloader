@@ -1,0 +1,48 @@
+@import "colors.css";
+@import "App.css";
+@import "About.css";
+@import "ChapterButton.css";
+@import "DCard.css";
+@import "Download.css";
+@import "FavoriteWebtoon.css";
+@import "FilterButton.css";
+@import "FilterToggleButton.css";
+@import "FlipButton.css";
+@import "Home.css";
+@import "HomeButton.css";
+@import "Infoed.css";
+@import "Loading.css";
+@import "Module.css";
+@import "ModuleCard.css";
+@import "ModuleChecker.css";
+@import "PushButton.css";
+@import "QCard.css";
+@import "Queue.css";
+@import "Saucer.css";
+@import "Search.css";
+@import "SearchBar.css";
+@import "SearchFilter.css";
+@import "Settings.css";
+@import "SideBar.css";
+@import "Topbar.css";
+@import "Webtoon.css";
+@import "WebtoonCard.css";
+@import "WSearchCard.css";
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+::-webkit-scrollbar {
+  display: none;
+}

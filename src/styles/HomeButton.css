@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #009788;
+  border: 2px solid var(--cyan);
   border-radius: 9999px;
   background-color: rgba(0, 0, 0, 0);
   padding: 0.625rem 1.5rem;
@@ -15,8 +15,8 @@
 }
 
 .playstore-button:hover {
-  background-color: #009788;
-  color: #212121;
+  background-color: var(--cyan);
+  color: var(--gray);
 }
 
 .playstore-button:hover >.iconn {

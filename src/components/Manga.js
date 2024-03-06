@@ -1,5 +1,3 @@
-import "../styles/Webtoon.css";
-import "../styles/infoed.css";
 import { useState, useEffect } from "react";
 import {
   Infoed,

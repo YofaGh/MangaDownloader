@@ -1,4 +1,3 @@
-import "./../styles/Home.css";
 import { HomeButton } from "../components";
 import { Link } from "react-router-dom";
 

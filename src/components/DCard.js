@@ -1,4 +1,3 @@
-import "../styles/DCard.css";
 import { convert, merge } from ".";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";

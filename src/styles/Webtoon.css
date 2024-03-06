@@ -62,13 +62,13 @@
   bottom: 50%;
   transition: 500ms;
   transition-delay: 50ms;
-  background-color: #009788;
+  background-color: var(--cyan);
 }
 
 .btnn div {
   transition: 500ms;
   position: absolute;
-  background-color: #009788;
+  background-color: var(--cyan);
 }
 
 .btnn .top {

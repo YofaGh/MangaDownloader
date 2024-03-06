@@ -8,7 +8,7 @@
 
 .statusg {
   display: flex;
-  background-color: rgb(21, 21, 21);
+  background-color: var(--gray);
   min-width: 200px;
   height: 100px;
   color: #ffffff;
@@ -19,7 +19,7 @@
 .infog {
   width: 100%;
   height: 100px;
-  background-color: rgb(21, 21, 21);
+  background-color: var(--gray);
   border-bottom-left-radius: 50px;
   border-top-left-radius: 50px;
   align-items: center;
@@ -39,7 +39,7 @@
 
 .button-containerrr {
   display: flex;
-  background-color: rgb(21, 21, 21);
+  background-color: var(--gray);
   height: 100px;
   align-items: center;
   justify-content: space-around;
@@ -84,7 +84,7 @@
   position: absolute;
   top: -30px;
   opacity: 0;
-  background-color: #009788;
+  background-color: var(--cyan);
   color: white;
   padding: 5px 10px;
   border-radius: 5px;

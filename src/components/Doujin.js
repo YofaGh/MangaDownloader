@@ -1,4 +1,3 @@
-import "../styles/Webtoon.css";
 import { useState, useEffect } from "react";
 import { Infoed, FlipButton, getDate, getDateTime } from ".";
 import { useSheller } from "../ShellerProvider";

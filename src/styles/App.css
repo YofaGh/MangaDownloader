@@ -50,14 +50,14 @@
 }
 
 .notification-item {
-  box-shadow: 0 0 10px #212121;
+  box-shadow: 0 0 10px var(--gray);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 20px;
   animation: SlideLeft 0.4s;
   animation-fill-mode: forwards;
   width: 300px;
-  background-color: #212121;
+  background-color: var(--gray);
   font-size:smaller;
 }
 
@@ -95,8 +95,8 @@
   height: 10px;
 }
 .notification-item.success{
-  color: #009788;
-  border: 1px solid #009788;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
 }
 
 .notification-item.error{
@@ -106,7 +106,7 @@
 }
 
 .notification-item.success .bar {
-  background-color: #009788;
+  background-color: var(--cyan);
 }
 
 .notification-item.error .bar {

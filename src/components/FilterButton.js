@@ -1,5 +1,3 @@
-import "../styles/FilterButton.css";
-
 export default function FilterButton({ label, selected, loading }) {
   const className = selected
     ? "filter-toggleee filter-selected-color"

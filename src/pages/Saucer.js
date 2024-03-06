@@ -1,4 +1,3 @@
-import "../styles/Saucer.css";
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
 import { useNotification } from "../NotificationProvider";

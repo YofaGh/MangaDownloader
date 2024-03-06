@@ -1,4 +1,3 @@
-import "../styles/Search.css";
 import { useState, useEffect } from "react";
 import { SearchBar, SearchFilter, FilterButton, WSearchCard, PushButton } from "../components";
 import { useSheller } from "../ShellerProvider";

@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::{from_str, to_value, Value};
-use std::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, OpenOptions};
-use std::io::{Read, Seek, Write};
+use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, OpenOptions};
+use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
@@ -15,6 +15,11 @@ fn open_folder(path: String) {
         .args(["/select,", &path])
         .spawn()
         .unwrap();
+}
+
+#[tauri::command]
+fn get_platform() -> bool {
+    return std::env::consts::FAMILY == "windows";
 }
 
 #[tauri::command]
@@ -43,6 +48,17 @@ fn read_file(path: String) -> String {
 }
 
 #[tauri::command]
+fn extract_sheller(data_dir_path: String, handle: tauri::AppHandle) {
+    let resource_path = handle
+        .path_resolver()
+        .resolve_resource("../cli/PyShellerBundle.zip")
+        .expect("failed to resolve resource");
+    let archive: Vec<u8> = read(resource_path).unwrap();
+    let target_dir = PathBuf::from(&data_dir_path);
+    let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
+}
+
+#[tauri::command]
 fn remove_directory(path: String, recursive: bool) {
     if recursive {
         let _ = remove_dir_all(path);
@@ -62,6 +78,7 @@ struct DefaultSettings {
     default_search_depth: i32,
     merge_method: String,
     download_path: Option<String>,
+    sheller_arg: String,
 }
 
 fn save_file(path: String, data: Value) {
@@ -80,6 +97,7 @@ fn load_up_checks(data_dir: String) {
         default_search_depth: 3,
         merge_method: String::from("Normal"),
         download_path: None,
+        sheller_arg: data_dir.clone(),
     };
     let file_array: [&str; 4] = [
         "library.json",
@@ -103,19 +121,25 @@ fn main() {
             remove_directory,
             read_file,
             write_file,
+            get_platform,
             search_worker::search_keyword,
             search_worker::stop_search,
             download_worker::download,
             download_worker::stop_download,
         ])
         .setup(|app: &mut tauri::App| {
-            load_up_checks(
-                app.path_resolver()
-                    .app_data_dir()
-                    .unwrap_or(PathBuf::new())
-                    .to_string_lossy()
-                    .to_string(),
-            );
+            let data_dir_path: String = app
+                .path_resolver()
+                .app_data_dir()
+                .unwrap_or(PathBuf::new())
+                .to_string_lossy()
+                .to_string();
+            if std::env::consts::FAMILY == "windows"
+                && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
+            {
+                extract_sheller(data_dir_path.clone(), app.handle());
+            }
+            load_up_checks(data_dir_path);
             #[cfg(debug_assertions)]
             app.get_window("main").unwrap().open_devtools();
             Ok(())

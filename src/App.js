@@ -469,6 +469,7 @@ export default function App() {
         fixedTitle: fixNameForFolder(webtoon.title),
         sleepTime: settings.sleep_time,
         downloadPath: settings.download_path,
+        preShell: settings.sheller_arg,
       });
       await listen("totalImages", (event) => {
         let totalImages = {

@@ -41,11 +41,11 @@
         "scope": ["$APPDATA/*"]
       },
       "shell": {
-        "sidecar": true,
+        "all": true,
         "scope": [
           {
-            "name": "../bin/sheller",
-            "sidecar": true,
+            "name": "python",
+            "cmd": "$APPDATA/python/python.exe",
             "args": true
           }
         ]
@@ -58,7 +58,7 @@
       "deb": {
         "depends": []
       },
-      "externalBin": ["../bin/sheller"],
+      "externalBin": [],
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -75,7 +75,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "../cli/PyShellerBundle.zip"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {

@@ -25,12 +25,14 @@ struct Downloading {
     image: i32,
 }
 
-async fn call_sheller(args: Vec<String>) -> String {
-    let (mut rx, _child) = tauri::api::process::Command::new_sidecar("sheller")
-        .expect("failed to create `my-sidecar` binary command")
-        .args(&args)
-        .spawn()
-        .expect("Failed to spawn sidecar");
+async fn call_sheller_win(pre_shell: String, mut args: Vec<String>) -> String {
+    args.insert(0, format!("{}\\sheller.py", pre_shell));
+    let (mut rx, _child) =
+        tauri::api::process::Command::new(format!("{}\\python\\python.exe", pre_shell))
+            .current_dir(pre_shell.into())
+            .args(args)
+            .spawn()
+            .expect("Failed to spawn sidecar");
     let mut response: String = String::new();
     while let Some(event) = rx.recv().await {
         if let tauri::api::process::CommandEvent::Stdout(line) = event {
@@ -52,10 +54,11 @@ pub async fn download(
     fixed_title: String,
     sleep_time: f64,
     download_path: String,
+    pre_shell: String,
     window: tauri::Window,
 ) {
     STOP_DOWNLOAD.store(false, Ordering::Relaxed);
-    let mut args: Vec<String> = Vec::new();
+    let mut args: Vec<String> = vec![];
     let mut folder_name: String = fixed_title.clone();
     if webtoon.get("type").unwrap() == "manga" {
         args.push("get_manga_images".to_string());
@@ -68,7 +71,7 @@ pub async fn download(
         args.push(webtoon.get("module").unwrap().to_string());
         args.push(webtoon.get("doujin").unwrap().to_string());
     }
-    let response: String = call_sheller(args).await;
+    let response: String = call_sheller_win(pre_shell.clone(), args).await;
     let json_data: Value = from_str(&response).expect("Failed to parse JSON");
     let images: &Vec<Value> = json_data
         .as_array()
@@ -136,12 +139,15 @@ pub async fn download(
             save_path.push_str(format!("{}\\{}.{}", d_path, padded_string, temp_s).as_str());
         }
         if !exists_images.contains(&save_path) {
-            let d_response: String = call_sheller(vec![
-                "download_image".to_string(),
-                webtoon.get("module").unwrap().to_string(),
-                images[i as usize].as_str().unwrap().to_string(),
-                save_path.to_string(),
-            ])
+            let d_response: String = call_sheller_win(
+                pre_shell.clone(),
+                vec![
+                    "download_image".to_string(),
+                    webtoon.get("module").unwrap().to_string(),
+                    images[i as usize].as_str().unwrap().to_string(),
+                    save_path.to_string(),
+                ],
+            )
             .await;
             if d_response.is_empty() {
                 window
@@ -154,10 +160,13 @@ pub async fn download(
                     )
                     .expect("failed to emit event");
             } else {
-                let val_corrupted_image: String = call_sheller(vec![
-                    "validate_corrupted_image".to_string(),
-                    d_response.trim().replace("\"", "").replace("\\\\", "\\"),
-                ])
+                let val_corrupted_image: String = call_sheller_win(
+                    pre_shell.clone(),
+                    vec![
+                        "validate_corrupted_image".to_string(),
+                        d_response.trim().replace("\"", "").replace("\\\\", "\\"),
+                    ],
+                )
                 .await;
                 if val_corrupted_image == "false" {
                     window
@@ -170,10 +179,13 @@ pub async fn download(
                         )
                         .expect("failed to emit event");
                 }
-                let val_truncated_image: String = call_sheller(vec![
-                    "validate_truncated_image".to_string(),
-                    d_response.trim().replace("\"", "").replace("\\\\", "\\"),
-                ])
+                let val_truncated_image: String = call_sheller_win(
+                    pre_shell.clone(),
+                    vec![
+                        "validate_truncated_image".to_string(),
+                        d_response.trim().replace("\"", "").replace("\\\\", "\\"),
+                    ],
+                )
                 .await;
                 if val_corrupted_image == "true"
                     && val_truncated_image == "false"

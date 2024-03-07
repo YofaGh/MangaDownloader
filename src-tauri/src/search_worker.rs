@@ -12,12 +12,14 @@ struct SearchedModule {
     result: String,
 }
 
-async fn call_sheller(args: Vec<String>) -> String {
-    let (mut rx, _child) = tauri::api::process::Command::new_sidecar("sheller")
-        .expect("failed to create `my-sidecar` binary command")
-        .args(&args)
-        .spawn()
-        .expect("Failed to spawn sidecar");
+async fn call_sheller_win(pre_shell: String, mut args: Vec<String>) -> String {
+    args.insert(0, format!("{}\\sheller.py", pre_shell));
+    let (mut rx, _child) =
+        tauri::api::process::Command::new(format!("{}\\python\\python.exe", pre_shell))
+            .current_dir(pre_shell.into())
+            .args(args)
+            .spawn()
+            .expect("Failed to spawn sidecar");
     let mut response: String = String::new();
     while let Some(event) = rx.recv().await {
         if let tauri::api::process::CommandEvent::Stdout(line) = event {
@@ -40,6 +42,7 @@ pub async fn search_keyword(
     sleep_time: String,
     depth: String,
     absolute: String,
+    pre_shell: String,
     window: tauri::Window,
 ) {
     STOP_SEARCH.store(false, Ordering::Relaxed);
@@ -55,20 +58,21 @@ pub async fn search_keyword(
                 },
             )
             .expect("msg");
-        let result: String = call_sheller(vec![
-            "search".to_string(),
-            module,
-            keyword.clone(),
-            sleep_time.clone(),
-            absolute.clone(),
-            depth.clone(),
-        ])
+        let result: String = call_sheller_win(
+            pre_shell.clone(),
+            vec![
+                "search".to_string(),
+                module,
+                keyword.clone(),
+                sleep_time.clone(),
+                absolute.clone(),
+                depth.clone(),
+            ],
+        )
         .await;
         window
             .emit("searchedModule", SearchedModule { result })
             .expect("failed to emit event");
     }
-    window
-        .emit("doneSearching", ())
-        .expect("msg");
+    window.emit("doneSearching", ()).expect("msg");
 }

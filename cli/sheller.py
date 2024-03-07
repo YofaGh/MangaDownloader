@@ -1,11 +1,13 @@
-import importlib.util, base64, json, sys, os
+import platform, urllib3, base64, json, sys, os
 
 sys.path.append(os.path.join(os.getcwd(), 'mangascraper'))
 sys.path.append(os.path.join(os.getcwd(), 'cli', 'mangascraper'))
 
 import settings
 settings.LOGGING = False
-settings.MODULES_FILE_PATH = os.path.join(sys._MEIPASS, 'mangascraper', 'modules.yaml')
+
+if platform.system() != 'Windows':
+    settings.MODULES_FILE_PATH = os.path.join(sys._MEIPASS, 'mangascraper', 'modules.yaml')
 
 from mangascraper.utils.assets import load_modules_yaml_file
 from mangascraper.utils.assets import validate_corrupted_image
@@ -15,22 +17,31 @@ from mangascraper.utils.saucer import sites
 from mangascraper.utils.pdf_converter import convert_folder as convert
 from mangascraper.utils.image_merger import merge_folder
 from mangascraper.crawlers.search_engine import search as search_by_keyword
+from mangascraper.utils.modules_contributer import get_modules as get_module_win
+
+urllib3.disable_warnings()
 
 modules = load_modules_yaml_file()
 
 def import_module(module_name):
+    import importlib.util
     spec = importlib.util.spec_from_file_location(module_name, os.path.join(sys._MEIPASS, 'mangascraper', 'modules', f'{module_name}.py'))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.__dict__[module_name]
 
-def get_module(key=None):
+def get_module_unix(key=None):
     if not key:
         return [import_module(module['className']) for module in modules.values()]
     if isinstance(key, list):
-        return [get_module(module) for module in key]
+        return [get_module_unix(module) for module in key]
     if key in modules:
         return import_module(modules[key]['className'])
+
+def get_module(*args):
+    if platform.system() == 'Windows':
+        return get_module_win(*args)
+    return get_module_unix(*args)
 
 def get_modules():
     return [{

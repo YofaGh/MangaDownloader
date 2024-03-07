@@ -540,6 +540,7 @@ export default function App() {
       sleepTime: settings.sleep_time.toString(),
       depth: depth.toString(),
       absolute: absolute.toString(),
+      preShell: settings.sheller_arg,
     });
     await listen("doneSearching", (even) => {
       setSearchingStatus("searched");

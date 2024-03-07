@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+#[path = "sheller.rs"] mod sheller;
 
 static STOP_SEARCH: AtomicBool = AtomicBool::new(false);
 
@@ -10,24 +11,6 @@ struct SearchingModule {
 #[derive(Clone, serde::Serialize)]
 struct SearchedModule {
     result: String,
-}
-
-async fn call_sheller_win(pre_shell: String, mut args: Vec<String>) -> String {
-    args.insert(0, format!("{}\\sheller.py", pre_shell));
-    let (mut rx, _child) =
-        tauri::api::process::Command::new(format!("{}\\python\\python.exe", pre_shell))
-            .current_dir(pre_shell.into())
-            .args(args)
-            .spawn()
-            .expect("Failed to spawn sidecar");
-    let mut response: String = String::new();
-    while let Some(event) = rx.recv().await {
-        if let tauri::api::process::CommandEvent::Stdout(line) = event {
-            response.push_str(&line);
-            break;
-        }
-    }
-    response
 }
 
 #[tauri::command]
@@ -58,7 +41,7 @@ pub async fn search_keyword(
                 },
             )
             .expect("msg");
-        let result: String = call_sheller_win(
+        let result: String = sheller::call_sheller_win(
             pre_shell.clone(),
             vec![
                 "search".to_string(),

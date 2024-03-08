@@ -237,7 +237,7 @@ export default function Manga({
           <br />
           <br />
           <div>
-            {chunkArray(chapters, 3).map((chunk, index) => (
+            {chunkArray(chapters.reverse(), 3).map((chunk, index) => (
               <div key={index} className="card-row">
                 {chunk.map((chapter) => (
                   <div key={chapter.url} className="card-wrapper">

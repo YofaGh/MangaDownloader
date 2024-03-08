@@ -1,5 +1,5 @@
 export { default as Modules } from "./Modules";
-export { default as LPage } from "./Library";
+export { default as Library } from "./Library";
 export { default as Search } from "./Search";
 export { default as HomePage } from "./Home";
 export { default as Webtoon } from "./Webtoon";

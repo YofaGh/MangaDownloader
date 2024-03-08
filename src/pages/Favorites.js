@@ -4,7 +4,7 @@ import { FavoriteWebtoon } from "../components";
 export default function Favorites({ favorites, setFavorites, loadCovers }) {
   return (
     <div className="container">
-      <div className="f-header">Favorites</div>
+      <div className="App-header"><h1>Favorites</h1></div>
       <div className="f-container">
         {favorites.map((webtoon) => (
           <Link

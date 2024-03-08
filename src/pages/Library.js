@@ -1,7 +1,7 @@
 import { Wcard, HomeButton } from "../components";
 import { useSheller } from "../ShellerProvider";
 
-export default function LPage({
+export default function Library({
   library,
   addLibraryMessage,
   addWebtoonToQueue,

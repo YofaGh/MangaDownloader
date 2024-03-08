@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Modules,
-  LPage,
+  Library,
   Search,
   HomePage,
   Webtoon,
@@ -583,7 +583,7 @@ export default function App() {
           <Route
             path="/library"
             element={
-              <LPage
+              <Library
                 library={library}
                 addLibraryMessage={addLibraryMessage}
                 addWebtoonToQueue={addWebtoonToQueue}

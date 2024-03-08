@@ -6,7 +6,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 const Sheller = createContext();
 
 const ShellProvider = ({ children }) => {
-
   const sheller = async (args) => {
     let isWindows = await invoke("get_platform");
     if (isWindows) {
@@ -18,16 +17,13 @@ const ShellProvider = ({ children }) => {
     let dataDirPath = await appDataDir();
     const output = await new Command(
       "python",
-      [
-        `${dataDirPath}sheller.py`,
-        ...args,
-      ],
+      [`${dataDirPath}sheller.py`, ...args],
       {
         cwd: dataDirPath,
       }
     ).execute();
     return JSON.parse(output.stdout);
-  }
+  };
 
   return <Sheller.Provider value={{ sheller }}>{children}</Sheller.Provider>;
 };

@@ -1,10 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::{from_str, to_value, Value};
-use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, OpenOptions};
+use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, OpenOptions, File};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::env::consts::FAMILY;
 use tauri::Manager;
 mod download_worker;
 mod search_worker;
@@ -19,12 +20,12 @@ fn open_folder(path: String) {
 
 #[tauri::command]
 fn get_platform() -> bool {
-    return std::env::consts::FAMILY == "windows";
+    FAMILY == "windows"
 }
 
 #[tauri::command]
 fn write_file(path: String, data: String) {
-    let mut f = OpenOptions::new()
+    let mut f: File = OpenOptions::new()
         .write(true)
         .read(true)
         .create(true)
@@ -37,24 +38,24 @@ fn write_file(path: String, data: String) {
 
 #[tauri::command]
 fn read_file(path: String) -> String {
-    let mut f = OpenOptions::new()
+    let mut f: File = OpenOptions::new()
         .write(true)
         .read(true)
         .open(&path)
         .unwrap();
-    let mut buf = String::new();
+    let mut buf: String = String::new();
     f.read_to_string(&mut buf).unwrap();
     buf
 }
 
 #[tauri::command]
 fn extract_sheller(data_dir_path: String, handle: tauri::AppHandle) {
-    let resource_path = handle
+    let resource_path: PathBuf = handle
         .path_resolver()
         .resolve_resource("../cli/PyShellerBundle.zip")
         .expect("failed to resolve resource");
     let archive: Vec<u8> = read(resource_path).unwrap();
-    let target_dir = PathBuf::from(&data_dir_path);
+    let target_dir: PathBuf = PathBuf::from(&data_dir_path);
     let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
 }
 
@@ -134,7 +135,7 @@ fn main() {
                 .unwrap_or(PathBuf::new())
                 .to_string_lossy()
                 .to_string();
-            if std::env::consts::FAMILY == "windows"
+            if FAMILY == "windows"
                 && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
             {
                 extract_sheller(data_dir_path.clone(), app.handle());

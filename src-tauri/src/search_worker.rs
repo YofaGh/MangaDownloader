@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
-#[path = "sheller.rs"] mod sheller;
+#[path = "sheller.rs"]
+mod sheller;
 
 static STOP_SEARCH: AtomicBool = AtomicBool::new(false);
 

@@ -4,7 +4,8 @@ use std::fs::{create_dir_all, read_dir};
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
-#[path = "sheller.rs"] mod sheller;
+#[path = "sheller.rs"]
+mod sheller;
 
 static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
 

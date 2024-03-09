@@ -9,6 +9,7 @@ use std::env::consts::FAMILY;
 use tauri::Manager;
 mod download_worker;
 mod search_worker;
+mod sheller_updater;
 
 #[tauri::command]
 fn open_folder(path: String) {
@@ -135,6 +136,7 @@ fn main() {
                 .unwrap_or(PathBuf::new())
                 .to_string_lossy()
                 .to_string();
+            sheller_updater::update_sheller(data_dir_path.clone());
             if FAMILY == "windows"
                 && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
             {

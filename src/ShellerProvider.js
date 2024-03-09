@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Command } from "@tauri-apps/api/shell";
 import { appDataDir } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -6,15 +6,26 @@ import { invoke } from "@tauri-apps/api/tauri";
 const Sheller = createContext();
 
 const ShellProvider = ({ children }) => {
+  const [dataDirPath, setDataDirPath] = useState("");
+  const [settings, setSettings] = useState(null);
+  const [platform, setPlatform] = useState("");
+
+  useEffect(() => {
+    appDataDir().then((dataDirPath) => {
+      setDataDirPath(dataDirPath);
+    });
+    invoke("get_platform").then((platform) => {
+      setPlatform(platform);
+    });
+  });
+
   const sheller = async (args) => {
-    let isWindows = await invoke("get_platform");
-    if (isWindows) {
+    if (platform === "windows") {
       return shellerWin(args);
     }
   };
 
   const shellerWin = async (args) => {
-    let dataDirPath = await appDataDir();
     const output = await new Command(
       "python",
       [`${dataDirPath}sheller.py`, ...args],
@@ -25,11 +36,23 @@ const ShellProvider = ({ children }) => {
     return JSON.parse(output.stdout);
   };
 
-  return <Sheller.Provider value={{ sheller }}>{children}</Sheller.Provider>;
+  return (
+    <Sheller.Provider value={{ sheller, settings, setSettings }}>
+      {children}
+    </Sheller.Provider>
+  );
 };
 
 export const useSheller = () => {
   return useContext(Sheller).sheller;
+};
+
+export const useSettings = () => {
+  return useContext(Sheller).settings;
+};
+
+export const useSetSettings = () => {
+  return useContext(Sheller).setSettings;
 };
 
 export default ShellProvider;

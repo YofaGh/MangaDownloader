@@ -4,7 +4,7 @@ import { useSheller } from "../ShellerProvider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
 
-export default function Modules({ loadCovers }) {
+export default function Modules() {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const sheller = useSheller();
@@ -18,7 +18,7 @@ export default function Modules({ loadCovers }) {
       const response = await sheller(["get_modules"]);
       setModules(response);
     };
-    
+
     fetchModules();
   }, [sheller]);
 
@@ -259,11 +259,7 @@ export default function Modules({ loadCovers }) {
           <div key={index} className="card-row">
             {chunk.map((module) => (
               <div key={module.domain} className="card-wrapper">
-                <MCard
-                  module={module}
-                  checkModule={checkModule}
-                  loadCovers={loadCovers}
-                />
+                <MCard module={module} checkModule={checkModule} />
               </div>
             ))}
           </div>

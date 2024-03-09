@@ -10,7 +10,6 @@ export default function Webtoon({
   setFavorites,
   addLibraryMessage,
   library,
-  loadCovers,
 }) {
   const { module, url } = useParams();
   const [moduleType, setModuleType] = useState("");
@@ -81,7 +80,6 @@ export default function Webtoon({
           addLibraryMessage={addLibraryMessage}
           isInLibrary={isInLibrary}
           library={library}
-          loadCovers={loadCovers}
         />
       );
     case "Doujin":
@@ -92,7 +90,6 @@ export default function Webtoon({
           addWebtoonToQueue={addWebtoonToQueue}
           isFavorite={isFavorite}
           updateWebtoon={updateWebtoon}
-          loadCovers={loadCovers}
         />
       );
     default:

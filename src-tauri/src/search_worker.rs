@@ -26,7 +26,7 @@ pub async fn search_keyword(
     sleep_time: String,
     depth: String,
     absolute: String,
-    pre_shell: String,
+    data_dir_path: String,
     window: tauri::Window,
 ) {
     STOP_SEARCH.store(false, Ordering::Relaxed);
@@ -43,7 +43,7 @@ pub async fn search_keyword(
             )
             .expect("msg");
         let result: String = sheller::call_sheller_win(
-            pre_shell.clone(),
+            data_dir_path.clone(),
             vec![
                 "search".to_string(),
                 module,

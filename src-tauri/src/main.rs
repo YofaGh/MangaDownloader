@@ -1,11 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::{from_str, to_value, Value};
-use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, OpenOptions, File};
+use std::env::consts::FAMILY;
+use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, File, OpenOptions};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::env::consts::FAMILY;
 use tauri::Manager;
 mod download_worker;
 mod search_worker;
@@ -20,8 +20,8 @@ fn open_folder(path: String) {
 }
 
 #[tauri::command]
-fn get_platform() -> bool {
-    FAMILY == "windows"
+fn get_platform() -> String {
+    FAMILY.to_string()
 }
 
 #[tauri::command]
@@ -80,7 +80,7 @@ struct DefaultSettings {
     default_search_depth: i32,
     merge_method: String,
     download_path: Option<String>,
-    sheller_arg: String,
+    data_dir_path: String,
 }
 
 fn save_file(path: String, data: Value) {
@@ -99,7 +99,7 @@ fn load_up_checks(data_dir: String) {
         default_search_depth: 3,
         merge_method: String::from("Normal"),
         download_path: None,
-        sheller_arg: data_dir.clone(),
+        data_dir_path: data_dir.clone(),
     };
     let file_array: [&str; 4] = [
         "library.json",
@@ -114,6 +114,7 @@ fn load_up_checks(data_dir: String) {
     for file in file_array {
         save_file(format!("{}\\{}", data_dir, file), from_str("[]").unwrap());
     }
+    sheller_updater::update_sheller(data_dir);
 }
 
 fn main() {
@@ -136,8 +137,7 @@ fn main() {
                 .unwrap_or(PathBuf::new())
                 .to_string_lossy()
                 .to_string();
-            sheller_updater::update_sheller(data_dir_path.clone());
-            if FAMILY == "windows"
+            if get_platform() == "windows"
                 && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
             {
                 extract_sheller(data_dir_path.clone(), app.handle());

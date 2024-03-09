@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
-export default function Wcard({
-  webtoon,
-  addLibraryMessage,
-  update,
-  loadCovers,
-}) {
+export default function Wcard({ webtoon, addLibraryMessage, update }) {
   const [loaded, setLoaded] = useState(false);
   const sheller = useSheller();
+  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    loadCovers ? webtoon.cover : "./assets/default-cover.svg"
+    settings.load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
 
   const stopRotate = () => {

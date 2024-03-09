@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
-export default function MCard({ module, checkModule, loadCovers }) {
+export default function MCard({ module, checkModule }) {
   const sheller = useSheller();
+  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    loadCovers && module.logo ? module.logo : "./assets/module-cyan.svg"
+    settings.load_covers && module.logo
+      ? module.logo
+      : "./assets/module-cyan.svg"
   );
   const get_cover = async () => {
     try {

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNotification } from "../NotificationProvider";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
-export default function FavoriteWebtoon({ webtoon, setFavorites, loadCovers }) {
+export default function FavoriteWebtoon({ webtoon, setFavorites }) {
   const dispatch = useNotification();
+  const settings = useSettings();
   const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
-    loadCovers ? webtoon.cover : "./assets/default-cover.svg"
+    settings.load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
   const get_cover = async () => {
     try {

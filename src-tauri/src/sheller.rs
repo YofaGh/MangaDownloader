@@ -1,17 +1,18 @@
+use std::env::consts::FAMILY;
 use tauri::api::process::{Command, CommandEvent};
 
 #[allow(dead_code)]
-pub async fn call_sheller(pre_shell: String, args: Vec<String>) -> String {
-    if std::env::consts::FAMILY == "windows" {
-        return call_sheller_win(pre_shell, args).await;
+pub async fn call_sheller(data_dir_path: String, args: Vec<String>) -> String {
+    if FAMILY == "windows" {
+        return call_sheller_win(data_dir_path, args).await;
     }
     return "".to_string();
 }
 
-pub async fn call_sheller_win(pre_shell: String, mut args: Vec<String>) -> String {
-    args.insert(0, format!("{}\\sheller.py", pre_shell));
-    let (mut rx, _child) = Command::new(format!("{}\\python\\python.exe", pre_shell))
-        .current_dir(pre_shell.into())
+pub async fn call_sheller_win(data_dir_path: String, mut args: Vec<String>) -> String {
+    args.insert(0, format!("{}\\sheller.py", data_dir_path));
+    let (mut rx, _child) = Command::new(format!("{}\\python\\python.exe", data_dir_path))
+        .current_dir(data_dir_path.into())
         .args(args)
         .spawn()
         .expect("Failed to spawn sidecar");

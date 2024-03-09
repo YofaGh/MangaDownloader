@@ -9,7 +9,7 @@ import {
   ChapterButton,
   PushButton,
 } from ".";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 import { useNavigate } from "react-router-dom";
 
 export default function Manga({
@@ -21,7 +21,6 @@ export default function Manga({
   addLibraryMessage,
   isInLibrary,
   library,
-  loadCovers,
 }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
@@ -31,6 +30,7 @@ export default function Manga({
   const [imageSrc, setImageSrc] = useState("");
   const sheller = useSheller();
   const navigate = useNavigate();
+  const settings = useSettings();
 
   const get_cover = async () => {
     try {
@@ -47,10 +47,12 @@ export default function Manga({
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
-      setImageSrc(loadCovers ? response.Cover : "./assets/default-cover.svg");
+      setImageSrc(
+        settings.load_covers ? response.Cover : "./assets/default-cover.svg"
+      );
     };
     fetchManga();
-  }, [module, url, loadCovers]);
+  }, [module, url]);
 
   useEffect(() => {
     const get_chapterss = async () => {
@@ -297,6 +299,8 @@ export default function Manga({
       </div>
     </div>
   ) : (
-    <></>
+    <div className="container">
+      <Loading />
+    </div>
   );
 }

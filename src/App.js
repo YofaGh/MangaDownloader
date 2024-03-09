@@ -21,14 +21,14 @@ import {
   merge,
 } from "./components";
 import { useNotification } from "./NotificationProvider";
-import { useSheller } from "./ShellerProvider";
+import { useSheller, useSetSettings, useSettings } from "./ShellerProvider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import { appDataDir } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function App() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = [useSettings(), useSetSettings()];
   const [queue, setQueue] = useState([]);
   const [queueMessages, setQueueMessages] = useState([]);
   const [downloadedMessages, setDownloadedMessages] = useState([]);
@@ -469,7 +469,7 @@ export default function App() {
         fixedTitle: fixNameForFolder(webtoon.title),
         sleepTime: settings.sleep_time,
         downloadPath: settings.download_path,
-        preShell: settings.sheller_arg,
+        dataDirPath: settings.data_dir_path,
       });
       await listen("totalImages", (event) => {
         let totalImages = {
@@ -540,7 +540,7 @@ export default function App() {
       sleepTime: settings.sleep_time.toString(),
       depth: depth.toString(),
       absolute: absolute.toString(),
-      preShell: settings.sheller_arg,
+      dataDirPath: settings.data_dir_path,
     });
     await listen("doneSearching", (even) => {
       setSearchingStatus("searched");
@@ -587,7 +587,6 @@ export default function App() {
                 library={library}
                 addLibraryMessage={addLibraryMessage}
                 addWebtoonToQueue={addWebtoonToQueue}
-                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -600,11 +599,7 @@ export default function App() {
                 searchResults={searchResults}
                 resetSearch={resetSearch}
                 selectedModulesForSearch={selectedModulesForSearch}
-                defaultSearchDepth={
-                  settings ? settings.default_search_depth : 3
-                }
                 searchKeyword={searchKeyword}
-                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
@@ -616,45 +611,22 @@ export default function App() {
                 addQueueMessage={addQueueMessage}
                 downloaded={downloaded}
                 addDownloadedMessage={addDownloadedMessage}
-                download_path={settings ? settings.download_path : ""}
-                mergeMethod={settings ? settings.merge_method : "Normal"}
               />
             }
           />
           <Route
             path="/favorites"
             element={
-              <Favorites
-                favorites={favorites}
-                setFavorites={setFavorites}
-                loadCovers={settings ? settings.load_covers : true}
-              />
+              <Favorites favorites={favorites} setFavorites={setFavorites} />
             }
           />
-          <Route
-            path="/modules"
-            element={
-              <Modules loadCovers={settings ? settings.load_covers : true} />
-            }
-          />
+          <Route path="/modules" element={<Modules />} />
           <Route
             path="/settings"
-            element={
-              <Settings
-                settings={settings}
-                setSettings={setSettings}
-                downloading={downloading}
-                dispatch={dispatch}
-              />
-            }
+            element={<Settings downloading={downloading} dispatch={dispatch} />}
           />
           <Route path="/about" element={<About />} />
-          <Route
-            path="/saucer"
-            element={
-              <Saucer loadCovers={settings ? settings.load_covers : true} />
-            }
-          />
+          <Route path="/saucer" element={<Saucer />} />
           <Route
             path="/:module/webtoon/:url"
             element={
@@ -664,22 +636,10 @@ export default function App() {
                 setFavorites={setFavorites}
                 addLibraryMessage={addLibraryMessage}
                 library={library}
-                loadCovers={settings ? settings.load_covers : true}
               />
             }
           />
-          <Route
-            path="/:module"
-            element={
-              <Module
-                defaultSearchDepth={
-                  settings ? settings.default_search_depth : 3
-                }
-                sleepTime={settings ? settings.sleep_time : 0.1}
-                loadCovers={settings ? settings.load_covers : true}
-              />
-            }
-          />
+          <Route path="/:module" element={<Module />} />
         </Routes>
         <div id="browse-modal" className="modal">
           <div className="modal-content" style={{ textAlign: "center" }}>

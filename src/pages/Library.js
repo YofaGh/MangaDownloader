@@ -5,7 +5,6 @@ export default function Library({
   library,
   addLibraryMessage,
   addWebtoonToQueue,
-  loadCovers,
 }) {
   const sheller = useSheller();
   const chunkArray = (array, size) => {
@@ -83,7 +82,6 @@ export default function Library({
                     webtoon={webtoon}
                     addLibraryMessage={addLibraryMessage}
                     update={updateSingle}
-                    loadCovers={loadCovers}
                   />
                 </div>
               ))}

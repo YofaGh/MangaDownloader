@@ -3,7 +3,7 @@ import { SearchBar, SaucerResult, Loading } from "../components";
 import { useNotification } from "../NotificationProvider";
 import { useSheller } from "../ShellerProvider";
 
-export default function Saucer({ loadCovers }) {
+export default function Saucer() {
   const [url, setUrl] = useState("");
   const [sites, setSites] = useState([]);
   const [results, setResults] = useState([]);
@@ -65,11 +65,7 @@ export default function Saucer({ loadCovers }) {
         <div className="f-header">Results</div>
         <div className="ff-container">
           {results.map((result) => (
-            <SaucerResult
-              key={result.url}
-              result={result}
-              loadCovers={loadCovers}
-            />
+            <SaucerResult key={result.url} result={result} />
           ))}
         </div>
       </div>

@@ -1,12 +1,7 @@
 import { DCard } from ".";
 import { invoke } from "@tauri-apps/api/tauri";
 
-export default function Downloaded({
-  downloaded,
-  addDownloadedMessage,
-  download_path,
-  mergeMethod,
-}) {
+export default function Downloaded({ downloaded, addDownloadedMessage }) {
   const removeWebtoon = (index) => {
     addDownloadedMessage({ removeWebtoon: { index } });
   };
@@ -42,8 +37,6 @@ export default function Downloaded({
                 <DCard
                   webtoon={webtoon}
                   removeWebtoon={() => removeWebtoon(index)}
-                  download_path={download_path}
-                  mergeMethod={mergeMethod}
                 />
               </li>
             );

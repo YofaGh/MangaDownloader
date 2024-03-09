@@ -6,27 +6,26 @@ export default function Download({
   addQueueMessage,
   downloaded,
   addDownloadedMessage,
-  download_path,
-  mergeMethod,
 }) {
   const [current, setCurrent] = useState("queue");
 
   return (
     <div className="container">
       <div className="scrollmenu">
-        <PushButton label={"Queue"} onClick={() => setCurrent("queue")}/>
-        <PushButton label={"Downloaded"} onClick={() => setCurrent("downloaded")}/>
+        <PushButton label={"Queue"} onClick={() => setCurrent("queue")} />
+        <PushButton
+          label={"Downloaded"}
+          onClick={() => setCurrent("downloaded")}
+        />
       </div>
-        {current === "queue" ? (
-          <Queue queue={queue} addQueueMessage={addQueueMessage} />
-        ) : (
-          <Downloaded
-            downloaded={downloaded}
-            addDownloadedMessage={addDownloadedMessage}
-            download_path={download_path}
-            mergeMethod={mergeMethod}
-          />
-        )}
+      {current === "queue" ? (
+        <Queue queue={queue} addQueueMessage={addQueueMessage} />
+      ) : (
+        <Downloaded
+          downloaded={downloaded}
+          addDownloadedMessage={addDownloadedMessage}
+        />
+      )}
     </div>
   );
 }

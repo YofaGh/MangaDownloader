@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { SearchBar, PushButton, WSearchCard, Loading} from "../components";
-import { useSheller } from "../ShellerProvider";
+import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
+import { useSheller, useSettings } from "../ShellerProvider";
 
-export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
+export default function Module() {
   const { module } = useParams();
+  const { default_search_depth, sleep_time, load_covers } = useSettings();
   const [input, setInput] = useState("");
   const [absolute, setAbsolute] = useState(false);
   const [results, setResults] = useState([]);
-  const [depth, setDepth] = useState(defaultSearchDepth);
+  const [depth, setDepth] = useState(default_search_depth);
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
@@ -26,7 +27,7 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
       "search",
       module,
       input,
-      sleepTime.toString(),
+      sleep_time.toString(),
       absolute.toString(),
       depth.toString(),
     ]);
@@ -180,7 +181,7 @@ export default function Module({ defaultSearchDepth, sleepTime, loadCovers }) {
           }}
         >
           {results.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} loadCovers={loadCovers} />
+            <WSearchCard key={index} webtoon={item} loadCovers={load_covers} />
           ))}
         </div>
       </div>

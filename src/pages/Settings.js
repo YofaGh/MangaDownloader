@@ -1,12 +1,9 @@
-import { FilterToggleButton } from "../components";
 import { open } from "@tauri-apps/api/dialog";
+import { FilterToggleButton } from "../components";
+import { useSettings, useSetSettings } from "../ShellerProvider";
 
-export default function Settings({
-  settings,
-  setSettings,
-  downloading,
-  dispatch,
-}) {
+export default function Settings({ downloading, dispatch }) {
+  const [settings, setSettings] = [useSettings(), useSetSettings()];
   const changeFilePath = async () => {
     const path = await open({
       directory: true,

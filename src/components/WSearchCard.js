@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
 export default function WSearchCard({ webtoon, loadCovers }) {
   const sheller = useSheller();
+  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    loadCovers ? webtoon.thumbnail : "./assets/default-cover.svg"
+    settings.load_covers ? webtoon.thumbnail : "./assets/default-cover.svg"
   );
   const get_cover = async () => {
     try {

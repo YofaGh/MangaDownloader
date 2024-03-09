@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
-import { SearchBar, SearchFilter, FilterButton, WSearchCard, PushButton } from "../components";
-import { useSheller } from "../ShellerProvider";
+import {
+  SearchBar,
+  SearchFilter,
+  FilterButton,
+  WSearchCard,
+  PushButton,
+} from "../components";
+import { useSheller, useSettings } from "../ShellerProvider";
 
 export default function Search({
   startSearching,
@@ -8,9 +14,7 @@ export default function Search({
   searchResults,
   resetSearch,
   selectedModulesForSearch,
-  defaultSearchDepth,
   searchKeyword,
-  loadCovers,
 }) {
   const [input, setInput] = useState("");
   const [types, updateTypes] = useState([
@@ -18,7 +22,8 @@ export default function Search({
     { name: "Doujin", selected: true },
   ]);
   const [modules, updateModules] = useState([]);
-  const [depth, setDepth] = useState(defaultSearchDepth);
+  const settings = useSettings();
+  const [depth, setDepth] = useState(settings.default_search_depth);
   const [absolute, setAbsolute] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
@@ -192,7 +197,7 @@ export default function Search({
         <br />
         <div className="s-cont">
           {searchResults.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} loadCovers={loadCovers} />
+            <WSearchCard key={index} webtoon={item} />
           ))}
         </div>
       </div>

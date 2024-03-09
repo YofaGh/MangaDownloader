@@ -1,15 +1,11 @@
 import { convert, merge } from ".";
 import { useNotification } from "../NotificationProvider";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 import { invoke } from "@tauri-apps/api/tauri";
 
-export default function DCard({
-  webtoon,
-  removeWebtoon,
-  download_path,
-  mergeMethod,
-}) {
+export default function DCard({ webtoon, removeWebtoon }) {
   const dispatch = useNotification();
+  const settings = useSettings();
   const sheller = useSheller();
 
   const deleteFolder = () => {
@@ -37,8 +33,8 @@ export default function DCard({
           onClick={() =>
             merge(
               webtoon,
-              download_path,
-              mergeMethod,
+              settings.download_path,
+              settings.merge_method,
               true,
               dispatch,
               sheller,

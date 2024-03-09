@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { FavoriteWebtoon } from "../components";
 
-export default function Favorites({ favorites, setFavorites, loadCovers }) {
+export default function Favorites({ favorites, setFavorites }) {
   return (
     <div className="container">
-      <div className="App-header"><h1>Favorites</h1></div>
+      <div className="App-header">
+        <h1>Favorites</h1>
+      </div>
       <div className="f-container">
         {favorites.map((webtoon) => (
           <Link
@@ -13,7 +15,7 @@ export default function Favorites({ favorites, setFavorites, loadCovers }) {
             }`}
             key={webtoon.id}
           >
-            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} loadCovers={loadCovers}/>
+            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} />
           </Link>
         ))}
       </div>

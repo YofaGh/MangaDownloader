@@ -1,13 +1,10 @@
-import { useSettings } from "../ShellerProvider";
-
-export default function SaucerResult({ result }) {
-  const settings = useSettings();
+export default function SaucerResult({ result, load_covers }) {
   return (
     <div className="sr-card">
       <img
         alt=""
         className="sr-img"
-        src={settings.load_covers ? result.image : "./assets/default-cover.svg"}
+        src={load_covers ? result.image : "./assets/default-cover.svg"}
       ></img>
       <div className="sr-textBox">
         <div className="sr-textContent">

@@ -22,8 +22,8 @@ export default function Search({
     { name: "Doujin", selected: true },
   ]);
   const [modules, updateModules] = useState([]);
-  const settings = useSettings();
-  const [depth, setDepth] = useState(settings.default_search_depth);
+  const { default_search_depth, load_covers } = useSettings();
+  const [depth, setDepth] = useState(default_search_depth);
   const [absolute, setAbsolute] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
@@ -197,7 +197,7 @@ export default function Search({
         <br />
         <div className="s-cont">
           {searchResults.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} />
+            <WSearchCard key={index} webtoon={item} load_covers={load_covers} />
           ))}
         </div>
       </div>

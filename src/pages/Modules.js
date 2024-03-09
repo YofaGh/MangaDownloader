@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { MCard, ModuleChecker } from "../components";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
 
 export default function Modules() {
   const [modules, setModules] = useState([]);
   const [moduleToCheck, setModuleToCheck] = useState([]);
+  const { load_covers } = useSettings();
   const sheller = useSheller();
 
   const removeF = async (path) => {
@@ -259,7 +260,7 @@ export default function Modules() {
           <div key={index} className="card-row">
             {chunk.map((module) => (
               <div key={module.domain} className="card-wrapper">
-                <MCard module={module} checkModule={checkModule} />
+                <MCard module={module} checkModule={checkModule} load_covers={load_covers} />
               </div>
             ))}
           </div>

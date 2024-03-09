@@ -2,7 +2,13 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
-export const convert = async (webtoon, openPath, dispatch, sheller, openFile) => {
+export const convert = async (
+  webtoon,
+  openPath,
+  dispatch,
+  sheller,
+  openFile
+) => {
   let pdfName =
     webtoon.type === "manga"
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
@@ -64,4 +70,19 @@ export const getDateTime = (datetime) => {
   return `${date.getFullYear()}/${
     date.getMonth() + 1
   }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+};
+
+export const retrieveImage = async (
+  imageSrc,
+  module,
+  setImageSrc,
+  sheller,
+  defImage
+) => {
+  try {
+    const response = await sheller(["retrieve_image", module, imageSrc]);
+    setImageSrc(response);
+  } catch (error) {
+    setImageSrc(defImage);
+  }
 };

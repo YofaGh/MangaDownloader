@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { retrieveImage } from ".";
+import { useSheller } from "../ShellerProvider";
 
-export default function Wcard({ webtoon, addLibraryMessage, update }) {
+export default function Wcard({
+  webtoon,
+  addLibraryMessage,
+  update,
+  load_covers,
+}) {
   const [loaded, setLoaded] = useState(false);
   const sheller = useSheller();
-  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    settings.load_covers ? webtoon.cover : "./assets/default-cover.svg"
+    load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
 
   const stopRotate = () => {
@@ -15,20 +20,6 @@ export default function Wcard({ webtoon, addLibraryMessage, update }) {
     s2.classList.remove("back");
     s2.classList.add("backloaded");
     setLoaded(true);
-  };
-
-  const get_cover = async () => {
-    try {
-      const response = await sheller([
-        "retrieve_image",
-        webtoon.domain,
-        webtoon.cover,
-      ]);
-      setImageSrc(response);
-    } catch (error) {
-      setImageSrc("./assets/default-cover.svg");
-      stopRotate();
-    }
   };
 
   const remove = () => {
@@ -52,7 +43,15 @@ export default function Wcard({ webtoon, addLibraryMessage, update }) {
                   alt=""
                   className="img-back"
                   onLoad={stopRotate}
-                  onError={get_cover}
+                  onError={() => {
+                    retrieveImage(
+                      imageSrc,
+                      module.domain,
+                      setImageSrc,
+                      sheller,
+                      "./assets/default-cover.svg"
+                    );
+                  }}
                 />
               </div>
               <div className="info">

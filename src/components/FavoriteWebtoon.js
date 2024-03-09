@@ -1,26 +1,19 @@
 import { useState } from "react";
+import { retrieveImage } from ".";
 import { useNotification } from "../NotificationProvider";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller } from "../ShellerProvider";
 
-export default function FavoriteWebtoon({ webtoon, setFavorites }) {
+export default function FavoriteWebtoon({
+  webtoon,
+  setFavorites,
+  load_covers,
+}) {
   const dispatch = useNotification();
-  const settings = useSettings();
   const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
-    settings.load_covers ? webtoon.cover : "./assets/default-cover.svg"
+    load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
-  const get_cover = async () => {
-    try {
-      const response = await sheller([
-        " retrieve_image",
-        webtoon.id.split("_$_")[1],
-        webtoon.cover,
-      ]);
-      setImageSrc(response);
-    } catch {
-      setImageSrc("./assets/default-cover.svg");
-    }
-  };
+
   return (
     <div className="f-card">
       <div className="f-content">
@@ -31,7 +24,15 @@ export default function FavoriteWebtoon({ webtoon, setFavorites }) {
                 src={imageSrc}
                 alt=""
                 className="f-img-back"
-                onError={get_cover}
+                onError={() => {
+                  retrieveImage(
+                    webtoon.cover,
+                    webtoon.id.split("_$_")[1],
+                    setImageSrc,
+                    sheller,
+                    "./assets/default-cover.svg"
+                  );
+                }}
               />
             </div>
             <div className="f-infoo">

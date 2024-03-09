@@ -181,7 +181,7 @@ export default function Module() {
           }}
         >
           {results.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} loadCovers={load_covers} />
+            <WSearchCard key={index} webtoon={item} load_covers={load_covers} />
           ))}
         </div>
       </div>

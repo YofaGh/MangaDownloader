@@ -1,25 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { retrieveImage } from ".";
+import { useSheller } from "../ShellerProvider";
 
-export default function WSearchCard({ webtoon, loadCovers }) {
+export default function WSearchCard({ webtoon, load_covers }) {
   const sheller = useSheller();
-  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    settings.load_covers ? webtoon.thumbnail : "./assets/default-cover.svg"
+    load_covers ? webtoon.thumbnail : "./assets/default-cover.svg"
   );
-  const get_cover = async () => {
-    try {
-      const response = await sheller([
-        "retrieve_image",
-        webtoon.domain,
-        imageSrc,
-      ]);
-      setImageSrc(response);
-    } catch {
-      setImageSrc("./assets/default-cover.svg");
-    }
-  };
+
   return (
     <Link
       to={
@@ -34,7 +23,15 @@ export default function WSearchCard({ webtoon, loadCovers }) {
           className="search-i"
           alt=""
           src={imageSrc}
-          onError={get_cover}
+          onError={() => {
+            retrieveImage(
+              imageSrc,
+              webtoon.domain,
+              setImageSrc,
+              sheller,
+              "./assets/default-cover.svg"
+            );
+          }}
         ></img>
         <div className="info-searched-w">
           <h3>

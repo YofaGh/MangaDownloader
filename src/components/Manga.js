@@ -8,6 +8,7 @@ import {
   Loading,
   ChapterButton,
   PushButton,
+  retrieveImage,
 } from ".";
 import { useSheller, useSettings } from "../ShellerProvider";
 import { useNavigate } from "react-router-dom";
@@ -30,16 +31,7 @@ export default function Manga({
   const [imageSrc, setImageSrc] = useState("");
   const sheller = useSheller();
   const navigate = useNavigate();
-  const settings = useSettings();
-
-  const get_cover = async () => {
-    try {
-      const response = await sheller(["retrieve_image", module, imageSrc]);
-      setImageSrc(response);
-    } catch (error) {
-      setImageSrc("./assets/default-cover.svg");
-    }
-  };
+  const { load_covers } = useSettings();
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -47,9 +39,7 @@ export default function Manga({
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
-      setImageSrc(
-        settings.load_covers ? response.Cover : "./assets/default-cover.svg"
-      );
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
     };
     fetchManga();
   }, [module, url]);
@@ -143,7 +133,15 @@ export default function Manga({
             className="webtoon-i"
             alt=""
             src={imageSrc}
-            onError={get_cover}
+            onError={() => {
+              retrieveImage(
+                imageSrc,
+                module,
+                setImageSrc,
+                sheller,
+                "./assets/default-cover.svg"
+              );
+            }}
           ></img>
           {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
           <Infoed title="Status:" info={webtoon.Status} />

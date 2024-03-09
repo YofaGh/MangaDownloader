@@ -30,4 +30,5 @@ export {
   convert,
   getDate,
   getDateTime,
+  retrieveImage,
 } from "./utils";

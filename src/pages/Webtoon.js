@@ -68,31 +68,24 @@ export default function Webtoon({
     }
   };
 
-  switch (moduleType) {
-    case "Manga":
-      return (
-        <Manga
-          module={module}
-          url={url}
-          addWebtoonToQueue={addWebtoonToQueue}
-          isFavorite={isFavorite}
-          updateWebtoon={updateWebtoon}
-          addLibraryMessage={addLibraryMessage}
-          isInLibrary={isInLibrary}
-          library={library}
-        />
-      );
-    case "Doujin":
-      return (
-        <Doujin
-          module={module}
-          url={url}
-          addWebtoonToQueue={addWebtoonToQueue}
-          isFavorite={isFavorite}
-          updateWebtoon={updateWebtoon}
-        />
-      );
-    default:
-      return <></>;
-  }
+  return moduleType === "Manga" ? (
+    <Manga
+      module={module}
+      url={url}
+      addWebtoonToQueue={addWebtoonToQueue}
+      isFavorite={isFavorite}
+      updateWebtoon={updateWebtoon}
+      addLibraryMessage={addLibraryMessage}
+      isInLibrary={isInLibrary}
+      library={library}
+    />
+  ) : (
+    <Doujin
+      module={module}
+      url={url}
+      addWebtoonToQueue={addWebtoonToQueue}
+      isFavorite={isFavorite}
+      updateWebtoon={updateWebtoon}
+    />
+  );
 }

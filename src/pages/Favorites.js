@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { FavoriteWebtoon } from "../components";
+import { useSettings } from "../ShellerProvider";
 
 export default function Favorites({ favorites, setFavorites }) {
+  const { load_covers } = useSettings();
+
   return (
     <div className="container">
       <div className="App-header">
@@ -15,7 +18,7 @@ export default function Favorites({ favorites, setFavorites }) {
             }`}
             key={webtoon.id}
           >
-            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} />
+            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} load_covers={load_covers} />
           </Link>
         ))}
       </div>

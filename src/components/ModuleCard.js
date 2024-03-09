@@ -1,27 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { retrieveImage } from ".";
+import { useSheller } from "../ShellerProvider";
 
-export default function MCard({ module, checkModule }) {
+export default function MCard({ module, checkModule, load_covers }) {
   const sheller = useSheller();
-  const settings = useSettings();
   const [imageSrc, setImageSrc] = useState(
-    settings.load_covers && module.logo
-      ? module.logo
-      : "./assets/module-cyan.svg"
+    load_covers && module.logo ? module.logo : "./assets/module-cyan.svg"
   );
-  const get_cover = async () => {
-    try {
-      const response = await sheller([
-        "retrieve_image",
-        module.domain,
-        imageSrc,
-      ]);
-      setImageSrc(response);
-    } catch (error) {
-      setImageSrc("./assets/module-cyan.svg");
-    }
-  };
+
   return (
     <div className="m-card">
       <div className="m-card-info">
@@ -34,7 +21,15 @@ export default function MCard({ module, checkModule }) {
               loading="lazy"
               alt=""
               style={{ width: 70, height: 70 }}
-              onError={get_cover}
+              onError={() => {
+                retrieveImage(
+                  imageSrc,
+                  module.domain,
+                  setImageSrc,
+                  sheller,
+                  "./assets/module-cyan.svg"
+                );
+              }}
             />
           </div>
           <div className="m-name">{module.domain}</div>

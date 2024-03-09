@@ -62,9 +62,9 @@ def search(domain, keyword, sleep_time, absolute, page):
     return [{'name': k, **v} for k, v in results.items()]
 
 def retrieve_image(domain, image_url):
-    with get_module(domain) as module:
-        image = module.send_request(image_url, headers=module.download_images_headers, wait=False).content
-        return f'data:image/png;base64, {base64.b64encode(image).decode()}'
+    module = get_module(domain)
+    image = module.send_request(image_url, headers=module.download_images_headers, wait=False).content
+    return f'data:image/png;base64, {base64.b64encode(image).decode()}'
 
 download_image = lambda domain, image_url, save_path: get_module(domain).download_image(image_url, save_path, 0, wait=False)
 get_chapters = lambda domain, url: get_module(domain).get_chapters(url, wait=False)

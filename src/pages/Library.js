@@ -1,5 +1,5 @@
 import { Wcard, HomeButton } from "../components";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
 export default function Library({
   library,
@@ -7,6 +7,7 @@ export default function Library({
   addWebtoonToQueue,
 }) {
   const sheller = useSheller();
+  const { load_covers } = useSettings();
   const chunkArray = (array, size) => {
     const chunkedArray = [];
     for (let i = 0; i < array.length; i += size) {
@@ -82,6 +83,7 @@ export default function Library({
                     webtoon={webtoon}
                     addLibraryMessage={addLibraryMessage}
                     update={updateSingle}
+                    load_covers={load_covers}
                   />
                 </div>
               ))}

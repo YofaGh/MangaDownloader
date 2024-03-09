@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
 import { useNotification } from "../NotificationProvider";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useSettings } from "../ShellerProvider";
 
 export default function Saucer() {
   const [url, setUrl] = useState("");
@@ -10,6 +10,7 @@ export default function Saucer() {
   const [currentStatus, setCurrentStatus] = useState(null);
   const dispatch = useNotification();
   const sheller = useSheller();
+  const { load_covers } = useSettings();
 
   useEffect(() => {
     const fetchSaucers = async () => {
@@ -65,7 +66,11 @@ export default function Saucer() {
         <div className="f-header">Results</div>
         <div className="ff-container">
           {results.map((result) => (
-            <SaucerResult key={result.url} result={result} />
+            <SaucerResult
+              key={result.url}
+              result={result}
+              load_covers={load_covers}
+            />
           ))}
         </div>
       </div>

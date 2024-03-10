@@ -1,5 +1,5 @@
 import { Wcard, HomeButton } from "../components";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings } from "../Provider";
 
 export default function Library({
   library,

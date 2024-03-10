@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Infoed, FlipButton, getDate, getDateTime, retrieveImage, Loading } from ".";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings } from "../Provider";
 
 export default function Doujin({
   module,

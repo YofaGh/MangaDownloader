@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { FavoriteWebtoon } from "../components";
-import { useSettings } from "../ShellerProvider";
+import { useSettings } from "../Provider";
 
 export default function Favorites({ favorites, setFavorites }) {
   const { load_covers } = useSettings();

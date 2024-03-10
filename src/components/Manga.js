@@ -10,7 +10,7 @@ import {
   PushButton,
   retrieveImage,
 } from ".";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings } from "../Provider";
 import { useNavigate } from "react-router-dom";
 
 export default function Manga({

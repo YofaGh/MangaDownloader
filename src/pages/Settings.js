@@ -1,6 +1,6 @@
 import { open } from "@tauri-apps/api/dialog";
 import { FilterToggleButton } from "../components";
-import { useSettings, useSetSettings } from "../ShellerProvider";
+import { useSettings, useSetSettings } from "../Provider";
 
 export default function Settings({ downloading, dispatch }) {
   const [settings, setSettings] = [useSettings(), useSetSettings()];

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
-import { useNotification } from "../NotificationProvider";
-import { useSheller } from "../ShellerProvider";
+import { useSheller, useNotification } from "../Provider";
 
 export default function FavoriteWebtoon({
   webtoon,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings } from "../Provider";
 
 export default function Module() {
   const { module } = useParams();

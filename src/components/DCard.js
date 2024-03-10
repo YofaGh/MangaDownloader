@@ -1,6 +1,5 @@
 import { convert, merge } from ".";
-import { useNotification } from "../NotificationProvider";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings, useNotification } from "../Provider";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function DCard({ webtoon, removeWebtoon }) {

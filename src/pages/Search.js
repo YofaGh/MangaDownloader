@@ -6,7 +6,7 @@ import {
   WSearchCard,
   PushButton,
 } from "../components";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings } from "../Provider";
 
 export default function Search({
   startSearching,

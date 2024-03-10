@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from ".";
-import { useSheller } from "../ShellerProvider";
+import { useSheller } from "../Provider";
 
 export default function MCard({ module, checkModule, load_covers }) {
   const sheller = useSheller();

@@ -20,8 +20,12 @@ import {
   convert,
   merge,
 } from "./components";
-import { useNotification } from "./NotificationProvider";
-import { useSheller, useSetSettings, useSettings } from "./ShellerProvider";
+import {
+  useSheller,
+  useSetSettings,
+  useSettings,
+  useNotification,
+} from "./Provider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import { appDataDir } from "@tauri-apps/api/path";

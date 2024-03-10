@@ -2,14 +2,11 @@ import "./styles/index.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import NotificationProvider from "./NotificationProvider";
-import ShellProvider from "./ShellerProvider";
+import Provider from "./Provider";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <NotificationProvider>
-    <ShellProvider>
-      <App />
-    </ShellProvider>
-  </NotificationProvider>
+  <Provider>
+    <App />
+  </Provider>
 );

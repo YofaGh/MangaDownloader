@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
-import { useNotification } from "../NotificationProvider";
-import { useSheller, useSettings } from "../ShellerProvider";
+import { useSheller, useSettings, useNotification } from "../Provider";
 
 export default function Saucer() {
   const [url, setUrl] = useState("");

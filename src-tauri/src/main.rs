@@ -108,11 +108,11 @@ fn load_up_checks(data_dir: String) {
         "favorites.json",
     ];
     save_file(
-        format!("{}\\settings.json", data_dir),
+        format!("{}/settings.json", data_dir),
         to_value(&default_settings).unwrap(),
     );
     for file in file_array {
-        save_file(format!("{}\\{}", data_dir, file), from_str("[]").unwrap());
+        save_file(format!("{}/{}", data_dir, file), from_str("[]").unwrap());
     }
     sheller_updater::update_sheller(data_dir);
 }

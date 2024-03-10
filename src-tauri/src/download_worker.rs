@@ -55,7 +55,7 @@ pub async fn download(
         args.push(webtoon.get("module").unwrap().to_string());
         args.push(webtoon.get("doujin").unwrap().to_string());
     }
-    let response: String = sheller::call_sheller_win(data_dir_path.clone(), args).await;
+    let response: String = sheller::call_sheller(data_dir_path.clone(), args).await;
     let json_data: Value = from_str(&response).expect("Failed to parse JSON");
     let images: &Vec<Value> = json_data
         .as_array()
@@ -123,7 +123,7 @@ pub async fn download(
             save_path.push_str(format!("{}\\{}.{}", d_path, padded_string, temp_s).as_str());
         }
         if !exists_images.contains(&save_path) {
-            let d_response: String = sheller::call_sheller_win(
+            let d_response: String = sheller::call_sheller(
                 data_dir_path.clone(),
                 vec![
                     "download_image".to_string(),
@@ -144,7 +144,7 @@ pub async fn download(
                     )
                     .expect("failed to emit event");
             } else {
-                let val_corrupted_image: String = sheller::call_sheller_win(
+                let val_corrupted_image: String = sheller::call_sheller(
                     data_dir_path.clone(),
                     vec![
                         "validate_corrupted_image".to_string(),
@@ -163,7 +163,7 @@ pub async fn download(
                         )
                         .expect("failed to emit event");
                 }
-                let val_truncated_image: String = sheller::call_sheller_win(
+                let val_truncated_image: String = sheller::call_sheller(
                     data_dir_path.clone(),
                     vec![
                         "validate_truncated_image".to_string(),

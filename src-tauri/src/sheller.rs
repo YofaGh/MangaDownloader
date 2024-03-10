@@ -6,7 +6,7 @@ pub async fn call_sheller(data_dir_path: String, args: Vec<String>) -> String {
     if FAMILY == "windows" {
         return call_sheller_win(data_dir_path, args).await;
     }
-    return "".to_string();
+    return call_sheller_unix(args).await;
 }
 
 pub async fn call_sheller_win(data_dir_path: String, mut args: Vec<String>) -> String {
@@ -16,6 +16,22 @@ pub async fn call_sheller_win(data_dir_path: String, mut args: Vec<String>) -> S
         .args(args)
         .spawn()
         .expect("Failed to spawn sidecar");
+    let mut response: String = String::new();
+    while let Some(event) = rx.recv().await {
+        if let CommandEvent::Stdout(line) = event {
+            response.push_str(&line);
+            break;
+        }
+    }
+    response
+}
+
+pub async fn call_sheller_unix(args: Vec<String>) -> String {
+    let (mut rx, _child) = Command::new_sidecar("sheller")
+    .expect("failed to create `my-sidecar` binary command")
+    .args(&args)
+    .spawn()
+    .expect("Failed to spawn sidecar");
     let mut response: String = String::new();
     while let Some(event) = rx.recv().await {
         if let CommandEvent::Stdout(line) = event {

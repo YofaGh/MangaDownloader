@@ -42,7 +42,7 @@ pub async fn search_keyword(
                 },
             )
             .expect("msg");
-        let result: String = sheller::call_sheller_win(
+        let result: String = sheller::call_sheller(
             data_dir_path.clone(),
             vec![
                 "search".to_string(),

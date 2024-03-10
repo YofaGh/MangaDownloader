@@ -35,6 +35,7 @@ const Provider = (props) => {
     if (platform === "windows") {
       return shellerWin(args);
     }
+    return shellerUnix(args);
   };
 
   const shellerWin = async (args) => {
@@ -46,6 +47,12 @@ const Provider = (props) => {
       }
     ).execute();
     return JSON.parse(output.stdout);
+  };
+
+  const shellerUnix = async (args) => {
+    const command = Command.sidecar("../bin/sheller", args);
+    const response = await command.execute();
+    return JSON.parse(response.stdout);
   };
 
   return (

@@ -2,8 +2,6 @@
 
 import os
 
-block_cipher = None
-
 
 a = Analysis(
     ['sheller.py'],
@@ -18,18 +16,14 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[f'mangascraper/modules/{os.listdir("mangascraper/modules")[0]}'],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
     name='sheller',
@@ -45,5 +39,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['../src-tauri/icons/icon.ico']
 )

@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
-import { useSheller, useSettings, useNotification } from "../Provider";
+import { useSheller, useSettings, useSuccessNotification } from "../Provider";
 
 export default function Saucer() {
   const [url, setUrl] = useState("");
   const [sites, setSites] = useState([]);
   const [results, setResults] = useState([]);
   const [currentStatus, setCurrentStatus] = useState(null);
-  const dispatch = useNotification();
+  const dispatchSuccess = useSuccessNotification();
   const sheller = useSheller();
   const { load_covers } = useSettings();
 
@@ -23,11 +23,7 @@ export default function Saucer() {
     setCurrentStatus("Uploading");
     const response = await sheller(["upload_image", e.target.files[0].path]);
     setUrl(response);
-    dispatch({
-      type: "SUCCESS",
-      message: `Uploaded ${e.target.files[0].name}`,
-      title: "Successful Request",
-    });
+    dispatchSuccess(`Uploaded ${e.target.files[0].name}`);
     setCurrentStatus(null);
   };
 

@@ -5,7 +5,7 @@ export const fixNameForFolder = (manga) => {
 export const convert = async (
   webtoon,
   openPath,
-  dispatch,
+  dispatchSuccess,
   sheller,
   openFile
 ) => {
@@ -14,14 +14,11 @@ export const convert = async (
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
       : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`;
   await sheller(["convert", webtoon.path, webtoon.path, pdfName]).then(() => {
-    dispatch({
-      type: "SUCCESS",
-      message:
-        webtoon.type === "manga"
-          ? `Converted ${webtoon.title} - ${webtoon.info}`
-          : `Converted ${webtoon.title}`,
-      title: "Successful Request",
-    });
+    dispatchSuccess(
+      webtoon.type === "manga"
+        ? `Converted ${webtoon.title} - ${webtoon.info}`
+        : `Converted ${webtoon.title}`
+    );
     if (openPath) {
       openFile(`${webtoon.path}\\${pdfName}.pdf`);
     }
@@ -33,7 +30,7 @@ export const merge = async (
   download_path,
   mergeMethod,
   openPath,
-  dispatch,
+  dispatchSuccess,
   sheller,
   openFolder
 ) => {
@@ -46,14 +43,11 @@ export const merge = async (
         webtoon.info
       : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
   await sheller(["merge", webtoon.path, mergePath, mergeMethod]).then(() => {
-    dispatch({
-      type: "SUCCESS",
-      message:
-        webtoon.type === "manga"
-          ? `Merged ${webtoon.title} - ${webtoon.info}`
-          : `Merged ${webtoon.title}`,
-      title: "Successful Request",
-    });
+    dispatchSuccess(
+      webtoon.type === "manga"
+        ? `Merged ${webtoon.title} - ${webtoon.info}`
+        : `Merged ${webtoon.title}`
+    );
     if (openPath) {
       openFolder(mergePath);
     }

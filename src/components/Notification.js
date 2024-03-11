@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const Notification = (props) => {
+const Notification = ({ dispatch, id, message, type }) => {
   const [exit, setExit] = useState(false);
   const [width, setWidth] = useState(0);
   const [intervalID, setIntervalID] = useState(null);
@@ -28,9 +28,9 @@ const Notification = (props) => {
     handlePauseTimer();
     setExit(true);
     setTimeout(() => {
-      props.dispatch({
+      dispatch({
         type: "REMOVE_NOTIFICATION",
-        id: props.id,
+        id,
       });
     }, 400);
   };
@@ -50,10 +50,10 @@ const Notification = (props) => {
       onMouseEnter={handlePauseTimer}
       onMouseLeave={handleStartTimer}
       className={`notification-item ${
-        props.type === "SUCCESS" ? "success" : "error"
+        type === "SUCCESS" ? "success" : "error"
       } ${exit ? "exit" : ""}`}
     >
-      <p>{props.message}</p>
+      <p>{message}</p>
       <div className={"bar"} style={{ width: `${width}%` }} />
     </div>
   );

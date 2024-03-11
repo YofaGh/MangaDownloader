@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
-import { useSheller, useNotification } from "../Provider";
+import { useSheller, useSuccessNotification } from "../Provider";
 
 export default function FavoriteWebtoon({
   webtoon,
   setFavorites,
   load_covers,
 }) {
-  const dispatch = useNotification();
+  const dispatchSuccess = useSuccessNotification();
   const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
@@ -42,11 +42,7 @@ export default function FavoriteWebtoon({
                   setFavorites((prevFavorites) =>
                     prevFavorites.filter((wt) => wt.id !== webtoon.id)
                   );
-                  dispatch({
-                    type: "SUCCESS",
-                    message: `Removed ${webtoon.title} from favorites`,
-                    title: "Successful Request",
-                  });
+                  dispatchSuccess(`Removed ${webtoon.title} from favorites`);
                 }}
               >
                 <img

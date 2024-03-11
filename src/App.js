@@ -24,7 +24,7 @@ import {
   useSheller,
   useSetSettings,
   useSettings,
-  useNotification,
+  useSuccessNotification,
 } from "./Provider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
@@ -45,7 +45,7 @@ export default function App() {
   const [libraryMessages, setLibraryMessages] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
-  const dispatch = useNotification();
+  const dispatchSuccess = useSuccessNotification();
   const sheller = useSheller();
 
   const readFile = async (fileName, setter) => {
@@ -238,27 +238,24 @@ export default function App() {
         delete webtoon.downloading;
         delete webtoon.totalImages;
         addDownloadedMessage({ addWebtoon: { webtoon } });
-        dispatch({
-          type: "SUCCESS",
-          message:
-            webtoon.type === "manga"
-              ? `Downloaded ${webtoon.title} - ${webtoon.info}`
-              : `Downloaded ${webtoon.title}`,
-          title: "Successful Request",
-        });
+        dispatchSuccess(
+          webtoon.type === "manga"
+            ? `Downloaded ${webtoon.title} - ${webtoon.info}`
+            : `Downloaded ${webtoon.title}`
+        );
         if (settings.auto_merge) {
           merge(
             webtoon,
             settings.download_path,
             settings.merge_method,
             false,
-            dispatch,
+            dispatchSuccess,
             sheller,
             null
           );
         }
         if (settings.auto_convert) {
-          convert(webtoon, false, dispatch, sheller, null);
+          convert(webtoon, false, dispatchSuccess, sheller, null);
         }
       }
       if (message.removeWebtoon) {
@@ -267,14 +264,11 @@ export default function App() {
             (item) => item.id !== message.removeWebtoon.webtoon.id
           )
         );
-        dispatch({
-          type: "SUCCESS",
-          message:
-            message.removeWebtoon.webtoon.type === "manga"
-              ? `Removed ${message.removeWebtoon.webtoon.title} - ${message.removeWebtoon.webtoon.info} from queue`
-              : `Removed ${message.removeWebtoon.webtoon.title} from queue`,
-          title: "Successful Request",
-        });
+        dispatchSuccess(
+          message.removeWebtoon.webtoon.type === "manga"
+            ? `Removed ${message.removeWebtoon.webtoon.title} - ${message.removeWebtoon.webtoon.info} from queue`
+            : `Removed ${message.removeWebtoon.webtoon.title} from queue`
+        );
         if (
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
@@ -297,14 +291,11 @@ export default function App() {
             data.push(message.addWebtoon.webtoon);
             return data;
           });
-          dispatch({
-            type: "SUCCESS",
-            message:
-              message.addWebtoon.webtoon.type === "manga"
-                ? `Added ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} to queue`
-                : `Added ${message.addWebtoon.webtoon.title} to queue`,
-            title: "Successful Request",
-          });
+          dispatchSuccess(
+            message.addWebtoon.webtoon.type === "manga"
+              ? `Added ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} to queue`
+              : `Added ${message.addWebtoon.webtoon.title} to queue`
+          );
         } else {
           setQueue((queue) => {
             let data = [...queue];
@@ -314,14 +305,11 @@ export default function App() {
             data[indexOfTodo] = message.addWebtoon.webtoon;
             return data;
           });
-          dispatch({
-            type: "SUCCESS",
-            message:
-              message.addWebtoon.webtoon.type === "manga"
-                ? `Updated ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} in queue`
-                : `Updated ${message.addWebtoon.webtoon.title} in queue`,
-            title: "Successful Request",
-          });
+          dispatchSuccess(
+            message.addWebtoon.webtoon.type === "manga"
+              ? `Updated ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} in queue`
+              : `Updated ${message.addWebtoon.webtoon.title} in queue`
+          );
         }
       }
       if (message.downloading) {
@@ -418,11 +406,7 @@ export default function App() {
           data.push(message.addWebtoon.webtoon);
           return data;
         });
-        dispatch({
-          type: "SUCCESS",
-          message: `Added ${message.addWebtoon.webtoon.title} to library`,
-          title: "Successful Request",
-        });
+        dispatchSuccess(`Added ${message.addWebtoon.webtoon.title} to library`);
       }
       if (message.removeWebtoon) {
         let ww = library.find(
@@ -437,11 +421,7 @@ export default function App() {
               `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
           )
         );
-        dispatch({
-          type: "SUCCESS",
-          message: `Removed ${ww.title} from library`,
-          title: "Successful Request",
-        });
+        dispatchSuccess(`Removed ${ww.title} from library`);
       }
       if (message.updateWebtoon) {
         setLibrary((prevLibrary) =>
@@ -627,7 +607,7 @@ export default function App() {
           <Route path="/modules" element={<Modules />} />
           <Route
             path="/settings"
-            element={<Settings downloading={downloading} dispatch={dispatch} />}
+            element={<Settings downloading={downloading} />}
           />
           <Route path="/about" element={<About />} />
           <Route path="/saucer" element={<Saucer />} />

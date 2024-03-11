@@ -1,9 +1,10 @@
 import { open } from "@tauri-apps/api/dialog";
 import { FilterToggleButton } from "../components";
-import { useSettings, useSetSettings } from "../Provider";
+import { useSettings, useSetSettings, useErrorNotification } from "../Provider";
 
-export default function Settings({ downloading, dispatch }) {
+export default function Settings({ downloading }) {
   const [settings, setSettings] = [useSettings(), useSetSettings()];
+  const dispatchError = useErrorNotification();
   const changeFilePath = async () => {
     const path = await open({
       directory: true,
@@ -144,11 +145,7 @@ export default function Settings({ downloading, dispatch }) {
           className="playstore-button texts"
           onClick={() => {
             if (downloading) {
-              dispatch({
-                type: "ERROR",
-                message: "There's a download in progress. Stop it first.",
-                title: "Error",
-              });
+              dispatchError("There's a download in progress. Stop it first.");
               return;
             }
             changeFilePath();

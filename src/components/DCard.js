@@ -1,9 +1,9 @@
 import { convert, merge } from ".";
-import { useSheller, useSettings, useNotification } from "../Provider";
+import { useSheller, useSettings, useSuccessNotification } from "../Provider";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function DCard({ webtoon, removeWebtoon }) {
-  const dispatch = useNotification();
+  const dispatchSuccess = useSuccessNotification();
   const { download_path, merge_method } = useSettings();
   const sheller = useSheller();
 
@@ -35,7 +35,7 @@ export default function DCard({ webtoon, removeWebtoon }) {
               download_path,
               merge_method,
               true,
-              dispatch,
+              dispatchSuccess,
               sheller,
               openFolder
             )
@@ -46,7 +46,9 @@ export default function DCard({ webtoon, removeWebtoon }) {
         </button>
         <button
           className="buttonh"
-          onClick={() => convert(webtoon, true, dispatch, sheller, openFolder)}
+          onClick={() =>
+            convert(webtoon, true, dispatchSuccess, sheller, openFolder)
+          }
         >
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>
           <span className="tooltip">Convert to PDF</span>

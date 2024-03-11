@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSheller, useNotification } from "../Provider";
+import { useSheller, useSuccessNotification } from "../Provider";
 import { Manga, Doujin } from "../components";
 
 export default function Webtoon({
@@ -14,7 +14,7 @@ export default function Webtoon({
   const [moduleType, setModuleType] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isInLibrary, setIsInLibrary] = useState(false);
-  const dispatch = useNotification();
+  const dispatchSuccess = useSuccessNotification();
   const sheller = useSheller();
   useEffect(() => {
     const fetchModuleType = async () => {
@@ -43,11 +43,7 @@ export default function Webtoon({
           (webtoon) => webtoon.id !== `${moduleType}_$_${module}_$_${url}`
         )
       );
-      dispatch({
-        type: "SUCCESS",
-        message: `Removed ${title} from favorites`,
-        title: "Successful Request",
-      });
+      dispatchSuccess(`Removed ${title} from favorites`);
       setIsFavorite(false);
     } else {
       if (
@@ -57,11 +53,7 @@ export default function Webtoon({
           ...prevFavorites,
           { title, id: `${moduleType}_$_${module}_$_${url}`, cover },
         ]);
-        dispatch({
-          type: "SUCCESS",
-          message: `Added ${title} to favorites`,
-          title: "Successful Request",
-        });
+        dispatchSuccess(`Added ${title} to favorites`);
       }
       setIsFavorite(true);
     }

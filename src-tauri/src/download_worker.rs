@@ -42,18 +42,22 @@ pub async fn download(
     window: tauri::Window,
 ) {
     STOP_DOWNLOAD.store(false, Ordering::Relaxed);
-    let mut args: Vec<String> = vec![];
+    let args: Vec<String>;
     let mut folder_name: String = fixed_title.clone();
     if webtoon.get("type").unwrap() == "manga" {
-        args.push("get_manga_images".to_string());
-        args.push(webtoon.get("module").unwrap().to_string());
-        args.push(webtoon.get("manga").unwrap().to_string());
-        args.push(webtoon.get("chapter").unwrap().to_string());
+        args = vec![
+            "get_manga_images".to_string(),
+            webtoon.get("module").unwrap().to_string(),
+            webtoon.get("manga").unwrap().to_string(),
+            webtoon.get("chapter").unwrap().to_string(),
+        ];
         folder_name.push_str(&("\\".to_string() + &webtoon.get("info").unwrap()));
     } else {
-        args.push("get_doujin_images".to_string());
-        args.push(webtoon.get("module").unwrap().to_string());
-        args.push(webtoon.get("doujin").unwrap().to_string());
+        args = vec![
+            "get_doujin_images".to_string(),
+            webtoon.get("module").unwrap().to_string(),
+            webtoon.get("doujin").unwrap().to_string(),
+        ];
     }
     let response: String = sheller::call_sheller(data_dir_path.clone(), args).await;
     let json_data: Value = from_str(&response).expect("Failed to parse JSON");

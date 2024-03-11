@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, useReducer } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useReducer,
+} from "react";
 import { v4 } from "uuid";
 import { Command } from "@tauri-apps/api/shell";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -56,7 +62,9 @@ const Provider = (props) => {
   };
 
   return (
-    <ProviderContext.Provider value={{ dispatch, sheller, settings, setSettings }}>
+    <ProviderContext.Provider
+      value={{ dispatch, sheller, settings, setSettings }}
+    >
       <div className={"notification-wrapper"}>
         {state.map((note) => {
           return <Notification dispatch={dispatch} key={note.id} {...note} />;
@@ -67,14 +75,29 @@ const Provider = (props) => {
   );
 };
 
-export const useNotification = () => {
+export const useSuccessNotification = () => {
   const { dispatch } = useContext(ProviderContext);
-  return (props) => {
+  return (message) => {
     dispatch({
       type: "ADD_NOTIFICATION",
       payload: {
         id: v4(),
-        ...props,
+        type: "SUCCESS",
+        message,
+      },
+    });
+  };
+};
+
+export const useErrorNotification = () => {
+  const { dispatch } = useContext(ProviderContext);
+  return (message) => {
+    dispatch({
+      type: "ADD_NOTIFICATION",
+      payload: {
+        id: v4(),
+        type: "ERROR",
+        message,
       },
     });
   };

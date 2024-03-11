@@ -7,8 +7,8 @@ use std::io::{Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
-mod download_worker;
-mod search_worker;
+mod downloader;
+mod searcher;
 mod sheller_updater;
 
 #[tauri::command]
@@ -50,17 +50,6 @@ fn read_file(path: String) -> String {
 }
 
 #[tauri::command]
-fn extract_sheller(data_dir_path: String, handle: tauri::AppHandle) {
-    let resource_path: PathBuf = handle
-        .path_resolver()
-        .resolve_resource("../cli/PyShellerBundle.zip")
-        .expect("failed to resolve resource");
-    let archive: Vec<u8> = read(resource_path).unwrap();
-    let target_dir: PathBuf = PathBuf::from(&data_dir_path);
-    let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
-}
-
-#[tauri::command]
 fn remove_directory(path: String, recursive: bool) {
     if recursive {
         let _ = remove_dir_all(path);
@@ -69,6 +58,16 @@ fn remove_directory(path: String, recursive: bool) {
             let _ = remove_dir(path);
         }
     }
+}
+
+fn extract_sheller(data_dir_path: String, handle: tauri::AppHandle) {
+    let resource_path: PathBuf = handle
+        .path_resolver()
+        .resolve_resource("../cli/PyShellerBundle.zip")
+        .expect("failed to resolve resource");
+    let archive: Vec<u8> = read(resource_path).unwrap();
+    let target_dir: PathBuf = PathBuf::from(&data_dir_path);
+    let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -83,6 +82,21 @@ struct DefaultSettings {
     data_dir_path: String,
 }
 
+impl DefaultSettings {
+    fn new(data_dir: String) -> DefaultSettings {
+        DefaultSettings {
+            auto_merge: false,
+            auto_convert: false,
+            load_covers: true,
+            sleep_time: 0.1,
+            default_search_depth: 3,
+            merge_method: String::from("Normal"),
+            download_path: None,
+            data_dir_path: data_dir,
+        }
+    }
+}
+
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
         let _ = write_file(path, serde_json::to_string_pretty(&data).unwrap());
@@ -91,16 +105,7 @@ fn save_file(path: String, data: Value) {
 
 fn load_up_checks(data_dir: String) {
     let _ = create_dir_all(&data_dir);
-    let default_settings: DefaultSettings = DefaultSettings {
-        auto_merge: false,
-        auto_convert: false,
-        load_covers: true,
-        sleep_time: 0.1,
-        default_search_depth: 3,
-        merge_method: String::from("Normal"),
-        download_path: None,
-        data_dir_path: data_dir.clone(),
-    };
+    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
     let file_array: [&str; 4] = [
         "library.json",
         "downloaded.json",
@@ -125,10 +130,10 @@ fn main() {
             read_file,
             write_file,
             get_platform,
-            search_worker::search_keyword,
-            search_worker::stop_search,
-            download_worker::download,
-            download_worker::stop_download,
+            searcher::search_keyword,
+            searcher::stop_search,
+            downloader::download,
+            downloader::stop_download,
         ])
         .setup(|app: &mut tauri::App| {
             let data_dir_path: String = app

@@ -28,10 +28,10 @@ pub async fn call_sheller_win(data_dir_path: String, mut args: Vec<String>) -> S
 
 pub async fn call_sheller_unix(args: Vec<String>) -> String {
     let (mut rx, _child) = Command::new_sidecar("sheller")
-    .expect("failed to create `my-sidecar` binary command")
-    .args(&args)
-    .spawn()
-    .expect("Failed to spawn sidecar");
+        .expect("failed to create `my-sidecar` binary command")
+        .args(&args)
+        .spawn()
+        .expect("Failed to spawn sidecar");
     let mut response: String = String::new();
     while let Some(event) = rx.recv().await {
         if let CommandEvent::Stdout(line) = event {

@@ -48,25 +48,24 @@ export default function App() {
   const dispatchSuccess = useSuccessNotification();
   const sheller = useSheller();
 
-  const readFile = async (fileName, setter) => {
-    let dataDirPath = await appDataDir();
+  const readFile = async (file, setter) => {
+    const dataDirPath = await appDataDir();
     const contents = await invoke("read_file", {
-      path: `${dataDirPath}/${fileName}`,
+      path: `${dataDirPath}/${file}`,
     });
-    let data = JSON.parse(contents);
-    if (fileName === "library.json") {
-      data = Object.entries(data).map(([manga, detm]) => {
-        return {
-          title: manga,
-          status: detm.include,
-          domain: detm.domain,
-          url: detm.url,
-          cover: detm.cover,
-          last_downloaded_chapter: detm.last_downloaded_chapter,
-        };
-      });
-    }
-    setter(data);
+    const data = JSON.parse(contents);
+    const transformedData =
+      file === "library.json"
+        ? Object.entries(data).map(([title, details]) => ({
+            title,
+            status: details.include,
+            domain: details.domain,
+            url: details.url,
+            cover: details.cover,
+            last_downloaded_chapter: details.last_downloaded_chapter,
+          }))
+        : data;
+    setter(transformedData);
   };
 
   const writeFile = async (fileName, data) => {
@@ -352,11 +351,10 @@ export default function App() {
     while (downloadedMessages.length > 0) {
       const message = downloadedMessages.shift();
       if (message.addWebtoon) {
-        setDownloaded((downloaded) => {
-          let data = [...downloaded];
-          data.unshift(message.addWebtoon.webtoon);
-          return data;
-        });
+        setDownloaded((downloaded) => [
+          message.addWebtoon.webtoon,
+          ...downloaded,
+        ]);
       }
       if (message.removeWebtoon) {
         setDownloaded((prevDownloaded) =>
@@ -401,11 +399,7 @@ export default function App() {
     while (libraryMessages.length > 0) {
       const message = libraryMessages.shift();
       if (message.addWebtoon) {
-        setLibrary((library) => {
-          let data = [...library];
-          data.push(message.addWebtoon.webtoon);
-          return data;
-        });
+        setLibrary((library) => [...library, message.addWebtoon.webtoon]);
         dispatchSuccess(`Added ${message.addWebtoon.webtoon.title} to library`);
       }
       if (message.removeWebtoon) {
@@ -526,7 +520,7 @@ export default function App() {
       absolute: absolute.toString(),
       dataDirPath: settings.data_dir_path,
     });
-    await listen("doneSearching", (even) => {
+    await listen("doneSearching", () => {
       setSearchingStatus("searched");
     });
     await listen("searchingModule", (event) => {
@@ -537,8 +531,8 @@ export default function App() {
       });
     });
     await listen("searchedModule", (event) => {
-      setSearchResults((prevSearchResults) => [
-        ...prevSearchResults,
+      setSearchResults((prevResults) => [
+        ...prevResults,
         ...JSON.parse(event.payload.result),
       ]);
     });
@@ -644,8 +638,7 @@ export default function App() {
                     ...prevSettings,
                     download_path: selectedPath,
                   }));
-                  const modal = document.getElementById("browse-modal");
-                  modal.style.display = "none";
+                  document.getElementById("browse-modal").style.display = "none";
                   startDownloading();
                 }
               }}

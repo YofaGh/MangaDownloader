@@ -1,4 +1,4 @@
-import { Wcard, HomeButton } from "../components";
+import { Wcard, HomeButton, chunkArray } from "../components";
 import { useSheller, useSettings } from "../Provider";
 
 export default function Library({
@@ -8,13 +8,6 @@ export default function Library({
 }) {
   const sheller = useSheller();
   const { load_covers } = useSettings();
-  const chunkArray = (array, size) => {
-    const chunkedArray = [];
-    for (let i = 0; i < array.length; i += size) {
-      chunkedArray.push(array.slice(i, i + size));
-    }
-    return chunkedArray;
-  };
 
   const updateSingle = async (webtoon) => {
     const allChapters = await sheller([
@@ -55,11 +48,7 @@ export default function Library({
     }
   };
 
-  const updateAll = async () => {
-    for (const webtoon of library) {
-      updateSingle(webtoon);
-    }
-  };
+  const updateAll = library.array.forEach(updateSingle);
 
   const chunkedWebtoons = chunkArray(library, 3);
 

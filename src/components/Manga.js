@@ -9,6 +9,7 @@ import {
   ChapterButton,
   PushButton,
   retrieveImage,
+  chunkArray
 } from ".";
 import { useSheller, useSettings } from "../Provider";
 import { useNavigate } from "react-router-dom";
@@ -52,14 +53,6 @@ export default function Manga({
     };
     get_chapterss();
   }, [module, url]);
-
-  const chunkArray = (array, size) => {
-    const chunkedArray = [];
-    for (let i = 0; i < array.length; i += size) {
-      chunkedArray.push(array.slice(i, i + size));
-    }
-    return chunkedArray;
-  };
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("lib-modal");

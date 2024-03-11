@@ -13,7 +13,6 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
       "http": {
         "all": true,
         "scope": [
@@ -22,7 +21,6 @@
         ]
       },
       "window": {
-        "all": false,
         "close": true,
         "minimize": true,
         "print": true,
@@ -92,12 +90,19 @@
     },
     "windows": [
       {
-        "fullscreen": false,
         "height": 600,
         "resizable": false,
         "title": "Manga Downloader",
         "width": 1000,
-        "decorations": false
+        "decorations": false,
+        "visible": false
+      },
+      {
+        "width": 400,
+        "height": 200,
+        "decorations": false,
+        "url": "splash.html",
+        "label": "splashscreen"
       }
     ]
   }

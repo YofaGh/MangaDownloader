@@ -31,4 +31,5 @@ export {
   getDate,
   getDateTime,
   retrieveImage,
+  chunkArray
 } from "./utils";

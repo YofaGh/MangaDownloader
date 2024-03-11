@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MCard, ModuleChecker } from "../components";
+import { MCard, ModuleChecker, chunkArray } from "../components";
 import { useSheller, useSettings } from "../Provider";
 import { BaseDirectory, removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -13,6 +13,8 @@ export default function Modules() {
   const removeF = async (path) => {
     await removeFile(path, { dir: BaseDirectory.AppLocalData });
   };
+
+  const chunkedModules = chunkArray(modules, 3);
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -237,16 +239,6 @@ export default function Modules() {
       }
     }
   };
-
-  const chunkArray = (array, size) => {
-    const chunkedArray = [];
-    for (let i = 0; i < array.length; i += size) {
-      chunkedArray.push(array.slice(i, i + size));
-    }
-    return chunkedArray;
-  };
-
-  const chunkedModules = chunkArray(modules, 3);
 
   return (
     <div className="container">

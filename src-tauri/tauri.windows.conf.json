@@ -13,16 +13,11 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
       "http": {
         "all": true,
-        "scope": [
-          "https://*",
-          "http://*"
-        ]
+        "scope": ["https://*", "http://*"]
       },
       "window": {
-        "all": false,
         "close": true,
         "minimize": true,
         "print": true,
@@ -75,9 +70,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [
-        "../cli/PyShellerBundle.zip"
-      ],
+      "resources": ["../cli/PyShellerBundle.zip"],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -94,12 +87,19 @@
     },
     "windows": [
       {
-        "fullscreen": false,
         "height": 600,
         "resizable": false,
         "title": "Manga Downloader",
         "width": 1000,
-        "decorations": false
+        "decorations": false,
+        "visible": false
+      },
+      {
+        "width": 400,
+        "height": 200,
+        "decorations": false,
+        "url": "splash.html",
+        "label": "splashscreen"
       }
     ]
   }

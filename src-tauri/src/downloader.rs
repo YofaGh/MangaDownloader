@@ -2,8 +2,10 @@ use serde_json::{from_str, Value};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir};
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
+use tauri::{Manager, Window};
 #[path = "sheller.rs"]
 mod sheller;
 
@@ -38,10 +40,16 @@ pub async fn download(
     fixed_title: String,
     sleep_time: f64,
     download_path: String,
-    data_dir_path: String,
-    window: tauri::Window,
+    window: Window,
 ) {
     STOP_DOWNLOAD.store(false, Ordering::Relaxed);
+    let data_dir_path: String = window
+        .app_handle()
+        .path_resolver()
+        .app_data_dir()
+        .unwrap_or(PathBuf::new())
+        .to_string_lossy()
+        .to_string();
     let args: Vec<String>;
     let mut folder_name: String = fixed_title.clone();
     if webtoon.get("type").unwrap() == "manga" {

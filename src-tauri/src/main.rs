@@ -99,7 +99,7 @@ impl DefaultSettings {
 
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
-        let _ = write_file(path, serde_json::to_string_pretty(&data).unwrap());
+        write_file(path, serde_json::to_string_pretty(&data).unwrap());
     }
 }
 
@@ -119,7 +119,6 @@ fn load_up_checks(data_dir: String) {
     for file in file_array {
         save_file(format!("{}/{}", data_dir, file), from_str("[]").unwrap());
     }
-    sheller_updater::update_sheller(data_dir);
 }
 
 fn main() {
@@ -130,6 +129,7 @@ fn main() {
             read_file,
             write_file,
             get_platform,
+            sheller_updater::update_sheller,
             searcher::search_keyword,
             searcher::stop_search,
             downloader::download,

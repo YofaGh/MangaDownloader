@@ -43,8 +43,8 @@ export default function TopBar({ currentDownloadStatus }) {
             <div id="menu-bar3" className="menu-bars"></div>
           </label>
         </div>
-        <div className="titleBarText">
-          <div className="titleText">Manga Downloader</div>
+        <div data-tauri-drag-region className="titleBarText">
+          <div data-tauri-drag-region className="titleText">Manga Downloader</div>
         </div>
         <div className="titleBarBtns">
           <button

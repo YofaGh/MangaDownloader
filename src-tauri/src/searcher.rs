@@ -1,4 +1,8 @@
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::{
+    path::PathBuf,
+    sync::atomic::{AtomicBool, Ordering},
+};
+use tauri::{Manager, Window};
 #[path = "sheller.rs"]
 mod sheller;
 
@@ -26,10 +30,16 @@ pub async fn search_keyword(
     sleep_time: String,
     depth: String,
     absolute: String,
-    data_dir_path: String,
-    window: tauri::Window,
+    window: Window,
 ) {
     STOP_SEARCH.store(false, Ordering::Relaxed);
+    let data_dir_path: String = window
+        .app_handle()
+        .path_resolver()
+        .app_data_dir()
+        .unwrap_or(PathBuf::new())
+        .to_string_lossy()
+        .to_string();
     for module in modules {
         if STOP_SEARCH.load(Ordering::Relaxed) {
             return;

@@ -447,7 +447,6 @@ export default function App() {
         fixedTitle: fixNameForFolder(webtoon.title),
         sleepTime: settings.sleep_time,
         downloadPath: settings.download_path,
-        dataDirPath: settings.data_dir_path,
       });
       await listen("totalImages", (event) => {
         let totalImages = {
@@ -518,7 +517,6 @@ export default function App() {
       sleepTime: settings.sleep_time.toString(),
       depth: depth.toString(),
       absolute: absolute.toString(),
-      dataDirPath: settings.data_dir_path,
     });
     await listen("doneSearching", () => {
       setSearchingStatus("searched");

@@ -9,16 +9,30 @@ use std::{
     fs::{read, remove_file, File},
     io::Cursor,
 };
+use tauri::{Manager, Window};
 
-pub fn update_sheller(data_dir_path: String) {
+#[tauri::command]
+pub fn update_sheller(window: Window) {
+    window
+        .emit("updateStatus", Some("Checking For Update..."))
+        .unwrap();
     if FAMILY == "windows" {
-        update_win(data_dir_path.clone());
+        update_win(window);
     }
 }
 
-fn update_win(data_dir_path: String) {
-    let url: &str = "https://github.com/YofaGh/MangaDownloader/raw/master/cli/sheller.py";
-    let response: Result<Response, Error> = get(url);
+fn update_win(window: Window) {
+    window
+        .emit("updateStatus", Some("Downloading Bots..."))
+        .unwrap();
+    let data_dir_path: String = window
+        .app_handle()
+        .path_resolver()
+        .app_data_dir()
+        .unwrap_or(PathBuf::new())
+        .to_string_lossy()
+        .to_string();
+    let response: Result<Response, Error> = get("https://github.com/YofaGh/MangaDownloader/raw/master/cli/sheller.py");
     match response {
         Ok(mut content) => {
             let mut file: File =
@@ -32,8 +46,7 @@ fn update_win(data_dir_path: String) {
         }
         Err(_) => {}
     }
-    let url: &str = "https://github.com/YofaGh/MangaScraper/archive/refs/heads/master.zip";
-    let response: Result<Response, Error> = get(url);
+    let response: Result<Response, Error> = get("https://github.com/YofaGh/MangaScraper/archive/refs/heads/master.zip");
     match response {
         Ok(resp) => {
             if resp.status().is_success() {
@@ -49,4 +62,6 @@ fn update_win(data_dir_path: String) {
         }
         Err(_) => {}
     }
+    window.get_window("splashscreen").unwrap().close().unwrap();
+    window.get_window("main").unwrap().show().unwrap();
 }

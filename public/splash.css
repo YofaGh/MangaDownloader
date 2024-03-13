@@ -99,19 +99,19 @@ body {
     animation-timing-function: ease-in;
   }
 }
-#downloadProgress {
+#download-progress {
   position: relative;
   display: inline-block;
   height: 20px;
   border-radius: 6px;
   overflow: hidden;
 }
-#downloadProgress::before{
+#download-progress::before{
   content: "";
   position: absolute;
   top: 0;
   left: 0;
 }
-#downloadProgress::-webkit-progress-value {
+#download-progress::-webkit-progress-value {
   background-color: #009788;
 }

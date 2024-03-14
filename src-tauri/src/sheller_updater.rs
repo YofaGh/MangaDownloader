@@ -43,6 +43,7 @@ fn update_win(window: Window) {
                 .expect("Failed to read content");
             file.write_all(content_string.as_bytes())
                 .expect("Failed to write to file");
+            window.emit("updateDownloadProgress", Some(25)).unwrap();
         }
         Err(_) => {}
     }
@@ -59,6 +60,7 @@ fn update_win(window: Window) {
             let target_dir: PathBuf = PathBuf::from(format!("{}/mangascraper", data_dir_path));
             let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
             remove_file(format!("{}/cli.zip", data_dir_path)).expect("msg");
+            window.emit("updateDownloadProgress", Some(100)).unwrap();
         }
         Err(_) => {}
     }

@@ -1,6 +1,6 @@
 use serde_json::{from_str, Value};
 use std::collections::HashMap;
-use std::fs::{create_dir_all, read_dir};
+use std::fs::{create_dir_all, read_dir, ReadDir};
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -87,7 +87,7 @@ pub async fn download(
             },
         )
         .expect("failed to emit event");
-    let dirs: std::fs::ReadDir = read_dir(&d_path).unwrap();
+    let dirs: ReadDir = read_dir(&d_path).unwrap();
     let mut exists_images: Vec<String> = Vec::new();
     for dir in dirs {
         exists_images.push(dir.unwrap().path().to_str().unwrap().to_string());
@@ -175,29 +175,28 @@ pub async fn download(
                         )
                         .expect("failed to emit event");
                 }
-                let val_truncated_image: String = sheller::call_sheller(
-                    data_dir_path.clone(),
-                    vec![
-                        "validate_truncated_image".to_string(),
-                        d_response.trim().replace("\"", "").replace("\\\\", "\\"),
-                    ],
-                )
-                .await;
-                if val_corrupted_image == "true"
-                    && val_truncated_image == "false"
-                    && last_truncated != d_response
-                {
-                    last_truncated = d_response;
-                    window
-                        .emit(
-                            "truncatedImage",
-                            Downloading {
-                                webtoon_id: webtoon.get("id").unwrap().to_string(),
-                                image: (i + 1) as i32,
-                            },
-                        )
-                        .expect("failed to emit event");
-                    continue;
+                if val_corrupted_image == "true" {
+                    let val_truncated_image: String = sheller::call_sheller(
+                        data_dir_path.clone(),
+                        vec![
+                            "validate_truncated_image".to_string(),
+                            d_response.trim().replace("\"", "").replace("\\\\", "\\"),
+                        ],
+                    )
+                    .await;
+                    if val_truncated_image == "false" && last_truncated != d_response {
+                        last_truncated = d_response;
+                        window
+                            .emit(
+                                "truncatedImage",
+                                Downloading {
+                                    webtoon_id: webtoon.get("id").unwrap().to_string(),
+                                    image: (i + 1) as i32,
+                                },
+                            )
+                            .expect("failed to emit event");
+                        continue;
+                    }
                 }
             }
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));

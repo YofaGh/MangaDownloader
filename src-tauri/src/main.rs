@@ -80,10 +80,11 @@ struct DefaultSettings {
     merge_method: String,
     download_path: Option<String>,
     data_dir_path: String,
+    bundle_version: String,
 }
 
 impl DefaultSettings {
-    fn new(data_dir: String) -> DefaultSettings {
+    fn new(data_dir: String, bundle_v: String) -> DefaultSettings {
         DefaultSettings {
             auto_merge: false,
             auto_convert: false,
@@ -93,19 +94,25 @@ impl DefaultSettings {
             merge_method: String::from("Normal"),
             download_path: None,
             data_dir_path: data_dir,
+            bundle_version: bundle_v,
         }
     }
 }
 
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
-        write_file(path, serde_json::to_string_pretty(&data).unwrap());
+        let _ = write_file(path, serde_json::to_string_pretty(&data).unwrap());
     }
 }
 
 fn load_up_checks(data_dir: String) {
     let _ = create_dir_all(&data_dir);
-    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
+    let bundle_version: String = if cfg!(target_family = "windows") {
+        "3.11.v1".to_string()
+    } else {
+        "".to_string()
+    };
+    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone(), bundle_version);
     let file_array: [&str; 4] = [
         "library.json",
         "downloaded.json",
@@ -142,7 +149,7 @@ fn main() {
                 .unwrap_or(PathBuf::new())
                 .to_string_lossy()
                 .to_string();
-            if get_platform() == "windows"
+            if cfg!(target_family = "windows")
                 && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
             {
                 extract_sheller(data_dir_path.clone(), app.handle());

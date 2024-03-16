@@ -56,9 +56,11 @@ const Provider = (props) => {
   };
 
   const shellerUnix = async (args) => {
-    const command = Command.sidecar("../bin/sheller", args);
-    const response = await command.execute();
-    return JSON.parse(response.stdout);
+    const output = await new Command(
+      "sheller",
+      args
+    ).execute();
+    return JSON.parse(output.stdout);
   };
 
   return (

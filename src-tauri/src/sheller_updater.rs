@@ -5,9 +5,8 @@ use reqwest::{
 use scraper::{Html, Selector};
 use serde_json::{from_str, json, to_string, Value};
 use std::{
-    fs::{read, remove_file, File, OpenOptions, Permissions},
+    fs::{read, remove_dir_all, remove_file, File, OpenOptions},
     io::{Cursor, Read, Seek, Write},
-    os::unix::fs::PermissionsExt,
     path::PathBuf,
 };
 use tauri::{Manager, Window};
@@ -62,6 +61,70 @@ fn update_win(window: Window, data_dir_path: String, mut settings: Value) {
         .emit("updateStatus", Some("Downloading Bots..."))
         .unwrap();
     let response: Result<Response, Error> =
+        get("https://github.com/YofaGh/MangaDownloader/releases/expanded_assets/latest");
+    match response {
+        Ok(content) => {
+            let html: String = content.text().unwrap();
+            let document: Html = Html::parse_document(&html);
+            let selector: Selector = Selector::parse("a").unwrap();
+            let href: scraper::ElementRef<'_> = document
+                .select(&selector)
+                .filter(|el| {
+                    el.value()
+                        .attr("href")
+                        .map(|href| href.contains("PyBundle"))
+                        .unwrap_or(false)
+                })
+                .next()
+                .unwrap();
+            let mut sheller_name: String = "".to_string();
+            for te in href.text().collect::<Vec<_>>() {
+                if te.contains("PyBundle") {
+                    sheller_name = te.to_string();
+                    break;
+                }
+            }
+            let latest_sheller_version: &str = sheller_name.split("-").collect::<Vec<&str>>()[1]
+                .rsplit_once('.')
+                .unwrap()
+                .0;
+            if latest_sheller_version != settings.get("bundle_version").unwrap().as_str().unwrap() {
+                window
+                    .emit("updateStatus", Some("Updating Bundle..."))
+                    .unwrap();
+                let response: Result<Response, Error> = get(format!(
+                    "https://github.com{}",
+                    href.attr("href").unwrap().to_string()
+                ));
+                match response {
+                    Ok(resp) => {
+                        if resp.status().is_success() {
+                            let mut file: File =
+                                File::create(format!("{}/python.zip", data_dir_path))
+                                    .expect("Failed to create file");
+                            let content = resp.bytes().expect("Failed to read response bytes");
+                            file.write_all(&content).expect("Failed to write to file");
+                            *settings.get_mut("bundle_version").unwrap() =
+                                json!(latest_sheller_version);
+                            let _ = remove_dir_all(format!("{}/python", data_dir_path));
+                            let archive: Vec<u8> =
+                                read(format!("{}/python.zip", data_dir_path)).unwrap();
+                            let target_dir: PathBuf = PathBuf::from(&data_dir_path);
+                            let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
+                            let _ = remove_file(format!("{}/python.zip", data_dir_path));
+                            write_settings(
+                                format!("{}/settings.json", data_dir_path),
+                                to_string(&settings).unwrap(),
+                            );
+                        }
+                    }
+                    Err(_) => {}
+                }
+            }
+        }
+        Err(_) => {}
+    }
+    let response: Result<Response, Error> =
         get("https://github.com/YofaGh/MangaDownloader/raw/master/cli/sheller.py");
     match response {
         Ok(mut content) => {
@@ -99,7 +162,12 @@ fn update_win(window: Window, data_dir_path: String, mut settings: Value) {
     window.get_window("main").unwrap().show().unwrap();
 }
 
+#[cfg(target_family = "windows")]
+fn update_unix(_window: Window, _data_dir_path: String, mut _settings: Value) {}
+
+#[cfg(target_family = "unix")]
 fn update_unix(window: Window, data_dir_path: String, mut settings: Value) {
+    use std::{fs::Permissions, os::unix::fs::PermissionsExt};
     let mut message: String = "Updating Bundle...".to_string();
     if settings.get("bundle_version").unwrap().as_str().unwrap() == "" {
         message = "Downloading Bundle...".to_string();

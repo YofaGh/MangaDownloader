@@ -604,7 +604,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/saucer" element={<Saucer />} />
           <Route
-            path="/:module/webtoon/:url"
+            path="/:module/webtoon/:url*"
             element={
               <Webtoon
                 addWebtoonToQueue={addWebtoonToQueue}

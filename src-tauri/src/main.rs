@@ -1,15 +1,21 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::{from_str, to_value, Value};
-use std::env::consts::FAMILY;
-use std::fs::{create_dir_all, read, read_dir, remove_dir, remove_dir_all, File, OpenOptions};
-use std::io::{Cursor, Read, Seek, Write};
+use std::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, File, OpenOptions};
+use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
+mod assets;
+mod saucer;
 mod downloader;
+mod image_merger;
+mod models;
+mod pdf_converter;
 mod searcher;
-mod sheller_updater;
+
+#[path = "modules/manhuascan.rs"]
+mod manhuascan;
 
 #[tauri::command]
 fn open_folder(path: String) {
@@ -17,11 +23,6 @@ fn open_folder(path: String) {
         .args(["/select,", &path])
         .spawn()
         .unwrap();
-}
-
-#[tauri::command]
-fn get_platform() -> String {
-    FAMILY.to_string()
 }
 
 #[tauri::command]
@@ -60,16 +61,6 @@ fn remove_directory(path: String, recursive: bool) {
     }
 }
 
-fn extract_sheller(data_dir_path: String, handle: tauri::AppHandle) {
-    let resource_path: PathBuf = handle
-        .path_resolver()
-        .resolve_resource("../cli/PyShellerBundle.zip")
-        .expect("failed to resolve resource");
-    let archive: Vec<u8> = read(resource_path).unwrap();
-    let target_dir: PathBuf = PathBuf::from(&data_dir_path);
-    let _ = zip_extract::extract(Cursor::new(archive), &target_dir, true);
-}
-
 #[derive(Clone, serde::Serialize)]
 struct DefaultSettings {
     auto_merge: bool,
@@ -80,11 +71,10 @@ struct DefaultSettings {
     merge_method: String,
     download_path: Option<String>,
     data_dir_path: String,
-    bundle_version: String,
 }
 
 impl DefaultSettings {
-    fn new(data_dir: String, bundle_v: String) -> DefaultSettings {
+    fn new(data_dir: String) -> DefaultSettings {
         DefaultSettings {
             auto_merge: false,
             auto_convert: false,
@@ -94,7 +84,6 @@ impl DefaultSettings {
             merge_method: String::from("Normal"),
             download_path: None,
             data_dir_path: data_dir,
-            bundle_version: bundle_v,
         }
     }
 }
@@ -107,12 +96,7 @@ fn save_file(path: String, data: Value) {
 
 fn load_up_checks(data_dir: String) {
     let _ = create_dir_all(&data_dir);
-    let bundle_version: String = if cfg!(target_family = "windows") {
-        "3.11.v1".to_string()
-    } else {
-        "".to_string()
-    };
-    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone(), bundle_version);
+    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
     let file_array: [&str; 4] = [
         "library.json",
         "downloaded.json",
@@ -135,8 +119,19 @@ fn main() {
             remove_directory,
             read_file,
             write_file,
-            get_platform,
-            sheller_updater::update_sheller,
+            assets::get_info,
+            assets::get_chapters,
+            assets::get_modules,
+            assets::merge,
+            assets::convert,
+            assets::retrieve_image,
+            assets::search_keyword_one,
+            saucer::get_saucers_list,
+            saucer::upload_image,
+            saucer::yandex,
+            saucer::tineye,
+            saucer::iqdb,
+            saucer::saucenao,
             searcher::search_keyword,
             searcher::stop_search,
             downloader::download,
@@ -149,11 +144,6 @@ fn main() {
                 .unwrap_or(PathBuf::new())
                 .to_string_lossy()
                 .to_string();
-            if cfg!(target_family = "windows")
-                && !Path::new(&format!("{}\\sheller.py", &data_dir_path)).exists()
-            {
-                extract_sheller(data_dir_path.clone(), app.handle());
-            }
             load_up_checks(data_dir_path);
             #[cfg(debug_assertions)]
             app.get_window("main").unwrap().open_devtools();

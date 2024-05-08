@@ -1,11 +1,10 @@
 import { convert, merge } from ".";
-import { useSheller, useSettings, useSuccessNotification } from "../Provider";
+import { useSettings, useSuccessNotification } from "../Provider";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export default function DCard({ webtoon, removeWebtoon }) {
   const dispatchSuccess = useSuccessNotification();
   const { download_path, merge_method } = useSettings();
-  const sheller = useSheller();
 
   const deleteFolder = () => {
     invoke("remove_directory", { path: webtoon.path, recursive: true });
@@ -36,7 +35,7 @@ export default function DCard({ webtoon, removeWebtoon }) {
               merge_method,
               true,
               dispatchSuccess,
-              sheller,
+              invoke,
               openFolder
             )
           }
@@ -47,7 +46,7 @@ export default function DCard({ webtoon, removeWebtoon }) {
         <button
           className="buttonh"
           onClick={() =>
-            convert(webtoon, true, dispatchSuccess, sheller, openFolder)
+            convert(webtoon, true, dispatchSuccess, invoke, openFolder)
           }
         >
           <img alt="" src="./assets/pdf.svg" className="icofn"></img>

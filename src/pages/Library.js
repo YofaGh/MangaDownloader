@@ -1,20 +1,19 @@
 import { Wcard, HomeButton, chunkArray } from "../components";
-import { useSheller, useSettings } from "../Provider";
+import { useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Library({
   library,
   addLibraryMessage,
   addWebtoonToQueue,
 }) {
-  const sheller = useSheller();
   const { load_covers } = useSettings();
 
   const updateSingle = async (webtoon) => {
-    const allChapters = await sheller([
-      "get_chapters",
-      webtoon.domain,
-      webtoon.url,
-    ]);
+    const allChapters = await invoke("get_chapters", {
+      domain: webtoon.domain,
+      url: webtoon.url,
+    });
     let chaptersToDownload = [];
     if (webtoon.last_downloaded_chapter) {
       let reached_last_downloaded_chapter = false;
@@ -48,8 +47,6 @@ export default function Library({
     }
   };
 
-  const updateAll = library.array.forEach(updateSingle);
-
   const chunkedWebtoons = chunkArray(library, 3);
 
   return (
@@ -60,7 +57,11 @@ export default function Library({
           <HomeButton
             svg="./assets/download.svg"
             label="Update All"
-            onClick={updateAll}
+            onClick={() => {
+              if (library.array.length > 0) {
+                library.array.forEach(updateSingle);
+              }
+            }}
           />
         </div>
         <div className="card-row-container">

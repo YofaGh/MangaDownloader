@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
-import { useSheller, useSettings, useSuccessNotification } from "../Provider";
+import { useSettings, useSuccessNotification } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
+import { open } from "@tauri-apps/api/dialog";
 
 export default function Saucer() {
   const [url, setUrl] = useState("");
@@ -8,23 +10,29 @@ export default function Saucer() {
   const [results, setResults] = useState([]);
   const [currentStatus, setCurrentStatus] = useState(null);
   const dispatchSuccess = useSuccessNotification();
-  const sheller = useSheller();
   const { load_covers } = useSettings();
 
   useEffect(() => {
     const fetchSaucers = async () => {
-      const response = await sheller(["get_saucers_list"]);
+      const response = await invoke("get_saucers_list");
+      console.log(response);
       setSites(response);
     };
     fetchSaucers();
   }, []);
 
-  const setFile = async (e) => {
-    setCurrentStatus("Uploading");
-    const response = await sheller(["upload_image", e.target.files[0].path]);
-    setUrl(response);
-    dispatchSuccess(`Uploaded ${e.target.files[0].name}`);
-    setCurrentStatus(null);
+  const setFile = async () => {
+    open({
+      directory: false,
+      multiple: false,
+    }).then((path) => {
+      setCurrentStatus("Uploading");
+      invoke("upload_image", {path}).then((response) => {
+        setUrl(response);
+        dispatchSuccess(`Uploaded ${response}`);
+        setCurrentStatus(null);
+      })
+    });
   };
 
   useEffect(() => {
@@ -37,7 +45,7 @@ export default function Saucer() {
         const site = sites[i];
         let element = document.getElementById(site);
         element.classList.add("active");
-        const res = await sheller(["saucer", site, url]);
+        const res = await invoke(site, {url});
         setResults((prevResults) => [
           ...prevResults,
           ...res.map((item) => ({ site, ...item })),
@@ -121,7 +129,7 @@ export default function Saucer() {
         <p>Or</p>
         <div className="locate-container">
           <div className="locate-header">
-            <label htmlFor="file">
+            <label htmlFor="file" onClick={setFile}>
               <img
                 alt=""
                 src={"./assets/upload.svg"}
@@ -131,7 +139,6 @@ export default function Saucer() {
             </label>
             <p>Upload An Image</p>
           </div>
-          <input id="file" type="file" onChange={setFile}></input>
         </div>
       </div>
     );

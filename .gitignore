@@ -3,8 +3,6 @@
 # dependencies
 /node_modules
 /.pnp
-/cli/python*
-/cli/PyShellerBundle.zip
 .pnp.js
 
 # testing

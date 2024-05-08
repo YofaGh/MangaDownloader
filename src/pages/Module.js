@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
-import { useSheller, useSettings } from "../Provider";
+import { useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Module() {
   const { module } = useParams();
@@ -14,7 +15,6 @@ export default function Module() {
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const moduleDetm = useLocation().state.module;
-  const sheller = useSheller();
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("mod-Modal");
@@ -23,14 +23,13 @@ export default function Module() {
 
   const startSearching = async () => {
     setSearchingStatus("searching");
-    const response = await sheller([
-      "search",
+    const response = await invoke("search_keyword_one", {
       module,
-      input,
-      sleep_time.toString(),
-      absolute.toString(),
-      depth.toString(),
-    ]);
+      keyword: input,
+      sleepTime: sleep_time,
+      depth,
+      absolute,
+    });
     setResults(response);
     setSearchingStatus("searched");
   };

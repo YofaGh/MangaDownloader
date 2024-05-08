@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from ".";
-import { useSheller } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Wcard({
   webtoon,
@@ -10,7 +10,6 @@ export default function Wcard({
   load_covers,
 }) {
   const [loaded, setLoaded] = useState(false);
-  const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
@@ -48,7 +47,7 @@ export default function Wcard({
                       imageSrc,
                       module.domain,
                       setImageSrc,
-                      sheller,
+                      invoke,
                       "./assets/default-cover.svg"
                     );
                   }}

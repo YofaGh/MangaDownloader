@@ -17,11 +17,18 @@ tauri-build = { version = "1.5.1", features = [] }
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-tauri = { version = "1.6.0", features = [ "shell-all", "http-all", "fs-read-file", "fs-write-file", "dialog-open", "fs-remove-file", "window-print", "path-all", "window-start-dragging", "window-close", "window-minimize"] }
-reqwest = { version = "0.11", features = ["blocking"] }
+tauri = { version = "1.6.0", features = [ "dialog-open", "http-all", "fs-read-file", "fs-write-file", "fs-remove-file", "window-print", "path-all", "window-start-dragging", "window-close", "window-minimize"] }
+reqwest = { version = "0.11", features = ["blocking", "multipart"] }
 serde_json = "1.0.114"
 zip-extract = "0.1.3"
 scraper = "0.19.0"
+select = "0.6.0"
+tokio-util = { version = "0.7", features = ["codec", "io"] }
+futures = "0.3"
+image = "0.24.5"
+rayon = "1.10.0"
+scannedpdf = "0.1.0"
+base64 = "0.22.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

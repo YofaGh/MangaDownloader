@@ -11,7 +11,8 @@ import {
   retrieveImage,
   chunkArray
 } from ".";
-import { useSheller, useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
+import { useSettings } from "../Provider";
 import { useNavigate } from "react-router-dom";
 
 export default function Manga({
@@ -30,26 +31,27 @@ export default function Manga({
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
   const [imageSrc, setImageSrc] = useState("");
-  const sheller = useSheller();
   const navigate = useNavigate();
   const { load_covers } = useSettings();
 
   useEffect(() => {
     const fetchManga = async () => {
-      const response = await sheller(["get_info", module, url]);
-      setWebtoon(response);
-      setWebtoonLoaded(true);
-      setMangaTitleForLibrary(response.Title);
-      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+      invoke("get_info", { domain: module, url }).then((response) => {
+        setWebtoon(response);
+        setWebtoonLoaded(true);
+        setMangaTitleForLibrary(response.Title);
+        setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+      });
     };
     fetchManga();
   }, [module, url]);
 
   useEffect(() => {
     const get_chapterss = async () => {
-      const response = await sheller(["get_chapters", module, url]);
-      setChapters(response);
-      setLoadingChapters(false);
+      invoke("get_chapters", { domain: module, url }).then((response) => {
+        setChapters(response);
+        setLoadingChapters(false);
+      });
     };
     get_chapterss();
   }, [module, url]);
@@ -131,7 +133,7 @@ export default function Manga({
                 imageSrc,
                 module,
                 setImageSrc,
-                sheller,
+                invoke,
                 "./assets/default-cover.svg"
               );
             }}

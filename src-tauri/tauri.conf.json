@@ -37,16 +37,6 @@
         "readFile": true,
         "writeFile": true,
         "scope": ["$APPDATA/*"]
-      },
-      "shell": {
-        "all": true,
-        "scope": [
-          {
-            "name": "sheller",
-            "cmd": "$APPDATA/./sheller",
-            "args": true
-          }
-        ]
       }
     },
     "bundle": {
@@ -94,15 +84,7 @@
         "resizable": false,
         "title": "Manga Downloader",
         "width": 1000,
-        "decorations": false,
-        "visible": false
-      },
-      {
-        "width": 400,
-        "height": 200,
-        "decorations": false,
-        "url": "splash.html",
-        "label": "splashscreen"
+        "decorations": false
       }
     ]
   }

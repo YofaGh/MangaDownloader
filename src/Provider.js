@@ -1,22 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useReducer,
-} from "react";
+import { createContext, useContext, useState, useReducer } from "react";
 import { v4 } from "uuid";
-import { Command } from "@tauri-apps/api/shell";
-import { appDataDir } from "@tauri-apps/api/path";
-import { invoke } from "@tauri-apps/api/tauri";
 import { Notification } from "./components";
 
 const ProviderContext = createContext();
 
 const Provider = (props) => {
-  const [dataDirPath, setDataDirPath] = useState("");
   const [settings, setSettings] = useState(null);
-  const [platform, setPlatform] = useState("");
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.type) {
       case "ADD_NOTIFICATION":
@@ -28,45 +17,8 @@ const Provider = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    appDataDir().then((dataDirPath) => {
-      setDataDirPath(dataDirPath);
-    });
-    invoke("get_platform").then((platform) => {
-      setPlatform(platform);
-    });
-  });
-
-  const sheller = async (args) => {
-    if (platform === "windows") {
-      return shellerWin(args);
-    }
-    return shellerUnix(args);
-  };
-
-  const shellerWin = async (args) => {
-    const output = await new Command(
-      "python",
-      [`${dataDirPath}sheller.py`, ...args],
-      {
-        cwd: dataDirPath,
-      }
-    ).execute();
-    return JSON.parse(output.stdout);
-  };
-
-  const shellerUnix = async (args) => {
-    const output = await new Command(
-      "sheller",
-      args
-    ).execute();
-    return JSON.parse(output.stdout);
-  };
-
   return (
-    <ProviderContext.Provider
-      value={{ dispatch, sheller, settings, setSettings }}
-    >
+    <ProviderContext.Provider value={{ dispatch, settings, setSettings }}>
       <div className={"notification-wrapper"}>
         {state.map((note) => {
           return <Notification dispatch={dispatch} key={note.id} {...note} />;
@@ -103,10 +55,6 @@ export const useErrorNotification = () => {
       },
     });
   };
-};
-
-export const useSheller = () => {
-  return useContext(ProviderContext).sheller;
 };
 
 export const useSettings = () => {

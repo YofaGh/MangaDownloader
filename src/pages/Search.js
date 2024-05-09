@@ -6,7 +6,8 @@ import {
   WSearchCard,
   PushButton,
 } from "../components";
-import { useSheller, useSettings } from "../Provider";
+import { useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Search({
   startSearching,
@@ -27,11 +28,10 @@ export default function Search({
   const [absolute, setAbsolute] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
-  const sheller = useSheller();
 
   useEffect(() => {
     const fetchModules = async () => {
-      const response = await sheller(["get_modules"]);
+      const response = await invoke("get_modules");
       updateModules(
         response
           .filter((module) => module.searchable)
@@ -46,7 +46,7 @@ export default function Search({
     };
 
     fetchModules();
-  }, [sheller]);
+  });
 
   useEffect(() => {
     if (searchingStatus && searchingStatus.searched) {

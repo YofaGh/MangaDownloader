@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Infoed, FlipButton, getDate, getDateTime, retrieveImage, Loading } from ".";
-import { useSheller, useSettings } from "../Provider";
+import { useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Doujin({
   module,
@@ -12,12 +13,11 @@ export default function Doujin({
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
-  const sheller = useSheller();
   const { load_covers } = useSettings();
 
   useEffect(() => {
     const fetchManga = async () => {
-      const response = await sheller(["get_info", module, url]);
+      const response = await invoke("get_info", {domain: module, url});
       setWebtoon(response);
       setWebtoonLoaded(true);
       setImageSrc(
@@ -48,7 +48,7 @@ export default function Doujin({
             alt=""
             src={imageSrc}
             onError={() => {
-              retrieveImage(imageSrc, module, setImageSrc, sheller, "./assets/default-cover.svg");
+              retrieveImage(imageSrc, module, setImageSrc, invoke, "./assets/default-cover.svg");
             }}
           ></img>
         </div>

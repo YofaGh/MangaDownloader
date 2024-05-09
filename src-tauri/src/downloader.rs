@@ -1,13 +1,11 @@
-use serde_json::{from_str, Value};
+use serde_json::{from_value, Value};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, ReadDir};
 use std::io::{self, Write};
-use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
-use tauri::{Manager, Window};
-#[path = "sheller.rs"]
-mod sheller;
+use tauri::Window;
+use crate::assets;
 
 static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
 
@@ -43,39 +41,25 @@ pub async fn download(
     window: Window,
 ) {
     STOP_DOWNLOAD.store(false, Ordering::Relaxed);
-    let data_dir_path: String = window
-        .app_handle()
-        .path_resolver()
-        .app_data_dir()
-        .unwrap_or(PathBuf::new())
-        .to_string_lossy()
-        .to_string();
-    let args: Vec<String>;
     let mut folder_name: String = fixed_title.clone();
+    let images: Vec<String>;
+    let saved_n: Value;
     if webtoon.get("type").unwrap() == "manga" {
-        args = vec![
-            "get_manga_images".to_string(),
-            webtoon.get("module").unwrap().to_string(),
-            webtoon.get("manga").unwrap().to_string(),
-            webtoon.get("chapter").unwrap().to_string(),
-        ];
+        (images, saved_n) = assets::get_images(
+            webtoon.get("module").unwrap(),
+            webtoon.get("manga").unwrap(),
+            webtoon.get("chapter").unwrap(),
+        )
+        .await;
         folder_name.push_str(&("\\".to_string() + &webtoon.get("info").unwrap()));
     } else {
-        args = vec![
-            "get_doujin_images".to_string(),
-            webtoon.get("module").unwrap().to_string(),
-            webtoon.get("doujin").unwrap().to_string(),
-        ];
+        (images, saved_n) = assets::get_images(
+            webtoon.get("module").unwrap(),
+            webtoon.get("manga").unwrap(),
+            "",
+        )
+        .await;
     }
-    let response: String = sheller::call_sheller(data_dir_path.clone(), args).await;
-    let json_data: Value = from_str(&response).expect("Failed to parse JSON");
-    let images: &Vec<Value> = json_data
-        .as_array()
-        .unwrap()
-        .get(0)
-        .unwrap()
-        .as_array()
-        .unwrap();
     let d_path: String = format!("{}\\{}", download_path, folder_name);
     create_dir_all(&d_path).expect("Failed to create dir");
     window
@@ -92,17 +76,12 @@ pub async fn download(
     for dir in dirs {
         exists_images.push(dir.unwrap().path().to_str().unwrap().to_string());
     }
-    let mut last_truncated: String = "".to_string();
+    let mut last_corrupted: String = "".to_string();
     let mut has_saved_names: bool = false;
     let mut saved_names: Vec<String> = Vec::new();
-    if let Some(obj) = json_data
-        .as_array()
-        .unwrap()
-        .get(1)
-        .and_then(|v: &Value| v.as_array())
-    {
+    if saved_n.is_array() {
         has_saved_names = true;
-        saved_names.extend(obj.iter().map(|v: &Value| v.as_str().unwrap().to_string()));
+        saved_names = from_value(saved_n).unwrap();
     }
     let mut i: i32 = 0;
     while i < images.len() as i32 {
@@ -128,23 +107,19 @@ pub async fn download(
                 .get(i as usize)
                 .unwrap()
                 .as_str()
-                .unwrap()
                 .split(".")
                 .last()
                 .unwrap();
             save_path.push_str(format!("{}\\{}.{}", d_path, padded_string, temp_s).as_str());
         }
         if !exists_images.contains(&save_path) {
-            let d_response: String = sheller::call_sheller(
-                data_dir_path.clone(),
-                vec![
-                    "download_image".to_string(),
-                    webtoon.get("module").unwrap().to_string(),
-                    images[i as usize].as_str().unwrap().to_string(),
-                    save_path.to_string(),
-                ],
+            let d_response: String = assets::download_image(
+                webtoon.get("module").unwrap(),
+                images[i as usize].as_str(),
+                &save_path,
             )
-            .await;
+            .await
+            .unwrap();
             if d_response.is_empty() {
                 window
                     .emit(
@@ -156,15 +131,10 @@ pub async fn download(
                     )
                     .expect("failed to emit event");
             } else {
-                let val_corrupted_image: String = sheller::call_sheller(
-                    data_dir_path.clone(),
-                    vec![
-                        "validate_corrupted_image".to_string(),
-                        d_response.trim().replace("\"", "").replace("\\\\", "\\"),
-                    ],
-                )
-                .await;
-                if val_corrupted_image == "false" {
+                let is_image_valid: bool =
+                    assets::validate_image(&d_response.trim().replace("\"", "").replace("\\\\", "\\"));
+                if !is_image_valid && last_corrupted != d_response {
+                    last_corrupted = d_response;
                     window
                         .emit(
                             "corruptedImage",
@@ -174,29 +144,7 @@ pub async fn download(
                             },
                         )
                         .expect("failed to emit event");
-                }
-                if val_corrupted_image == "true" {
-                    let val_truncated_image: String = sheller::call_sheller(
-                        data_dir_path.clone(),
-                        vec![
-                            "validate_truncated_image".to_string(),
-                            d_response.trim().replace("\"", "").replace("\\\\", "\\"),
-                        ],
-                    )
-                    .await;
-                    if val_truncated_image == "false" && last_truncated != d_response {
-                        last_truncated = d_response;
-                        window
-                            .emit(
-                                "truncatedImage",
-                                Downloading {
-                                    webtoon_id: webtoon.get("id").unwrap().to_string(),
-                                    image: (i + 1) as i32,
-                                },
-                            )
-                            .expect("failed to emit event");
-                        continue;
-                    }
+                    continue;
                 }
             }
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));

@@ -34,16 +34,6 @@
         "readFile": true,
         "writeFile": true,
         "scope": ["$APPDATA/*"]
-      },
-      "shell": {
-        "all": true,
-        "scope": [
-          {
-            "name": "python",
-            "cmd": "$APPDATA/python/python.exe",
-            "args": true
-          }
-        ]
       }
     },
     "bundle": {
@@ -70,7 +60,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["../cli/PyShellerBundle.zip"],
+      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -91,15 +81,7 @@
         "resizable": false,
         "title": "Manga Downloader",
         "width": 1000,
-        "decorations": false,
-        "visible": false
-      },
-      {
-        "width": 400,
-        "height": 200,
-        "decorations": false,
-        "url": "splash.html",
-        "label": "splashscreen"
+        "decorations": false
       }
     ]
   }

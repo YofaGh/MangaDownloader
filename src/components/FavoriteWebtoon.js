@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
-import { useSheller, useSuccessNotification } from "../Provider";
+import { useSuccessNotification } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function FavoriteWebtoon({
   webtoon,
@@ -8,7 +9,6 @@ export default function FavoriteWebtoon({
   load_covers,
 }) {
   const dispatchSuccess = useSuccessNotification();
-  const sheller = useSheller();
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
@@ -28,7 +28,7 @@ export default function FavoriteWebtoon({
                     webtoon.cover,
                     webtoon.id.split("_$_")[1],
                     setImageSrc,
-                    sheller,
+                    invoke,
                     "./assets/default-cover.svg"
                   );
                 }}

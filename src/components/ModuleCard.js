@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from ".";
-import { useSheller } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
-export default function MCard({ module, checkModule, load_covers }) {
-  const sheller = useSheller();
+export default function MCard({ module, load_covers }) {
   const [imageSrc, setImageSrc] = useState(
     load_covers && module.logo ? module.logo : "./assets/module-cyan.svg"
   );
@@ -26,7 +25,7 @@ export default function MCard({ module, checkModule, load_covers }) {
                   imageSrc,
                   module.domain,
                   setImageSrc,
-                  sheller,
+                  invoke,
                   "./assets/module-cyan.svg"
                 );
               }}
@@ -44,17 +43,6 @@ export default function MCard({ module, checkModule, load_covers }) {
                 ></img>
               </button>
             </Link>
-            <button
-              className="m-button check-btn"
-              onClick={() => checkModule(module)}
-            >
-              <img
-                alt=""
-                src="./assets/check.svg"
-                className="btn-icon"
-                style={{ width: 30, height: 30 }}
-              ></img>
-            </button>
           </div>
         </div>
       </div>

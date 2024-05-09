@@ -6,21 +6,25 @@ export const convert = async (
   webtoon,
   openPath,
   dispatchSuccess,
-  sheller,
+  invoke,
   openFile
 ) => {
   let pdfName =
     webtoon.type === "manga"
-      ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}`
-      : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}`;
-  await sheller(["convert", webtoon.path, webtoon.path, pdfName]).then(() => {
+      ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}.pdf`
+      : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}.pdf`;
+  invoke("convert", {
+    pathToSource: webtoon.path,
+    pathToDestination: webtoon.path,
+    pdfName,
+  }).then(() => {
     dispatchSuccess(
       webtoon.type === "manga"
         ? `Converted ${webtoon.title} - ${webtoon.info}`
         : `Converted ${webtoon.title}`
     );
     if (openPath) {
-      openFile(`${webtoon.path}\\${pdfName}.pdf`);
+      openFile(`${webtoon.path}\\${pdfName}`);
     }
   });
 };
@@ -31,7 +35,7 @@ export const merge = async (
   mergeMethod,
   openPath,
   dispatchSuccess,
-  sheller,
+  invoke,
   openFolder
 ) => {
   const mergePath =
@@ -42,7 +46,11 @@ export const merge = async (
         "\\" +
         webtoon.info
       : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
-  await sheller(["merge", webtoon.path, mergePath, mergeMethod]).then(() => {
+  await invoke("merge", {
+    pathToSource: webtoon.path,
+    pathToDestination: mergePath,
+    mergeMethod,
+  }).then(() => {
     dispatchSuccess(
       webtoon.type === "manga"
         ? `Merged ${webtoon.title} - ${webtoon.info}`
@@ -70,11 +78,11 @@ export const retrieveImage = async (
   imageSrc,
   module,
   setImageSrc,
-  sheller,
+  invoke,
   defImage
 ) => {
   try {
-    const response = await sheller(["retrieve_image", module, imageSrc]);
+    const response = await invoke("retrieve_image", {domain: module, url: imageSrc});
     setImageSrc(response);
   } catch (error) {
     setImageSrc(defImage);

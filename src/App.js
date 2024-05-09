@@ -21,7 +21,6 @@ import {
   merge,
 } from "./components";
 import {
-  useSheller,
   useSetSettings,
   useSettings,
   useSuccessNotification,
@@ -46,7 +45,6 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
   const dispatchSuccess = useSuccessNotification();
-  const sheller = useSheller();
 
   const readFile = async (file, setter) => {
     const dataDirPath = await appDataDir();
@@ -249,12 +247,12 @@ export default function App() {
             settings.merge_method,
             false,
             dispatchSuccess,
-            sheller,
+            invoke,
             null
           );
         }
         if (settings.auto_convert) {
-          convert(webtoon, false, dispatchSuccess, sheller, null);
+          convert(webtoon, false, dispatchSuccess, invoke, null);
         }
       }
       if (message.removeWebtoon) {
@@ -514,9 +512,9 @@ export default function App() {
     invoke("search_keyword", {
       modules: modules.map((item) => item.name),
       keyword,
-      sleepTime: settings.sleep_time.toString(),
-      depth: depth.toString(),
-      absolute: absolute.toString(),
+      sleepTime: settings.sleep_time,
+      depth: depth,
+      absolute: absolute,
     });
     await listen("doneSearching", () => {
       setSearchingStatus("searched");
@@ -531,7 +529,7 @@ export default function App() {
     await listen("searchedModule", (event) => {
       setSearchResults((prevResults) => [
         ...prevResults,
-        ...JSON.parse(event.payload.result),
+        ...event.payload.result,
       ]);
     });
   };

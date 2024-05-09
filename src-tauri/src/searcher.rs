@@ -45,7 +45,7 @@ pub async fn search_keyword(
             )
             .expect("msg");
         let result: Vec<HashMap<String, String>> =
-            assets::search_by_keyword(&module, &keyword, absolute, sleep_time, depth).await;
+            assets::search_by_keyword(module, keyword.clone(), absolute, sleep_time, depth).await;
         window
             .emit("searchedModule", SearchedModule { result })
             .expect("failed to emit event");

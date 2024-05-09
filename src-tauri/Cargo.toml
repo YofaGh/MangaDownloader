@@ -29,6 +29,7 @@ image = "0.24.5"
 rayon = "1.10.0"
 scannedpdf = "0.1.0"
 base64 = "0.22.1"
+natord = "1.0.9"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

@@ -1,18 +1,24 @@
-use image::{DynamicImage, ImageBuffer, Rgb, RgbImage};
-use std::{fs::create_dir_all, path::PathBuf};
+use image::{
+    imageops::{overlay, FilterType::Lanczos3},
+    DynamicImage, ImageBuffer, Rgb, RgbImage,
+};
+use rayon::prelude::*;
+use std::{
+    fs::{copy, create_dir_all},
+    path::PathBuf,
+};
 
 use crate::assets::detect_images;
 
 pub async fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
-    if images.len() == 0 {
-        return;
-    }
-    create_dir_all(path_to_destination.clone()).unwrap();
-    if fit_merge {
-        merge_fit(images, path_to_destination.clone());
-    } else {
-        merge(images, path_to_destination);
+    if !images.is_empty() {
+        create_dir_all(path_to_destination.clone()).unwrap();
+        if fit_merge {
+            merge_fit(images.clone(), path_to_destination.clone());
+        } else {
+            merge(images, path_to_destination);
+        }
     }
 }
 
@@ -31,37 +37,46 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) 
         }
     }
     lists_to_merge.push(temp_list);
-    for (index, list_to_merge) in lists_to_merge.iter().enumerate() {
-        if list_to_merge.len() == 1 {
-            let g: &str = list_to_merge[0].1.to_str().unwrap();
-            let extension: &str = g.split('.').last().unwrap();
-            let dest_file: String =
-                format!("{}/{:03}.{}", path_to_destination, index + 1, extension);
-            std::fs::copy(g, dest_file).unwrap();
-        }
-        let total_height: u32 = list_to_merge.iter().map(|(img, _)| img.height()).sum();
-        let max_width: u32 = list_to_merge
-            .iter()
-            .map(|(img, _)| img.width())
-            .max()
-            .unwrap_or(0);
-        let mut imgbuf: RgbImage =
-            ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
-        let mut y_offset: u32 = 0;
-        for (image, _) in list_to_merge {
-            let x_offset: u32 = (max_width - image.width()) / 2;
-            image::imageops::overlay(
-                &mut imgbuf,
-                &image.to_rgb8(),
-                x_offset as i64,
-                y_offset as i64,
-            );
-            y_offset += image.height();
-        }
-        imgbuf
-            .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-            .expect("Failed to save image");
-    }
+    lists_to_merge
+        .into_par_iter()
+        .enumerate()
+        .for_each(|(index, list_to_merge)| {
+            if list_to_merge.len() == 1 {
+                let path: &str = list_to_merge[0].1.to_str().unwrap();
+                copy(
+                    path,
+                    format!(
+                        "{}/{:03}.{}",
+                        path_to_destination,
+                        index + 1,
+                        path.split('.').last().unwrap()
+                    ),
+                )
+                .unwrap();
+            }
+            let total_height: u32 = list_to_merge.iter().map(|(img, _)| img.height()).sum();
+            let max_width: u32 = list_to_merge
+                .iter()
+                .map(|(img, _)| img.width())
+                .max()
+                .unwrap_or(0);
+            let mut imgbuf: RgbImage =
+                ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
+            let mut y_offset: u32 = 0;
+            for (image, _) in list_to_merge {
+                let x_offset: u32 = (max_width - image.width()) / 2;
+                overlay(
+                    &mut imgbuf,
+                    &image.to_rgb8(),
+                    x_offset as i64,
+                    y_offset as i64,
+                );
+                y_offset += image.height();
+            }
+            imgbuf
+                .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
+                .expect("Failed to save image");
+        });
 }
 
 pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) {
@@ -89,39 +104,45 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: Stri
         }
     }
     lists_to_merge.push(temp_list);
-    for (index, list_to_merge) in lists_to_merge.iter().enumerate() {
-        if list_to_merge.len() == 1 {
-            let g: &str = list_to_merge[0].1.to_str().unwrap();
-            let extension: &str = g.split('.').last().unwrap();
-            let dest_file: String =
-                format!("{}/{:03}.{}", path_to_destination, index + 1, extension);
-            std::fs::copy(g, dest_file).unwrap();
-        }
-        min_width = list_to_merge
-            .iter()
-            .map(|(img, _)| img.width())
-            .min()
-            .unwrap_or(0);
-        let mut total_height: u32 = 0;
-        for (image, _) in list_to_merge {
-            total_height += image.height() * min_width / image.width();
-        }
-        let mut imgbuf: RgbImage =
-            ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
-        let mut y_offset: u32 = 0;
-        for (image, _) in list_to_merge {
-            let scaled_height: u32 =
-                (image.height() as f64 * min_width as f64 / image.width() as f64).ceil() as u32;
-            let resized_image: DynamicImage = image.resize_exact(
-                min_width,
-                scaled_height,
-                image::imageops::FilterType::Lanczos3,
-            );
-            image::imageops::overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
-            y_offset += scaled_height;
-        }
-        imgbuf
-            .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-            .expect("Failed to save image");
-    }
+    lists_to_merge
+        .into_par_iter()
+        .enumerate()
+        .for_each(|(index, list_to_merge)| {
+            if list_to_merge.len() == 1 {
+                let path: &str = list_to_merge[0].1.to_str().unwrap();
+                copy(
+                    path,
+                    format!(
+                        "{}/{:03}.{}",
+                        path_to_destination,
+                        index + 1,
+                        path.split('.').last().unwrap()
+                    ),
+                )
+                .unwrap();
+            }
+            let min_width: u32 = list_to_merge
+                .iter()
+                .map(|(img, _)| img.width())
+                .min()
+                .unwrap_or(0);
+            let mut total_height: u32 = 0;
+            for (image, _) in list_to_merge.clone() {
+                total_height += image.height() * min_width / image.width();
+            }
+            let mut imgbuf: RgbImage =
+                ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
+            let mut y_offset: u32 = 0;
+            for (image, _) in list_to_merge {
+                let scaled_height: u32 =
+                    (image.height() as f64 * min_width as f64 / image.width() as f64).ceil() as u32;
+                let resized_image: DynamicImage =
+                    image.resize_exact(min_width, scaled_height, Lanczos3);
+                overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
+                y_offset += scaled_height;
+            }
+            imgbuf
+                .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
+                .expect("Failed to save image");
+        });
 }

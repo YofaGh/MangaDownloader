@@ -1,5 +1,3 @@
-extern crate reqwest;
-extern crate select;
 use futures::stream::TryStreamExt;
 use reqwest::{
     header::{HeaderName, HeaderValue},
@@ -40,35 +38,6 @@ pub trait Module {
         };
         request.send()
     }
-
-    fn send_request_n(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> Result<reqwest::blocking::Response, Error> {
-        let client: reqwest::blocking::Client = reqwest::blocking::Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()?;
-        let request: reqwest::blocking::RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: reqwest::blocking::RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
-    }
-
     async fn download_image(
         &self,
         url: &str,
@@ -102,10 +71,7 @@ pub trait Module {
         manga: &str,
         chapter: &str,
     ) -> (Vec<String>, Value);
-    fn get_info(&self, manga: &str) -> HashMap<&'static str, Value>;
-}
-
-pub trait Manga {
+    async fn get_info(&self, manga: &str) -> HashMap<String, Value>;
     fn rename_chapter(&self, chapter: &str) -> String {
         let mut new_name: String = String::new();
         let mut reached_number: bool = false;
@@ -136,9 +102,6 @@ pub trait Manga {
             }
         }
     }
-    fn get_chapters(&self, manga: &str) -> Vec<HashMap<&'static str, String>>;
-}
-
-pub trait Doujin {
+    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>>;
     async fn get_title(&self, code: &str) -> String;
 }

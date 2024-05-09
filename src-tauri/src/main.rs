@@ -13,16 +13,14 @@ mod image_merger;
 mod models;
 mod pdf_converter;
 mod searcher;
-
-#[path = "modules/manhuascan.rs"]
-mod manhuascan;
+mod modules;
 
 #[tauri::command]
 fn open_folder(path: String) {
     Command::new("explorer")
         .args(["/select,", &path])
         .spawn()
-        .unwrap();
+        .ok();
 }
 
 #[tauri::command]
@@ -35,7 +33,7 @@ fn write_file(path: String, data: String) {
         .unwrap();
     let _ = f.set_len(0);
     write!(f, "{}", &data).unwrap();
-    f.rewind().unwrap();
+    f.rewind().ok();
 }
 
 #[tauri::command]
@@ -53,10 +51,10 @@ fn read_file(path: String) -> String {
 #[tauri::command]
 fn remove_directory(path: String, recursive: bool) {
     if recursive {
-        let _ = remove_dir_all(path);
+        remove_dir_all(path).ok();
     } else if let Ok(entries) = read_dir(&path) {
         if entries.count() == 0 {
-            let _ = remove_dir(path);
+            remove_dir(path).ok();
         }
     }
 }
@@ -90,12 +88,12 @@ impl DefaultSettings {
 
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
-        let _ = write_file(path, serde_json::to_string_pretty(&data).unwrap());
+        write_file(path, serde_json::to_string_pretty(&data).unwrap());
     }
 }
 
 fn load_up_checks(data_dir: String) {
-    let _ = create_dir_all(&data_dir);
+    create_dir_all(&data_dir).ok();
     let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
     let file_array: [&str; 4] = [
         "library.json",

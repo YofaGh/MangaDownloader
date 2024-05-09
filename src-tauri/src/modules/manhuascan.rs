@@ -3,7 +3,7 @@ use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, thread, time::Duration};
 
-use crate::models::{Manga, Module};
+use crate::models::Module;
 
 pub struct Manhuascan {
     pub mtype: String,
@@ -14,12 +14,13 @@ pub struct Manhuascan {
 }
 
 impl Module for Manhuascan {
-    fn get_info(&self, manga: &str) -> HashMap<&'static str, Value> {
+    async fn get_info(&self, manga: &str) -> HashMap<String, Value> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: reqwest::blocking::Response = Manhuascan::send_request_n(&self,&url, "GET", None, Some(true))
+        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true))
+            .await
             .unwrap();
-        let document: Html = Html::parse_document(&response.text().unwrap());
-        let mut info: HashMap<&str, Value> = HashMap::new();
+        let document: Html = Html::parse_document(&response.text().await.unwrap());
+        let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
         let mut dates: HashMap<&str, Value> = HashMap::new();
         let info_box: Option<scraper::ElementRef> = document
@@ -30,7 +31,7 @@ impl Module for Manhuascan {
             .next()
         {
             info.insert(
-                "Cover",
+                "Cover".to_owned(),
                 to_value(element.value().attr("src").unwrap_or("")).unwrap_or_default(),
             );
         }
@@ -39,7 +40,7 @@ impl Module for Manhuascan {
             .next()
         {
             info.insert(
-                "Title",
+                "Title".to_owned(),
                 to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
             );
         }
@@ -48,7 +49,7 @@ impl Module for Manhuascan {
             .next()
         {
             info.insert(
-                "Alternative",
+                "Alternative".to_owned(),
                 to_value(
                     element
                         .text()
@@ -65,7 +66,7 @@ impl Module for Manhuascan {
             .next()
         {
             info.insert(
-                "Summary",
+                "Summary".to_owned(),
                 to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
             );
         }
@@ -73,7 +74,7 @@ impl Module for Manhuascan {
             .select(&Selector::parse("div.detail_rate").unwrap())
             .next()
         {
-            let rating_text = element
+            let rating_text: String = element
                 .select(&Selector::parse("span").unwrap())
                 .next()
                 .unwrap()
@@ -86,12 +87,12 @@ impl Module for Manhuascan {
                 Ok(v) => v,
                 Err(_) => 0.0,
             };
-            info.insert("Rating", to_value(rating_text).unwrap_or_default());
+            info.insert("Rating".to_owned(), to_value(rating_text).unwrap_or_default());
         }
         if let Some(info_box) = info_box {
             if let Some(element) = info_box.select(&Selector::parse("i").unwrap()).next() {
                 info.insert(
-                    "Status",
+                    "Status".to_owned(),
                     to_value(element.text().collect::<Vec<_>>().join(" ").trim())
                         .unwrap_or_default(),
                 );
@@ -123,8 +124,8 @@ impl Module for Manhuascan {
                 );
             }
         }
-        info.insert("Extras", to_value(extras).unwrap());
-        info.insert("Dates", to_value(dates).unwrap());
+        info.insert("Extras".to_owned(), to_value(extras).unwrap());
+        info.insert("Dates".to_owned(), to_value(dates).unwrap());
         info
     }
 
@@ -134,7 +135,7 @@ impl Module for Manhuascan {
         chapter: &str,
     ) -> (Vec<String>, Value) {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = Manhuascan::send_request(&self,&url, "GET", None, Some(true))
+        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true))
             .await
             .unwrap();
         let document: Html = Html::parse_document(&response.text().await.unwrap());
@@ -146,16 +147,17 @@ impl Module for Manhuascan {
             .collect::<Vec<String>>();
         (images, Value::Bool(false))
     }
-}
-
-impl Manga for Manhuascan {
-    fn get_chapters(&self, manga: &str) -> Vec<HashMap<&'static str, String>> {
+    
+    async fn get_title(&self, _: &str) -> String {
+        "".to_string()
+    }
+    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: reqwest::blocking::Response = Manhuascan::send_request_n(&self,&url, "GET", None, Some(true)).unwrap();
-        let document: Html = Html::parse_document(&response.text().unwrap());
+        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true)).await.unwrap();
+        let document: Html = Html::parse_document(&response.text().await.unwrap());
         let binding: Selector = Selector::parse("div.eph-num").unwrap();
         let divs: Select = document.select(&binding);
-        let mut chapters: Vec<HashMap<&'static str, String>> = Vec::new();
+        let mut chapters: Vec<HashMap<String, String>> = Vec::new();
         for div in divs.rev() {
             if let Some(a) = div.select(&Selector::parse("a").unwrap()).next() {
                 let chapter_url = a
@@ -166,9 +168,9 @@ impl Manga for Manhuascan {
                     .last()
                     .unwrap_or("")
                     .to_string();
-                let mut chapter_info: HashMap<&'static str, String> = HashMap::new();
-                chapter_info.insert("url", chapter_url.clone());
-                chapter_info.insert("name", Self::rename_chapter(&self, &chapter_url));
+                let mut chapter_info: HashMap<String, String> = HashMap::new();
+                chapter_info.insert("url".to_owned(), chapter_url.clone());
+                chapter_info.insert("name".to_owned(), Self::rename_chapter(&self, &chapter_url));
                 chapters.push(chapter_info);
             }
         }
@@ -189,7 +191,7 @@ impl Manhuascan {
 
     pub async fn search_by_keyword(
         &self,
-        keyword: &str,
+        keyword: String,
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
@@ -197,7 +199,7 @@ impl Manhuascan {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         while page <= page_limit {
-            let response: Response = Manhuascan::send_request(&self,
+            let response: Response = Self::send_request(&self,
                 &format!(
                     "https://manhuascan.us/manga-list?search={}&page={}",
                     keyword, page

@@ -1,9 +1,4 @@
-use crate::{
-    image_merger,
-    manhuascan::Manhuascan,
-    models::{Manga, Module},
-    pdf_converter,
-};
+use crate::{image_merger, models::Module, modules::*, pdf_converter};
 use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
@@ -16,11 +11,18 @@ use std::{
 };
 
 pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
-    let dirs: Vec<_> = read_dir(path_to_source).unwrap().collect();
-    let images: Vec<(DynamicImage, PathBuf)> = dirs
-        .par_iter()
-        .filter_map(|dir: &Result<DirEntry, Error>| {
-            let path: PathBuf = dir.as_ref().unwrap().path();
+    let mut dirs: Vec<Result<DirEntry, Error>> = read_dir(path_to_source).unwrap().collect();
+    dirs.sort_by(
+        |p1: &Result<DirEntry, Error>, p2: &Result<DirEntry, Error>| {
+            natord::compare(
+                p1.as_ref().unwrap().path().to_str().unwrap(),
+                p2.as_ref().unwrap().path().to_str().unwrap(),
+            )
+        },
+    );
+    dirs.into_par_iter()
+        .filter_map(|dir: Result<DirEntry, Error>| {
+            let path: PathBuf = dir.unwrap().path();
             if matches!(
                 path.extension().and_then(|ext| ext.to_str()),
                 Some("jpg") | Some("png") | Some("jpeg") | Some("gif") | Some("webp")
@@ -33,8 +35,7 @@ pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
                 None
             }
         })
-        .collect();
-    images
+        .collect()
 }
 
 pub fn validate_image(path: &str) -> bool {
@@ -48,7 +49,7 @@ pub fn validate_image(path: &str) -> bool {
 pub async fn retrieve_image(domain: String, url: String) -> String {
     match domain.trim() {
         "manhuascan.us" => {
-            let response = Manhuascan::new()
+            let response = get_manhuascan()
                 .send_request(&url, "GET", None, Some(true))
                 .await
                 .unwrap();
@@ -61,30 +62,30 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 }
 
 #[tauri::command]
-pub fn get_info(domain: &str, url: &str) -> HashMap<&'static str, Value> {
-    match domain {
-        "manhuascan.us" => Manhuascan::new().get_info(url),
+pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
+    match domain.trim() {
+        "manhuascan.us" => get_manhuascan().get_info(&url).await,
         _ => Default::default(),
     }
 }
 
 #[tauri::command]
-pub fn get_chapters(domain: &str, url: &str) -> Vec<HashMap<&'static str, String>> {
-    match domain {
-        "manhuascan.us" => Manhuascan::new().get_chapters(url),
+pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
+    match domain.trim() {
+        "manhuascan.us" => get_manhuascan().get_chapters(&url).await,
         _ => Default::default(),
     }
 }
 
 #[tauri::command]
-pub fn get_modules() -> Vec<HashMap<&'static str, Value>> {
-    let m_manhuascan: Manhuascan = Manhuascan::new();
+pub fn get_modules() -> Vec<HashMap<String, Value>> {
+    let m_manhuascan = get_manhuascan();
     vec![HashMap::from([
-        ("type", to_value("Manga").unwrap()),
-        ("domain", to_value(m_manhuascan.domain).unwrap()),
-        ("logo", to_value(m_manhuascan.logo).unwrap()),
-        ("searchable", to_value(m_manhuascan.searchable).unwrap()),
-        ("is_coded", Value::Bool(false)),
+        ("type".to_string(), to_value("Manga").unwrap()),
+        ("domain".to_string(), to_value(m_manhuascan.domain).unwrap()),
+        ("logo".to_string(), to_value(m_manhuascan.logo).unwrap()),
+        ("searchable".to_string(), to_value(m_manhuascan.searchable).unwrap()),
+        ("is_coded".to_string(), Value::Bool(false)),
     ])]
 }
 
@@ -111,12 +112,12 @@ pub async fn search_keyword_one(
     depth: u32,
     absolute: bool,
 ) -> Vec<HashMap<String, String>> {
-    search_by_keyword(&module, &keyword, absolute, sleep_time, depth).await
+    search_by_keyword(module, keyword, absolute, sleep_time, depth).await
 }
 
 pub async fn get_images(domain: &str, manga: &str, chapter: &str) -> (Vec<String>, Value) {
     match domain {
-        "manhuascan.us" => Manhuascan::new().get_images(manga, &chapter).await,
+        "manhuascan.us" => get_manhuascan().get_images(manga, &chapter).await,
         _ => Default::default(),
     }
 }
@@ -124,8 +125,8 @@ pub async fn get_images(domain: &str, manga: &str, chapter: &str) -> (Vec<String
 pub async fn download_image(domain: &str, url: &str, image_name: &str) -> Option<String> {
     match domain {
         "manhuascan.us" => {
-            let module: Manhuascan = Manhuascan::new();
-            Manhuascan::new()
+            let module: manhuascan::Manhuascan = get_manhuascan();
+            get_manhuascan()
                 .download_image(url, image_name, module.download_images_headers, Some(true))
                 .await
         }
@@ -134,18 +135,22 @@ pub async fn download_image(domain: &str, url: &str, image_name: &str) -> Option
 }
 
 pub async fn search_by_keyword(
-    domain: &str,
-    keyword: &str,
+    domain: String,
+    keyword: String,
     absolute: bool,
     sleep_time: f64,
     page_limit: u32,
 ) -> Vec<HashMap<String, String>> {
-    match domain {
+    match domain.trim() {
         "manhuascan.us" => {
-            Manhuascan::new()
+            get_manhuascan()
                 .search_by_keyword(keyword, absolute, sleep_time, page_limit)
                 .await
         }
         _ => Default::default(),
     }
+}
+
+fn get_manhuascan() -> manhuascan::Manhuascan {
+    manhuascan::Manhuascan::new()
 }

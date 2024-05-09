@@ -2,6 +2,7 @@ use crate::{image_merger, models::Module, modules::*, pdf_converter};
 use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
+use reqwest::Response;
 use serde_json::{to_value, Value};
 use std::collections::HashMap;
 use std::{
@@ -9,6 +10,33 @@ use std::{
     io::Error,
     path::PathBuf,
 };
+use tokio_util::bytes::Bytes;
+
+#[tauri::command]
+pub async fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {
+    image_merger::merge_folder(
+        path_to_source,
+        path_to_destination,
+        if merge_method == "Fit" { true } else { false },
+    )
+    .await;
+}
+
+#[tauri::command]
+pub async fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) {
+    pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name).await;
+}
+
+#[tauri::command]
+pub async fn search_keyword_one(
+    module: String,
+    keyword: String,
+    sleep_time: f64,
+    depth: u32,
+    absolute: bool,
+) -> Vec<HashMap<String, String>> {
+    search_by_keyword(module, keyword, absolute, sleep_time, depth).await
+}
 
 pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
     let mut dirs: Vec<Result<DirEntry, Error>> = read_dir(path_to_source).unwrap().collect();
@@ -47,24 +75,37 @@ pub fn validate_image(path: &str) -> bool {
 
 #[tauri::command]
 pub async fn retrieve_image(domain: String, url: String) -> String {
+    let response: Response;
     match domain.trim() {
         "manhuascan.us" => {
-            let response = get_manhuascan()
+            response = get_manhuascan()
                 .send_request(&url, "GET", None, Some(true))
                 .await
                 .unwrap();
-            let image = response.bytes().await.unwrap();
-            let encoded_image = general_purpose::STANDARD.encode(image);
-            return format!("data:image/png;base64, {}", encoded_image);
         }
-        _ => Default::default(),
+        "toonily.com" => {
+            response = get_toonily_com()
+                .send_request(
+                    &url,
+                    "GET",
+                    get_toonily_com().download_images_headers,
+                    Some(true),
+                )
+                .await
+                .unwrap();
+        }
+        _ => return "".to_string(),
     }
+    let image: Bytes = response.bytes().await.unwrap();
+    let encoded_image: String = general_purpose::STANDARD.encode(image);
+    format!("data:image/png;base64, {}", encoded_image)
 }
 
 #[tauri::command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
     match domain.trim() {
         "manhuascan.us" => get_manhuascan().get_info(&url).await,
+        "toonily.com" => get_toonily_com().get_info(&url).await,
         _ => Default::default(),
     }
 }
@@ -73,6 +114,7 @@ pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
     match domain.trim() {
         "manhuascan.us" => get_manhuascan().get_chapters(&url).await,
+        "toonily.com" => get_toonily_com().get_chapters(&url).await,
         _ => Default::default(),
     }
 }
@@ -80,44 +122,35 @@ pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, St
 #[tauri::command]
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
     let m_manhuascan = get_manhuascan();
-    vec![HashMap::from([
-        ("type".to_string(), to_value("Manga").unwrap()),
-        ("domain".to_string(), to_value(m_manhuascan.domain).unwrap()),
-        ("logo".to_string(), to_value(m_manhuascan.logo).unwrap()),
-        ("searchable".to_string(), to_value(m_manhuascan.searchable).unwrap()),
-        ("is_coded".to_string(), Value::Bool(false)),
-    ])]
-}
-
-#[tauri::command]
-pub async fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {
-    image_merger::merge_folder(
-        path_to_source,
-        path_to_destination,
-        if merge_method == "fit" { true } else { false },
-    )
-    .await;
-}
-
-#[tauri::command]
-pub async fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) {
-    pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name).await;
-}
-
-#[tauri::command]
-pub async fn search_keyword_one(
-    module: String,
-    keyword: String,
-    sleep_time: f64,
-    depth: u32,
-    absolute: bool,
-) -> Vec<HashMap<String, String>> {
-    search_by_keyword(module, keyword, absolute, sleep_time, depth).await
+    let m_toonily = get_toonily_com();
+    vec![
+        HashMap::from([
+            ("type".to_string(), to_value("Manga").unwrap()),
+            ("domain".to_string(), to_value(m_manhuascan.domain).unwrap()),
+            ("logo".to_string(), to_value(m_manhuascan.logo).unwrap()),
+            (
+                "searchable".to_string(),
+                to_value(m_manhuascan.searchable).unwrap(),
+            ),
+            ("is_coded".to_string(), Value::Bool(false)),
+        ]),
+        HashMap::from([
+            ("type".to_string(), to_value("Manga").unwrap()),
+            ("domain".to_string(), to_value(m_toonily.domain).unwrap()),
+            ("logo".to_string(), to_value(m_toonily.logo).unwrap()),
+            (
+                "searchable".to_string(),
+                to_value(m_toonily.searchable).unwrap(),
+            ),
+            ("is_coded".to_string(), Value::Bool(false)),
+        ]),
+    ]
 }
 
 pub async fn get_images(domain: &str, manga: &str, chapter: &str) -> (Vec<String>, Value) {
     match domain {
         "manhuascan.us" => get_manhuascan().get_images(manga, &chapter).await,
+        "toonily.com" => get_toonily_com().get_images(manga, &chapter).await,
         _ => Default::default(),
     }
 }
@@ -125,9 +158,23 @@ pub async fn get_images(domain: &str, manga: &str, chapter: &str) -> (Vec<String
 pub async fn download_image(domain: &str, url: &str, image_name: &str) -> Option<String> {
     match domain {
         "manhuascan.us" => {
-            let module: manhuascan::Manhuascan = get_manhuascan();
             get_manhuascan()
-                .download_image(url, image_name, module.download_images_headers, Some(true))
+                .download_image(
+                    url,
+                    image_name,
+                    get_manhuascan().download_images_headers,
+                    Some(true),
+                )
+                .await
+        }
+        "toonily.com" => {
+            get_toonily_com()
+                .download_image(
+                    url,
+                    image_name,
+                    get_toonily_com().download_images_headers,
+                    Some(true),
+                )
                 .await
         }
         _ => Default::default(),
@@ -147,10 +194,19 @@ pub async fn search_by_keyword(
                 .search_by_keyword(keyword, absolute, sleep_time, page_limit)
                 .await
         }
+        "toonily.com" => {
+            get_toonily_com()
+                .search_by_keyword(keyword, absolute, sleep_time, page_limit)
+                .await
+        }
         _ => Default::default(),
     }
 }
 
 fn get_manhuascan() -> manhuascan::Manhuascan {
     manhuascan::Manhuascan::new()
+}
+
+fn get_toonily_com() -> toonily_com::Toonily {
+    toonily_com::Toonily::new()
 }

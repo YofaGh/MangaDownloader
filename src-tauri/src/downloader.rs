@@ -1,4 +1,4 @@
-use serde_json::{to_string, Value};
+use serde_json::{from_value, Value};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, ReadDir};
 use std::io::{self, Write};
@@ -81,7 +81,7 @@ pub async fn download(
     let mut saved_names: Vec<String> = Vec::new();
     if saved_n.is_array() {
         has_saved_names = true;
-        saved_names.extend(saved_n.as_array().iter().map(|v| to_string(v).unwrap()));
+        saved_names = from_value(saved_n).unwrap();
     }
     let mut i: i32 = 0;
     while i < images.len() as i32 {

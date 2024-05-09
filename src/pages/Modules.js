@@ -1,18 +1,21 @@
+import { useState, useEffect } from "react";
 import { MCard, chunkArray } from "../components";
 import { useSettings } from "../Provider";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function Modules() {
-  const modules = [
-    {
-      type: "Manga",
-      domain: "manhuascan.us",
-      logo: "https://manhuascan.us/fav.png?v=1",
-      searchable: true,
-      is_coded: false,
-    },
-  ];
+  const [modules, setModules] = useState([]);
   const { load_covers } = useSettings();
   const chunkedModules = chunkArray(modules, 3);
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      invoke("get_modules").then((response) => {
+        setModules(response);
+      });
+    };
+    fetchModules();
+  },);
 
   return (
     <div className="container">

@@ -16,7 +16,7 @@ pub struct Manhuascan {
 impl Module for Manhuascan {
     async fn get_info(&self, manga: &str) -> HashMap<String, Value> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true))
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
             .await
             .unwrap();
         let document: Html = Html::parse_document(&response.text().await.unwrap());
@@ -87,7 +87,10 @@ impl Module for Manhuascan {
                 Ok(v) => v,
                 Err(_) => 0.0,
             };
-            info.insert("Rating".to_owned(), to_value(rating_text).unwrap_or_default());
+            info.insert(
+                "Rating".to_owned(),
+                to_value(rating_text).unwrap_or_default(),
+            );
         }
         if let Some(info_box) = info_box {
             if let Some(element) = info_box.select(&Selector::parse("i").unwrap()).next() {
@@ -129,17 +132,12 @@ impl Module for Manhuascan {
         info
     }
 
-    async fn get_images(
-        &self,
-        manga: &str,
-        chapter: &str,
-    ) -> (Vec<String>, Value) {
+    async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value) {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true))
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
             .await
             .unwrap();
         let document: Html = Html::parse_document(&response.text().await.unwrap());
-
         let images: Vec<String> = document
             .select(&Selector::parse("div#readerarea img").unwrap())
             .filter_map(|img| img.value().attr("src"))
@@ -147,13 +145,15 @@ impl Module for Manhuascan {
             .collect::<Vec<String>>();
         (images, Value::Bool(false))
     }
-    
+
     async fn get_title(&self, _: &str) -> String {
         "".to_string()
     }
     async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self,&url, "GET", None, Some(true)).await.unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
+            .await
+            .unwrap();
         let document: Html = Html::parse_document(&response.text().await.unwrap());
         let binding: Selector = Selector::parse("div.eph-num").unwrap();
         let divs: Select = document.select(&binding);
@@ -199,7 +199,8 @@ impl Manhuascan {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         while page <= page_limit {
-            let response: Response = Self::send_request(&self,
+            let response: Response = Self::send_request(
+                &self,
                 &format!(
                     "https://manhuascan.us/manga-list?search={}&page={}",
                     keyword, page
@@ -259,16 +260,14 @@ impl Manhuascan {
                         .attr("src")
                         .unwrap_or("")
                         .to_string();
-                    results.push(
-                        HashMap::from([
-                            ("name".to_string(), title),
-                            ("domain".to_string(), "manhuascan.us".to_string()),
-                            ("url".to_string(), url),
-                            ("latest_chapter".to_string(), latest_chapter),
-                            ("thumbnail".to_string(), thumbnail),
-                            ("page".to_string(), page.to_string()),
-                        ]),
-                    );
+                    results.push(HashMap::from([
+                        ("name".to_string(), title),
+                        ("domain".to_string(), "manhuascan.us".to_string()),
+                        ("url".to_string(), url),
+                        ("latest_chapter".to_string(), latest_chapter),
+                        ("thumbnail".to_string(), thumbnail),
+                        ("page".to_string(), page.to_string()),
+                    ]));
                 }
             } else {
                 break;

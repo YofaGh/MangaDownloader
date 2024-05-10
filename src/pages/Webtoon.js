@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/tauri";
 import { useSuccessNotification } from "../Provider";
 import { Manga, Doujin } from "../components";
 
@@ -11,19 +12,21 @@ export default function Webtoon({
   library,
 }) {
   const { module, url } = useParams();
-  const moduleType = "Manga";
+  const [moduleType, setModuleType] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isInLibrary, setIsInLibrary] = useState(false);
   const dispatchSuccess = useSuccessNotification();
 
   useEffect(() => {
     const fetchModuleType = async () => {
+      const response = await invoke("get_module_type", { domain: module });
+      setModuleType(response);
       setIsFavorite(
         favorites.some(
-          (webtoon) => webtoon.id === `${moduleType}_$_${module}_$_${url}`
+          (webtoon) => webtoon.id === `${response}_$_${module}_$_${url}`
         )
       );
-      if (moduleType === "Manga") {
+      if (response === "Manga") {
         setIsInLibrary(
           library.some(
             (webtoon) => webtoon.url === url && webtoon.domain === module

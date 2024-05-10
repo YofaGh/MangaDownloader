@@ -193,9 +193,6 @@ impl Module for Toonily {
             .collect::<Vec<_>>();
         (images, to_value(save_names).unwrap())
     }
-    async fn get_title(&self, _: &str) -> String {
-        "".to_owned()
-    }
 }
 impl Toonily {
     pub fn new() -> Toonily {

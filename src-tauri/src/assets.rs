@@ -120,6 +120,15 @@ pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, St
 }
 
 #[tauri::command]
+pub fn get_module_type(domain: String) -> String {
+    match domain.trim() {
+        "manhuascan.us" => "Manga".to_string(),
+        "toonily.com" => "Manga".to_string(),
+        _ => Default::default(),
+    }
+}
+
+#[tauri::command]
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
     let m_manhuascan = get_manhuascan();
     let m_toonily = get_toonily_com();

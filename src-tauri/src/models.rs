@@ -103,5 +103,4 @@ pub trait Module {
         }
     }
     async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>>;
-    async fn get_title(&self, code: &str) -> String;
 }

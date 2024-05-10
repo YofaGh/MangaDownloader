@@ -145,10 +145,6 @@ impl Module for Manhuascan {
             .collect::<Vec<String>>();
         (images, Value::Bool(false))
     }
-
-    async fn get_title(&self, _: &str) -> String {
-        "".to_string()
-    }
     async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))

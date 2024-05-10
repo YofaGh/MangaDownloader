@@ -119,6 +119,7 @@ fn main() {
             write_file,
             assets::get_info,
             assets::get_chapters,
+            assets::get_module_type,
             assets::get_modules,
             assets::merge,
             assets::convert,

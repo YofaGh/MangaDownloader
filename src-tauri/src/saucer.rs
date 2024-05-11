@@ -15,7 +15,8 @@ pub fn yandex(url: &str) -> Vec<HashMap<String, String>> {
     .text()
     .unwrap();
     let document: Html = Html::parse_document(&response);
-    let selector: Selector = Selector::parse("div.cbir-section.cbir-section_name_sites div.Root").unwrap();
+    let selector: Selector =
+        Selector::parse("div.cbir-section.cbir-section_name_sites div.Root").unwrap();
     let data_raw: &str = document
         .select(&selector)
         .next()
@@ -124,7 +125,12 @@ pub fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
         .next()
         .unwrap()
         .select(&div_selector)
-        .filter(|div| !div.text().collect::<Vec<_>>().join(" ").contains("Your image"));
+        .filter(|div| {
+            !div.text()
+                .collect::<Vec<_>>()
+                .join(" ")
+                .contains("Your image")
+        });
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     for div in divs {
         let td_selector = Selector::parse("td.image").unwrap();
@@ -174,7 +180,9 @@ pub fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     for div in divs {
         if div
-            .text().collect::<Vec<_>>().join(" ")
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
             .contains("Low similarity results have been hidden")
         {
             break;
@@ -228,5 +236,10 @@ pub fn upload_image(path: &str) -> String {
 
 #[tauri::command]
 pub fn get_saucers_list() -> Vec<String> {
-    vec!["yandex".to_string(), "tineye".to_string(), "iqdb".to_string(), "saucenao".to_string()]
+    vec![
+        "yandex".to_string(),
+        "tineye".to_string(),
+        "iqdb".to_string(),
+        "saucenao".to_string(),
+    ]
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
 import { useSettings } from "../Provider";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Module() {
   const { module } = useParams();

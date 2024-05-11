@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
 import { useSuccessNotification } from "../Provider";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function FavoriteWebtoon({
   webtoon,

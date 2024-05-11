@@ -3,81 +3,49 @@
   "build": {
     "beforeBuildCommand": "yarn build",
     "beforeDevCommand": "yarn cross-env BROWSER=none yarn start",
-    "devPath": "http://localhost:3000",
-    "distDir": "../build",
-    "withGlobalTauri": true
+    "frontendDist": "../build",
+    "devUrl": "http://localhost:3000"
   },
-  "package": {
-    "productName": "Manga Downloader",
-    "version": "1.0.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "http": {
-        "all": true,
-        "scope": [
-          "https://*",
-          "http://*"
-        ]
-      },
-      "window": {
-        "close": true,
-        "minimize": true,
-        "print": true,
-        "startDragging": true
-      },
-      "dialog": {
-        "open": true
-      },
-      "path": {
-        "all": true
-      },
-      "fs": {
-        "removeFile": true,
-        "readFile": true,
-        "writeFile": true,
-        "scope": ["$APPDATA/*"]
-      }
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "copyright": "",
+    "targets": "all",
+    "externalBin": [],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
     },
-    "bundle": {
-      "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+    "longDescription": "",
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [],
+    "shortDescription": "",
+    "linux": {
       "deb": {
         "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.yofagh.mangadownloader",
-      "longDescription": "",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
       }
-    },
-    "security": {
-      "csp": null
-    },
-    "updater": {
-      "active": false
-    },
+    }
+  },
+  "productName": "Manga Downloader",
+  "version": "1.0.0",
+  "identifier": "com.yofagh.mangadownloader",
+  "plugins": {},
+  "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "height": 600,
@@ -86,6 +54,9 @@
         "width": 1000,
         "decorations": false
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   }
 }

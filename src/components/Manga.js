@@ -11,7 +11,7 @@ import {
   retrieveImage,
   chunkArray
 } from ".";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { useSettings } from "../Provider";
 import { useNavigate } from "react-router-dom";
 

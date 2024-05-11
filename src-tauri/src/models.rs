@@ -66,11 +66,7 @@ pub trait Module {
             Err(_) => None,
         }
     }
-    async fn get_images(
-        &self,
-        manga: &str,
-        chapter: &str,
-    ) -> (Vec<String>, Value);
+    async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value);
     async fn get_info(&self, manga: &str) -> HashMap<String, Value>;
     fn rename_chapter(&self, chapter: &str) -> String {
         let mut new_name: String = String::new();

@@ -1,11 +1,11 @@
+use crate::assets;
 use serde_json::{from_value, Value};
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, ReadDir};
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
-use tauri::Window;
-use crate::assets;
+use tauri::{Manager, Window};
 
 static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
 
@@ -131,8 +131,9 @@ pub async fn download(
                     )
                     .expect("failed to emit event");
             } else {
-                let is_image_valid: bool =
-                    assets::validate_image(&d_response.trim().replace("\"", "").replace("\\\\", "\\"));
+                let is_image_valid: bool = assets::validate_image(
+                    &d_response.trim().replace("\"", "").replace("\\\\", "\\"),
+                );
                 if !is_image_valid && last_corrupted != d_response {
                     last_corrupted = d_response;
                     window

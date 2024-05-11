@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { FilterToggleButton } from "../components";
 import { useSettings, useSetSettings, useErrorNotification } from "../Provider";
 

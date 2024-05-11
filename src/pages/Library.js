@@ -1,6 +1,6 @@
 import { Wcard, HomeButton, chunkArray } from "../components";
 import { useSettings } from "../Provider";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Library({
   library,

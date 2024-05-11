@@ -1,6 +1,6 @@
 import { convert, merge } from ".";
 import { useSettings, useSuccessNotification } from "../Provider";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function DCard({ webtoon, removeWebtoon }) {
   const dispatchSuccess = useSuccessNotification();

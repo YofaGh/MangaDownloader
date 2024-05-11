@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { SideBar } from ".";
 import { useNavigate } from "react-router-dom";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrent } from "@tauri-apps/api/window";
 
 export default function TopBar({ currentDownloadStatus }) {
+  const appWindow = getCurrent();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   let currentDownloadLabel = null;
@@ -44,7 +45,9 @@ export default function TopBar({ currentDownloadStatus }) {
           </label>
         </div>
         <div data-tauri-drag-region className="titleBarText">
-          <div data-tauri-drag-region className="titleText">Manga Downloader</div>
+          <div data-tauri-drag-region className="titleText">
+            Manga Downloader
+          </div>
         </div>
         <div className="titleBarBtns">
           <button

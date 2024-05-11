@@ -26,9 +26,9 @@ import {
   useSuccessNotification,
 } from "./Provider";
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { appDataDir } from "@tauri-apps/api/path";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function App() {
   const [settings, setSettings] = [useSettings(), useSetSettings()];

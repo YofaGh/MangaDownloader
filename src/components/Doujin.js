@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Infoed, FlipButton, getDate, getDateTime, retrieveImage, Loading } from ".";
 import { useSettings } from "../Provider";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Doujin({
   module,

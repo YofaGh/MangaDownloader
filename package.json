@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@tauri-apps/plugin-dialog": "^2.0.0-beta.3",
+    "@tauri-apps/plugin-fs": "^2.0.0-beta.3",
+    "@tauri-apps/plugin-http": "^2.0.0-beta.3",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
@@ -14,7 +17,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "tauri": "tauri"
   },
   "eslintConfig": {
     "extends": [
@@ -35,8 +39,8 @@
     ]
   },
   "devDependencies": {
-    "@tauri-apps/api": "^1.5.3",
-    "@tauri-apps/cli": "^1.5.9",
+    "@tauri-apps/api": "^2.0.0-beta.3",
+    "@tauri-apps/cli": "^2.0.0-beta.17",
     "cross-env": "^7.0.3"
   },
   "resolutions": {

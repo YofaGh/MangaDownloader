@@ -1,9 +1,9 @@
+use crate::assets;
 use std::{
     collections::HashMap,
     sync::atomic::{AtomicBool, Ordering},
 };
-use tauri::Window;
-use crate::assets;
+use tauri::{Manager, Window};
 
 static STOP_SEARCH: AtomicBool = AtomicBool::new(false);
 

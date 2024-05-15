@@ -33,9 +33,6 @@ export default function ModuleChecker({ module, showHideModal, checkModule }) {
         {module.type === "Doujin" && (
           <div className="ch-steps-container">
             <div className="ch-steps">
-              <span className="ch-steps-circle" id="checkTitle">
-                Getting Title
-              </span>
               <span className="ch-steps-circle" id="checkImage">
                 Getting Images
               </span>

@@ -46,17 +46,17 @@ pub async fn download(
     let saved_n: Value;
     if webtoon.get("type").unwrap() == "manga" {
         (images, saved_n) = assets::get_images(
-            webtoon.get("module").unwrap(),
-            webtoon.get("manga").unwrap(),
-            webtoon.get("chapter").unwrap(),
+            webtoon.get("module").unwrap().to_string(),
+            webtoon.get("manga").unwrap().to_string(),
+            webtoon.get("chapter").unwrap().to_string(),
         )
         .await;
         folder_name.push_str(&("\\".to_string() + &webtoon.get("info").unwrap()));
     } else {
         (images, saved_n) = assets::get_images(
-            webtoon.get("module").unwrap(),
-            webtoon.get("manga").unwrap(),
-            "",
+            webtoon.get("module").unwrap().to_string(),
+            webtoon.get("manga").unwrap().to_string(),
+            "".to_string(),
         )
         .await;
     }
@@ -114,9 +114,9 @@ pub async fn download(
         }
         if !exists_images.contains(&save_path) {
             let d_response: String = assets::download_image(
-                webtoon.get("module").unwrap(),
-                images[i as usize].as_str(),
-                &save_path,
+                webtoon.get("module").unwrap().to_string(),
+                images[i as usize].to_string(),
+                save_path,
             )
             .await
             .unwrap();

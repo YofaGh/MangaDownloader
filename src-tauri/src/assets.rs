@@ -226,6 +226,15 @@ pub fn get_module_type(domain: String) -> String {
 }
 
 #[tauri::command]
+pub fn get_module_sample(domain: &str) -> HashMap<&str, &str> {
+    match domain.trim() {
+        "manhuascan.us" => HashMap::from([("manga", "secret-class")]),
+        "toonily.com" => HashMap::from([("manga", "peerless-dad")]),
+        _ => Default::default(),
+    }
+}
+
+#[tauri::command]
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
     let m_manhuascan = get_manhuascan();
     let m_toonily = get_toonily_com();
@@ -253,21 +262,23 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
     ]
 }
 
-pub async fn get_images(domain: &str, manga: &str, chapter: &str) -> (Vec<String>, Value) {
-    match domain {
-        "manhuascan.us" => get_manhuascan().get_images(manga, &chapter).await,
-        "toonily.com" => get_toonily_com().get_images(manga, &chapter).await,
+#[tauri::command]
+pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
+    match domain.trim() {
+        "manhuascan.us" => get_manhuascan().get_images(&manga, &chapter).await,
+        "toonily.com" => get_toonily_com().get_images(&manga, &chapter).await,
         _ => Default::default(),
     }
 }
 
-pub async fn download_image(domain: &str, url: &str, image_name: &str) -> Option<String> {
-    match domain {
+#[tauri::command]
+pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
+    match domain.trim() {
         "manhuascan.us" => {
             get_manhuascan()
                 .download_image(
-                    url,
-                    image_name,
+                    &url,
+                    &image_name,
                     get_manhuascan().download_images_headers,
                     Some(true),
                 )
@@ -276,8 +287,8 @@ pub async fn download_image(domain: &str, url: &str, image_name: &str) -> Option
         "toonily.com" => {
             get_toonily_com()
                 .download_image(
-                    url,
-                    image_name,
+                    &url,
+                    &image_name,
                     get_toonily_com().download_images_headers,
                     Some(true),
                 )

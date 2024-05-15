@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { retrieveImage } from ".";
 import { invoke } from "@tauri-apps/api/core";
 
-export default function MCard({ module, load_covers }) {
+export default function MCard({ module, checkModule, load_covers }) {
   const [imageSrc, setImageSrc] = useState(
     load_covers && module.logo ? module.logo : "./assets/module-cyan.svg"
   );
@@ -43,6 +43,17 @@ export default function MCard({ module, load_covers }) {
                 ></img>
               </button>
             </Link>
+            <button
+              className="m-button check-btn"
+              onClick={() => checkModule(module)}
+            >
+              <img
+                alt=""
+                src="./assets/check.svg"
+                className="btn-icon"
+                style={{ width: 30, height: 30 }}
+              ></img>
+            </button>
           </div>
         </div>
       </div>

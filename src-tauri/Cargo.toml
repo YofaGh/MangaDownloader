@@ -21,7 +21,6 @@ tauri = { version = "2.0.0-beta", features = [] }
 reqwest = { version = "0.11", features = ["blocking", "multipart", "json", "stream"] }
 serde_json = "1.0.114"
 scraper = "0.19.0"
-select = "0.6.0"
 tokio-util = { version = "0.7", features = ["codec", "io"] }
 futures = "0.3"
 image = "0.24.5"
@@ -41,4 +40,4 @@ custom-protocol = [ "tauri/custom-protocol" ]
 
 [lib]
 name = "app_lib"
-crate-type = ["staticlib", "cdylib", "rlib", "lib"]
+crate-type = ["staticlib", "cdylib", "rlib"]

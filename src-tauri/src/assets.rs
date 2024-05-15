@@ -3,14 +3,111 @@ use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
 use reqwest::Response;
-use serde_json::{to_value, Value};
+use serde_json::{to_value, from_str, Value};
 use std::collections::HashMap;
+use std::io::{Read, Seek, Write};
+use std::process::Command;
 use std::{
-    fs::{read_dir, DirEntry},
+    fs::{read_dir, remove_dir_all, create_dir_all, remove_dir, DirEntry, File, OpenOptions},
     io::Error,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 use tokio_util::bytes::Bytes;
+
+#[derive(Clone, serde::Serialize)]
+struct DefaultSettings {
+    auto_merge: bool,
+    auto_convert: bool,
+    load_covers: bool,
+    sleep_time: f32,
+    default_search_depth: i32,
+    merge_method: String,
+    download_path: Option<String>,
+    data_dir_path: String,
+}
+
+impl DefaultSettings {
+    fn new(data_dir: String) -> DefaultSettings {
+        DefaultSettings {
+            auto_merge: false,
+            auto_convert: false,
+            load_covers: true,
+            sleep_time: 0.1,
+            default_search_depth: 3,
+            merge_method: String::from("Normal"),
+            download_path: None,
+            data_dir_path: data_dir,
+        }
+    }
+}
+
+pub fn load_up_checks(data_dir: String) {
+    create_dir_all(&data_dir).ok();
+    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
+    let file_array: [&str; 4] = [
+        "library.json",
+        "downloaded.json",
+        "queue.json",
+        "favorites.json",
+    ];
+    save_file(
+        format!("{}/settings.json", data_dir),
+        to_value(&default_settings).unwrap(),
+    );
+    for file in file_array {
+        save_file(format!("{}/{}", data_dir, file), from_str("[]").unwrap());
+    }
+}
+
+fn save_file(path: String, data: Value) {
+    if !Path::new(&path).exists() {
+        write_file(path, serde_json::to_string_pretty(&data).unwrap());
+    }
+}
+
+#[tauri::command]
+pub fn open_folder(path: String) {
+    Command::new("explorer")
+        .args(["/select,", &path])
+        .spawn()
+        .ok();
+}
+
+#[tauri::command]
+pub fn write_file(path: String, data: String) {
+    let mut f: File = OpenOptions::new()
+        .write(true)
+        .read(true)
+        .create(true)
+        .open(&path)
+        .unwrap();
+    let _ = f.set_len(0);
+    write!(f, "{}", &data).unwrap();
+    f.rewind().ok();
+}
+
+#[tauri::command]
+pub fn read_file(path: String) -> String {
+    let mut f: File = OpenOptions::new()
+        .write(true)
+        .read(true)
+        .open(&path)
+        .unwrap();
+    let mut buf: String = String::new();
+    f.read_to_string(&mut buf).unwrap();
+    buf
+}
+
+#[tauri::command]
+pub fn remove_directory(path: String, recursive: bool) {
+    if recursive {
+        remove_dir_all(path).ok();
+    } else if let Ok(entries) = read_dir(&path) {
+        if entries.count() == 0 {
+            remove_dir(path).ok();
+        }
+    }
+}
 
 #[tauri::command]
 pub async fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {

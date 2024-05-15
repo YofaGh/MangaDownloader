@@ -3,12 +3,12 @@ use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
 use reqwest::Response;
-use serde_json::{to_value, from_str, Value};
+use serde_json::{from_str, to_value, Value};
 use std::collections::HashMap;
 use std::io::{Read, Seek, Write};
 use std::process::Command;
 use std::{
-    fs::{read_dir, remove_dir_all, create_dir_all, remove_dir, DirEntry, File, OpenOptions},
+    fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
     io::Error,
     path::{Path, PathBuf},
 };
@@ -191,6 +191,17 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
                 .await
                 .unwrap();
         }
+        "readonepiece.com" => {
+            response = get_readonepiece()
+                .send_request(
+                    &url,
+                    "GET",
+                    get_readonepiece().download_images_headers,
+                    Some(true),
+                )
+                .await
+                .unwrap();
+        }
         _ => return "".to_string(),
     }
     let image: Bytes = response.bytes().await.unwrap();
@@ -203,6 +214,7 @@ pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
     match domain.trim() {
         "manhuascan.us" => get_manhuascan().get_info(&url).await,
         "toonily.com" => get_toonily_com().get_info(&url).await,
+        "readonepiece.com" => get_readonepiece().get_info(&url).await,
         _ => Default::default(),
     }
 }
@@ -212,6 +224,7 @@ pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, St
     match domain.trim() {
         "manhuascan.us" => get_manhuascan().get_chapters(&url).await,
         "toonily.com" => get_toonily_com().get_chapters(&url).await,
+        "readonepiece.com" => get_readonepiece().get_chapters(&url).await,
         _ => Default::default(),
     }
 }
@@ -221,6 +234,7 @@ pub fn get_module_type(domain: String) -> String {
     match domain.trim() {
         "manhuascan.us" => "Manga".to_string(),
         "toonily.com" => "Manga".to_string(),
+        "readonepiece.com" => "Manga".to_string(),
         _ => Default::default(),
     }
 }
@@ -230,6 +244,7 @@ pub fn get_module_sample(domain: &str) -> HashMap<&str, &str> {
     match domain.trim() {
         "manhuascan.us" => HashMap::from([("manga", "secret-class")]),
         "toonily.com" => HashMap::from([("manga", "peerless-dad")]),
+        "readonepiece.com" => HashMap::from([("manga", "one-piece-digital-colored-comics")]),
         _ => Default::default(),
     }
 }
@@ -238,6 +253,7 @@ pub fn get_module_sample(domain: &str) -> HashMap<&str, &str> {
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
     let m_manhuascan = get_manhuascan();
     let m_toonily = get_toonily_com();
+    let m_readonepiece = get_readonepiece();
     vec![
         HashMap::from([
             ("type".to_string(), to_value("Manga").unwrap()),
@@ -259,6 +275,16 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
             ),
             ("is_coded".to_string(), Value::Bool(false)),
         ]),
+        HashMap::from([
+            ("type".to_string(), to_value("Manga").unwrap()),
+            ("domain".to_string(), to_value(m_readonepiece.domain).unwrap()),
+            ("logo".to_string(), to_value(m_readonepiece.logo).unwrap()),
+            (
+                "searchable".to_string(),
+                to_value(m_readonepiece.searchable).unwrap(),
+            ),
+            ("is_coded".to_string(), Value::Bool(false)),
+        ]),
     ]
 }
 
@@ -267,6 +293,7 @@ pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<
     match domain.trim() {
         "manhuascan.us" => get_manhuascan().get_images(&manga, &chapter).await,
         "toonily.com" => get_toonily_com().get_images(&manga, &chapter).await,
+        "readonepiece.com" => get_readonepiece().get_images(&manga, &chapter).await,
         _ => Default::default(),
     }
 }
@@ -290,6 +317,16 @@ pub async fn download_image(domain: String, url: String, image_name: String) -> 
                     &url,
                     &image_name,
                     get_toonily_com().download_images_headers,
+                    Some(true),
+                )
+                .await
+        }
+        "readonepiece.com" => {
+            get_readonepiece()
+                .download_image(
+                    &url,
+                    &image_name,
+                    get_readonepiece().download_images_headers,
                     Some(true),
                 )
                 .await
@@ -326,4 +363,8 @@ fn get_manhuascan() -> manhuascan::Manhuascan {
 
 fn get_toonily_com() -> toonily_com::Toonily {
     toonily_com::Toonily::new()
+}
+
+fn get_readonepiece() -> readonepiece::Readonepiece {
+    readonepiece::Readonepiece::new()
 }

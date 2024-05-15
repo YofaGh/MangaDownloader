@@ -183,7 +183,7 @@ export default function Manga({
             {webtoon.Summary}
           </div>
           <div className="info-sec">
-            {Object.entries(webtoon.Extras).map(([key, value]) => (
+            {webtoon.Extras && Object.entries(webtoon.Extras).map(([key, value]) => (
               <Infoed key={key} title={`${key}:`} info={value} />
             ))}
             <div style={{ display: "inline-flex" }}>

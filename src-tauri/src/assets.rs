@@ -202,6 +202,17 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
                 .await
                 .unwrap();
         }
+        "hentaifox.com" => {
+            response = get_hentaifox()
+                .send_request(
+                    &url,
+                    "GET",
+                    get_readonepiece().download_images_headers,
+                    Some(true),
+                )
+                .await
+                .unwrap();
+        }
         _ => return "".to_string(),
     }
     let image: Bytes = response.bytes().await.unwrap();
@@ -215,6 +226,7 @@ pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
         "manhuascan.us" => get_manhuascan().get_info(&url).await,
         "toonily.com" => get_toonily_com().get_info(&url).await,
         "readonepiece.com" => get_readonepiece().get_info(&url).await,
+        "hentaifox.com" => get_hentaifox().get_info(&url).await,
         _ => Default::default(),
     }
 }
@@ -235,6 +247,7 @@ pub fn get_module_type(domain: String) -> String {
         "manhuascan.us" => "Manga".to_string(),
         "toonily.com" => "Manga".to_string(),
         "readonepiece.com" => "Manga".to_string(),
+        "hentaifox.com" => "Doujin".to_string(),
         _ => Default::default(),
     }
 }
@@ -245,6 +258,7 @@ pub fn get_module_sample(domain: &str) -> HashMap<&str, &str> {
         "manhuascan.us" => HashMap::from([("manga", "secret-class")]),
         "toonily.com" => HashMap::from([("manga", "peerless-dad")]),
         "readonepiece.com" => HashMap::from([("manga", "one-piece-digital-colored-comics")]),
+        "hentaifox.com" => HashMap::from([("code", "1")]),
         _ => Default::default(),
     }
 }
@@ -254,6 +268,7 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
     let m_manhuascan = get_manhuascan();
     let m_toonily = get_toonily_com();
     let m_readonepiece = get_readonepiece();
+    let m_hentaifox = get_hentaifox();
     vec![
         HashMap::from([
             ("type".to_string(), to_value("Manga").unwrap()),
@@ -285,6 +300,16 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
             ),
             ("is_coded".to_string(), Value::Bool(false)),
         ]),
+        HashMap::from([
+            ("type".to_string(), to_value("Doujin").unwrap()),
+            ("domain".to_string(), to_value(m_hentaifox.domain).unwrap()),
+            ("logo".to_string(), to_value(m_hentaifox.logo).unwrap()),
+            (
+                "searchable".to_string(),
+                to_value(m_hentaifox.searchable).unwrap(),
+            ),
+            ("is_coded".to_string(), Value::Bool(false)),
+        ]),
     ]
 }
 
@@ -294,6 +319,7 @@ pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<
         "manhuascan.us" => get_manhuascan().get_images(&manga, &chapter).await,
         "toonily.com" => get_toonily_com().get_images(&manga, &chapter).await,
         "readonepiece.com" => get_readonepiece().get_images(&manga, &chapter).await,
+        "hentaifox.com" => get_hentaifox().get_images(&manga, &chapter).await,
         _ => Default::default(),
     }
 }
@@ -331,6 +357,16 @@ pub async fn download_image(domain: String, url: String, image_name: String) -> 
                 )
                 .await
         }
+        "hentaifox.com" => {
+            get_hentaifox()
+                .download_image(
+                    &url,
+                    &image_name,
+                    get_hentaifox().download_images_headers,
+                    Some(true),
+                )
+                .await
+        }
         _ => Default::default(),
     }
 }
@@ -353,6 +389,11 @@ pub async fn search_by_keyword(
                 .search_by_keyword(keyword, absolute, sleep_time, page_limit)
                 .await
         }
+        "hentaifox.com" => {
+            get_hentaifox()
+                .search_by_keyword(keyword, absolute, sleep_time, page_limit)
+                .await
+        }
         _ => Default::default(),
     }
 }
@@ -367,4 +408,8 @@ fn get_toonily_com() -> toonily_com::Toonily {
 
 fn get_readonepiece() -> readonepiece::Readonepiece {
     readonepiece::Readonepiece::new()
+}
+
+fn get_hentaifox() -> hentaifox::Hentaifox {
+    hentaifox::Hentaifox::new()
 }

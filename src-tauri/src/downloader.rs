@@ -55,7 +55,7 @@ pub async fn download(
     } else {
         (images, saved_n) = assets::get_images(
             webtoon.get("module").unwrap().to_string(),
-            webtoon.get("manga").unwrap().to_string(),
+            webtoon.get("doujin").unwrap().to_string(),
             "".to_string(),
         )
         .await;

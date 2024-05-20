@@ -1,19 +1,82 @@
-use reqwest::Response;
+use async_trait::async_trait;
+use futures::stream::TryStreamExt;
+use futures::Future;
+use reqwest::{
+    header::{HeaderName, HeaderValue},
+    Client, Error, Method, RequestBuilder, Response,
+};
 use scraper::{selectable::Selectable, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, thread, time::Duration};
+use tokio::fs::File;
+use tokio::io::{self, AsyncWriteExt};
+use tokio_util::io::StreamReader;
 
 use crate::models::Module;
 
-pub struct Hentaifox {
-    pub mtype: String,
-    pub logo: String,
-    pub domain: String,
-    pub download_images_headers: Option<HashMap<&'static str, &'static str>>,
-    pub searchable: bool,
-}
+pub struct Hentaifox {}
 
+#[async_trait]
 impl Module for Hentaifox {
+    fn get_type(&self) -> String {
+        "Doujin".to_string()
+    }
+    fn get_domain(&self) -> String {
+        "hentaifox.com".to_string()
+    }
+    fn get_logo(&self) -> String {
+        "https://hentaifox.com/images/logo.png".to_string()
+    }
+    fn is_searchable(&self) -> bool {
+        true
+    }
+    fn is_coded(&self) -> bool {
+        true
+    }
+    fn get_module_sample(&self) -> HashMap<String, String> {
+        HashMap::from([("code".to_string(), "1".to_string())])
+    }
+    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
+        match Self::send_request(
+            &self,
+            url,
+            "GET",
+            Some(Self::get_download_image_headers(&self)),
+            Some(true),
+        )
+        .await
+        {
+            Ok(response) => {
+                let stream = response
+                    .bytes_stream()
+                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+                let mut reader = StreamReader::new(stream);
+                let mut file: File = match File::create(image_name).await {
+                    Ok(file) => file,
+                    Err(_) => return None,
+                };
+                match tokio::io::copy(&mut reader, &mut file).await {
+                    Ok(_) => {
+                        file.flush().await.ok()?;
+                        Some(image_name.to_string())
+                    }
+                    Err(_) => None,
+                }
+            }
+            Err(_) => None,
+        }
+    }
+    async fn retrieve_image(&self, url: &str) -> Response {
+        Self::send_request(
+            &self,
+            &url,
+            "GET",
+            Some(Self::get_download_image_headers(&self)),
+            Some(true),
+        )
+        .await
+        .unwrap()
+    }
     async fn get_info(&self, code: &str) -> HashMap<String, Value> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
         let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
@@ -149,20 +212,7 @@ impl Module for Hentaifox {
     async fn get_chapters(&self, _: &str) -> Vec<HashMap<String, String>> {
         Default::default()
     }
-}
-
-impl Hentaifox {
-    pub fn new() -> Hentaifox {
-        Hentaifox {
-            mtype: "Manga".to_string(),
-            logo: "https://hentaifox.com/images/logo.png".to_string(),
-            domain: "hentaifox.com".to_string(),
-            download_images_headers: None,
-            searchable: true,
-        }
-    }
-
-    pub async fn search_by_keyword(
+    async fn search_by_keyword(
         &self,
         keyword: String,
         absolute: bool,
@@ -244,5 +294,39 @@ impl Hentaifox {
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
         results
+    }
+}
+
+impl Hentaifox {
+    pub fn new() -> Hentaifox {
+        Hentaifox {}
+    }
+    pub fn send_request(
+        &self,
+        url: &str,
+        method: &str,
+        headers: Option<HashMap<&str, &str>>,
+        verify: Option<bool>,
+    ) -> impl Future<Output = Result<Response, Error>> {
+        let client: Client = Client::builder()
+            .danger_accept_invalid_certs(verify.unwrap_or(true))
+            .build()
+            .unwrap();
+        let request: RequestBuilder =
+            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
+        let request: RequestBuilder = match headers {
+            Some(h) => request.headers(
+                h.into_iter()
+                    .map(|(k, v)| {
+                        (
+                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
+                            HeaderValue::from_str(v).unwrap(),
+                        )
+                    })
+                    .collect(),
+            ),
+            None => request,
+        };
+        request.send()
     }
 }

@@ -9,7 +9,7 @@ use std::io::{Read, Seek, Write};
 use std::process::Command;
 use std::{
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
-    io::Error,
+    io::Error as DirError,
     path::{Path, PathBuf},
 };
 use tokio_util::bytes::Bytes;
@@ -136,9 +136,9 @@ pub async fn search_keyword_one(
 }
 
 pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
-    let mut dirs: Vec<Result<DirEntry, Error>> = read_dir(path_to_source).unwrap().collect();
+    let mut dirs: Vec<Result<DirEntry, DirError>> = read_dir(path_to_source).unwrap().collect();
     dirs.sort_by(
-        |p1: &Result<DirEntry, Error>, p2: &Result<DirEntry, Error>| {
+        |p1: &Result<DirEntry, DirError>, p2: &Result<DirEntry, DirError>| {
             natord::compare(
                 p1.as_ref().unwrap().path().to_str().unwrap(),
                 p2.as_ref().unwrap().path().to_str().unwrap(),
@@ -146,7 +146,7 @@ pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
         },
     );
     dirs.into_par_iter()
-        .filter_map(|dir: Result<DirEntry, Error>| {
+        .filter_map(|dir: Result<DirEntry, DirError>| {
             let path: PathBuf = dir.unwrap().path();
             if matches!(
                 path.extension().and_then(|ext| ext.to_str()),
@@ -171,204 +171,41 @@ pub fn validate_image(path: &str) -> bool {
 }
 
 #[tauri::command]
-pub async fn retrieve_image(domain: String, url: String) -> String {
-    let response: Response;
-    match domain.trim() {
-        "manhuascan.us" => {
-            response = get_manhuascan()
-                .send_request(&url, "GET", None, Some(true))
-                .await
-                .unwrap();
-        }
-        "toonily.com" => {
-            response = get_toonily_com()
-                .send_request(
-                    &url,
-                    "GET",
-                    get_toonily_com().download_images_headers,
-                    Some(true),
-                )
-                .await
-                .unwrap();
-        }
-        "readonepiece.com" => {
-            response = get_readonepiece()
-                .send_request(
-                    &url,
-                    "GET",
-                    get_readonepiece().download_images_headers,
-                    Some(true),
-                )
-                .await
-                .unwrap();
-        }
-        "hentaifox.com" => {
-            response = get_hentaifox()
-                .send_request(
-                    &url,
-                    "GET",
-                    get_readonepiece().download_images_headers,
-                    Some(true),
-                )
-                .await
-                .unwrap();
-        }
-        _ => return "".to_string(),
-    }
-    let image: Bytes = response.bytes().await.unwrap();
-    let encoded_image: String = general_purpose::STANDARD.encode(image);
-    format!("data:image/png;base64, {}", encoded_image)
-}
-
-#[tauri::command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    match domain.trim() {
-        "manhuascan.us" => get_manhuascan().get_info(&url).await,
-        "toonily.com" => get_toonily_com().get_info(&url).await,
-        "readonepiece.com" => get_readonepiece().get_info(&url).await,
-        "hentaifox.com" => get_hentaifox().get_info(&url).await,
-        _ => Default::default(),
-    }
+    get_module(&domain).get_info(&url).await
 }
 
 #[tauri::command]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
-    match domain.trim() {
-        "manhuascan.us" => get_manhuascan().get_chapters(&url).await,
-        "toonily.com" => get_toonily_com().get_chapters(&url).await,
-        "readonepiece.com" => get_readonepiece().get_chapters(&url).await,
-        _ => Default::default(),
-    }
+    get_module(&domain).get_chapters(&url).await
 }
 
 #[tauri::command]
 pub fn get_module_type(domain: String) -> String {
-    match domain.trim() {
-        "manhuascan.us" => "Manga".to_string(),
-        "toonily.com" => "Manga".to_string(),
-        "readonepiece.com" => "Manga".to_string(),
-        "hentaifox.com" => "Doujin".to_string(),
-        _ => Default::default(),
-    }
+    get_module(&domain).get_type()
 }
 
 #[tauri::command]
-pub fn get_module_sample(domain: &str) -> HashMap<&str, &str> {
-    match domain.trim() {
-        "manhuascan.us" => HashMap::from([("manga", "secret-class")]),
-        "toonily.com" => HashMap::from([("manga", "peerless-dad")]),
-        "readonepiece.com" => HashMap::from([("manga", "one-piece-digital-colored-comics")]),
-        "hentaifox.com" => HashMap::from([("code", "1")]),
-        _ => Default::default(),
-    }
-}
-
-#[tauri::command]
-pub fn get_modules() -> Vec<HashMap<String, Value>> {
-    let m_manhuascan = get_manhuascan();
-    let m_toonily = get_toonily_com();
-    let m_readonepiece = get_readonepiece();
-    let m_hentaifox = get_hentaifox();
-    vec![
-        HashMap::from([
-            ("type".to_string(), to_value("Manga").unwrap()),
-            ("domain".to_string(), to_value(m_manhuascan.domain).unwrap()),
-            ("logo".to_string(), to_value(m_manhuascan.logo).unwrap()),
-            (
-                "searchable".to_string(),
-                to_value(m_manhuascan.searchable).unwrap(),
-            ),
-            ("is_coded".to_string(), Value::Bool(false)),
-        ]),
-        HashMap::from([
-            ("type".to_string(), to_value("Manga").unwrap()),
-            ("domain".to_string(), to_value(m_toonily.domain).unwrap()),
-            ("logo".to_string(), to_value(m_toonily.logo).unwrap()),
-            (
-                "searchable".to_string(),
-                to_value(m_toonily.searchable).unwrap(),
-            ),
-            ("is_coded".to_string(), Value::Bool(false)),
-        ]),
-        HashMap::from([
-            ("type".to_string(), to_value("Manga").unwrap()),
-            ("domain".to_string(), to_value(m_readonepiece.domain).unwrap()),
-            ("logo".to_string(), to_value(m_readonepiece.logo).unwrap()),
-            (
-                "searchable".to_string(),
-                to_value(m_readonepiece.searchable).unwrap(),
-            ),
-            ("is_coded".to_string(), Value::Bool(false)),
-        ]),
-        HashMap::from([
-            ("type".to_string(), to_value("Doujin").unwrap()),
-            ("domain".to_string(), to_value(m_hentaifox.domain).unwrap()),
-            ("logo".to_string(), to_value(m_hentaifox.logo).unwrap()),
-            (
-                "searchable".to_string(),
-                to_value(m_hentaifox.searchable).unwrap(),
-            ),
-            ("is_coded".to_string(), Value::Bool(false)),
-        ]),
-    ]
+pub fn get_module_sample(domain: String) -> HashMap<String, String> {
+    get_module(&domain).get_module_sample()
 }
 
 #[tauri::command]
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
-    match domain.trim() {
-        "manhuascan.us" => get_manhuascan().get_images(&manga, &chapter).await,
-        "toonily.com" => get_toonily_com().get_images(&manga, &chapter).await,
-        "readonepiece.com" => get_readonepiece().get_images(&manga, &chapter).await,
-        "hentaifox.com" => get_hentaifox().get_images(&manga, &chapter).await,
-        _ => Default::default(),
-    }
+    get_module(&domain).get_images(&manga, &chapter).await
 }
 
 #[tauri::command]
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
-    match domain.trim() {
-        "manhuascan.us" => {
-            get_manhuascan()
-                .download_image(
-                    &url,
-                    &image_name,
-                    get_manhuascan().download_images_headers,
-                    Some(true),
-                )
-                .await
-        }
-        "toonily.com" => {
-            get_toonily_com()
-                .download_image(
-                    &url,
-                    &image_name,
-                    get_toonily_com().download_images_headers,
-                    Some(true),
-                )
-                .await
-        }
-        "readonepiece.com" => {
-            get_readonepiece()
-                .download_image(
-                    &url,
-                    &image_name,
-                    get_readonepiece().download_images_headers,
-                    Some(true),
-                )
-                .await
-        }
-        "hentaifox.com" => {
-            get_hentaifox()
-                .download_image(
-                    &url,
-                    &image_name,
-                    get_hentaifox().download_images_headers,
-                    Some(true),
-                )
-                .await
-        }
-        _ => Default::default(),
-    }
+    get_module(&domain).download_image(&url, &image_name).await
+}
+
+#[tauri::command]
+pub async fn retrieve_image(domain: String, url: String) -> String {
+    let response: Response = get_module(&domain).retrieve_image(&url).await;
+    let image: Bytes = response.bytes().await.unwrap();
+    let encoded_image: String = general_purpose::STANDARD.encode(image);
+    format!("data:image/png;base64, {}", encoded_image)
 }
 
 pub async fn search_by_keyword(
@@ -378,38 +215,47 @@ pub async fn search_by_keyword(
     sleep_time: f64,
     page_limit: u32,
 ) -> Vec<HashMap<String, String>> {
-    match domain.trim() {
-        "manhuascan.us" => {
-            get_manhuascan()
-                .search_by_keyword(keyword, absolute, sleep_time, page_limit)
-                .await
-        }
-        "toonily.com" => {
-            get_toonily_com()
-                .search_by_keyword(keyword, absolute, sleep_time, page_limit)
-                .await
-        }
-        "hentaifox.com" => {
-            get_hentaifox()
-                .search_by_keyword(keyword, absolute, sleep_time, page_limit)
-                .await
-        }
-        _ => Default::default(),
+    get_module(&domain)
+        .search_by_keyword(keyword, absolute, sleep_time, page_limit)
+        .await
+}
+
+#[tauri::command]
+pub fn get_modules() -> Vec<HashMap<String, Value>> {
+    let mut modules: Vec<HashMap<String, Value>> = Vec::new();
+    for module in get_all_modules() {
+        modules.push(HashMap::from([
+            ("type".to_string(), to_value("Manga").unwrap()),
+            ("domain".to_string(), to_value(module.get_domain()).unwrap()),
+            ("logo".to_string(), to_value(module.get_logo()).unwrap()),
+            (
+                "searchable".to_string(),
+                to_value(module.is_searchable()).unwrap(),
+            ),
+            (
+                "is_coded".to_string(),
+                Value::Bool(module.is_coded()),
+            ),
+        ]));
+    }
+    modules
+}
+
+fn get_module(domain: &str) -> Box<dyn Module> {
+    match domain {
+        "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
+        "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
+        "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
+        "toonily.com" => Box::new(toonily_com::Toonily::new()),
+        _ => Box::new(manhuascan::Manhuascan::new()),
     }
 }
 
-fn get_manhuascan() -> manhuascan::Manhuascan {
-    manhuascan::Manhuascan::new()
-}
-
-fn get_toonily_com() -> toonily_com::Toonily {
-    toonily_com::Toonily::new()
-}
-
-fn get_readonepiece() -> readonepiece::Readonepiece {
-    readonepiece::Readonepiece::new()
-}
-
-fn get_hentaifox() -> hentaifox::Hentaifox {
-    hentaifox::Hentaifox::new()
+fn get_all_modules() -> Vec<Box<dyn Module>> {
+    vec![
+        Box::new(hentaifox::Hentaifox::new()),
+        Box::new(manhuascan::Manhuascan::new()),
+        Box::new(readonepiece::Readonepiece::new()),
+        Box::new(toonily_com::Toonily::new()),
+    ]
 }

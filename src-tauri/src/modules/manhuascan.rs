@@ -1,19 +1,78 @@
-use reqwest::Response;
+use crate::models::Module;
+use async_trait::async_trait;
+use futures::stream::TryStreamExt;
+use futures::Future;
+use reqwest::{
+    header::{HeaderName, HeaderValue},
+    Client, Error, Method, RequestBuilder, Response,
+};
 use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, thread, time::Duration};
+use tokio::fs::File;
+use tokio::io::{self, AsyncWriteExt};
+use tokio_util::io::StreamReader;
 
-use crate::models::Module;
+pub struct Manhuascan {}
 
-pub struct Manhuascan {
-    pub mtype: String,
-    pub logo: String,
-    pub domain: String,
-    pub download_images_headers: Option<HashMap<&'static str, &'static str>>,
-    pub searchable: bool,
-}
-
+#[async_trait]
 impl Module for Manhuascan {
+    fn get_type(&self) -> String {
+        "Manga".to_string()
+    }
+    fn get_domain(&self) -> String {
+        "manhuascan.us".to_string()
+    }
+    fn get_logo(&self) -> String {
+        "https://manhuascan.us/fav.png?v=1".to_string()
+    }
+    fn is_searchable(&self) -> bool {
+        true
+    }
+    fn get_module_sample(&self) -> HashMap<String, String> {
+        HashMap::from([("manga".to_string(), "secret-class".to_string())])
+    }
+    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
+        match Self::send_request(
+            &self,
+            url,
+            "GET",
+            Some(Self::get_download_image_headers(&self)),
+            Some(true),
+        )
+        .await
+        {
+            Ok(response) => {
+                let stream = response
+                    .bytes_stream()
+                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+                let mut reader = StreamReader::new(stream);
+                let mut file: File = match File::create(image_name).await {
+                    Ok(file) => file,
+                    Err(_) => return None,
+                };
+                match tokio::io::copy(&mut reader, &mut file).await {
+                    Ok(_) => {
+                        file.flush().await.ok()?;
+                        Some(image_name.to_string())
+                    }
+                    Err(_) => None,
+                }
+            }
+            Err(_) => None,
+        }
+    }
+    async fn retrieve_image(&self, url: &str) -> Response {
+        Self::send_request(
+            &self,
+            &url,
+            "GET",
+            Some(Self::get_download_image_headers(&self)),
+            Some(true),
+        )
+        .await
+        .unwrap()
+    }
     async fn get_info(&self, manga: &str) -> HashMap<String, Value> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
@@ -172,20 +231,7 @@ impl Module for Manhuascan {
         }
         chapters
     }
-}
-
-impl Manhuascan {
-    pub fn new() -> Manhuascan {
-        Manhuascan {
-            mtype: "Manga".to_string(),
-            logo: "https://manhuascan.us/fav.png?v=1".to_string(),
-            domain: "manhuascan.us".to_string(),
-            download_images_headers: None,
-            searchable: true,
-        }
-    }
-
-    pub async fn search_by_keyword(
+    async fn search_by_keyword(
         &self,
         keyword: String,
         absolute: bool,
@@ -272,5 +318,39 @@ impl Manhuascan {
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
         results
+    }
+}
+
+impl Manhuascan {
+    pub fn new() -> Manhuascan {
+        Manhuascan {}
+    }
+    pub fn send_request(
+        &self,
+        url: &str,
+        method: &str,
+        headers: Option<HashMap<&str, &str>>,
+        verify: Option<bool>,
+    ) -> impl Future<Output = Result<Response, Error>> {
+        let client: Client = Client::builder()
+            .danger_accept_invalid_certs(verify.unwrap_or(true))
+            .build()
+            .unwrap();
+        let request: RequestBuilder =
+            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
+        let request: RequestBuilder = match headers {
+            Some(h) => request.headers(
+                h.into_iter()
+                    .map(|(k, v)| {
+                        (
+                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
+                            HeaderValue::from_str(v).unwrap(),
+                        )
+                    })
+                    .collect(),
+            ),
+            None => request,
+        };
+        request.send()
     }
 }

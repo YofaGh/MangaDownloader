@@ -1,73 +1,37 @@
-use futures::stream::TryStreamExt;
-use reqwest::{
-    header::{HeaderName, HeaderValue},
-    Client, Error, Method, RequestBuilder, Response,
-};
+use async_trait::async_trait;
+use reqwest::Response;
 use serde_json::Value;
-use std::{collections::HashMap, future::Future};
-use tokio::fs::File;
-use tokio::io::{self, AsyncWriteExt};
-use tokio_util::io::StreamReader;
+use std::collections::HashMap;
 
-pub trait Module {
-    fn send_request(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> impl Future<Output = Result<Response, Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()
-            .unwrap();
-        let request: RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
+#[async_trait]
+pub trait Module: Send {
+    fn get_type(&self) -> String;
+    fn get_domain(&self) -> String;
+    fn get_logo(&self) -> String {
+        String::default()
     }
-    async fn download_image(
-        &self,
-        url: &str,
-        image_name: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> Option<String> {
-        match Self::send_request(&self, url, "GET", headers, verify).await {
-            Ok(response) => {
-                let stream = response
-                    .bytes_stream()
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-                let mut reader = StreamReader::new(stream);
-                let mut file: File = match File::create(image_name).await {
-                    Ok(file) => file,
-                    Err(_) => return None,
-                };
-                match tokio::io::copy(&mut reader, &mut file).await {
-                    Ok(_) => {
-                        file.flush().await.ok()?;
-                        Some(image_name.to_string())
-                    }
-                    Err(_) => None,
-                }
-            }
-            Err(_) => None,
-        }
+    fn get_download_image_headers(&self) -> HashMap<&'static str, &'static str> {
+        HashMap::new()
     }
+    fn is_searchable(&self) -> bool {
+        false
+    }
+    fn is_coded(&self) -> bool {
+        false
+    }
+    async fn download_image(&self, url: &str, image_name: &str) -> Option<String>;
+    async fn retrieve_image(&self, url: &str) -> Response;
+    fn get_module_sample(&self) -> HashMap<String, String>;
     async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value);
     async fn get_info(&self, manga: &str) -> HashMap<String, Value>;
+    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>>;
+    async fn search_by_keyword(
+        &self,
+        keyword: String,
+        absolute: bool,
+        sleep_time: f64,
+        page_limit: u32,
+    ) -> Vec<HashMap<String, String>>;
     fn rename_chapter(&self, chapter: &str) -> String {
         let mut new_name: String = String::new();
         let mut reached_number: bool = false;
@@ -98,5 +62,4 @@ pub trait Module {
             }
         }
     }
-    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>>;
 }

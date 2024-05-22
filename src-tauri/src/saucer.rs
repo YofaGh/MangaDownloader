@@ -1,12 +1,11 @@
-use reqwest::header::{HeaderName, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue};
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-#[tauri::command]
-pub fn yandex(url: &str) -> Vec<HashMap<String, String>> {
+fn yandex(url: &str) -> Vec<HashMap<String, String>> {
     let response: String = reqwest::blocking::get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={}",
         url
@@ -39,27 +38,20 @@ pub fn yandex(url: &str) -> Vec<HashMap<String, String>> {
         .collect()
 }
 
-#[tauri::command]
-pub fn tineye(url: &str) -> Vec<HashMap<String, String>> {
-    let headers: [(&str, &str); 1] = [(
-        "content-type",
-        "multipart/form-data; boundary=----WebKitFormBoundaryVxauFLsZbD7Cr1Fa",
-    )];
+fn tineye(url: &str) -> Vec<HashMap<String, String>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
     let client: reqwest::blocking::Client = reqwest::blocking::Client::new();
+    let mut headers: HeaderMap = HeaderMap::new();
+    headers.append(
+        "content-type",
+        HeaderValue::from_str(
+            "multipart/form-data; boundary=----WebKitFormBoundaryVxauFLsZbD7Cr1Fa",
+        )
+        .unwrap(),
+    );
     let mut response: Value = client
         .post("https://tineye.com/result_json/?sort=score&order=desc&page=1")
-        .headers(
-            headers
-                .into_iter()
-                .map(|(k, v)| {
-                    (
-                        HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                        HeaderValue::from_str(v).unwrap(),
-                    )
-                })
-                .collect(),
-        )
+        .headers(headers.clone())
         .body(data.clone())
         .send()
         .unwrap()
@@ -73,17 +65,7 @@ pub fn tineye(url: &str) -> Vec<HashMap<String, String>> {
                 "https://tineye.com/result_json/?sort=score&order=desc&page={}",
                 i
             ))
-            .headers(
-                headers
-                    .into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            )
+            .headers(headers.clone())
             .body(data.clone())
             .send()
             .unwrap()
@@ -111,8 +93,7 @@ pub fn tineye(url: &str) -> Vec<HashMap<String, String>> {
     results
 }
 
-#[tauri::command]
-pub fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
+fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
     let response: String = reqwest::blocking::get(&format!("https://iqdb.org/?url={}", url))
         .unwrap()
         .text()
@@ -158,8 +139,7 @@ pub fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
     results
 }
 
-#[tauri::command]
-pub fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
+fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
     let response = reqwest::blocking::get(&format!(
         "https://saucenao.com/search.php?db=999&url={}",
         url
@@ -201,6 +181,17 @@ pub fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
         }
     }
     results
+}
+
+#[tauri::command]
+pub fn sauce(saucer: &str, url: &str) -> Vec<HashMap<String, String>> {
+    match saucer {
+        "yandex" => yandex(url),
+        "tineye" => tineye(url),
+        "iqdb" => iqdb(url),
+        "saucenao" => saucenao(url),
+        _ => Vec::new(),
+    }
 }
 
 #[tauri::command]

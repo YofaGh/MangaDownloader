@@ -2,7 +2,7 @@
 
 use assets::*;
 use downloader::{download, stop_download};
-use saucer::*;
+use saucer::{get_saucers_list, sauce, upload_image};
 use searcher::{search_keyword, stop_search};
 use tauri::Manager;
 mod assets;
@@ -38,10 +38,7 @@ pub fn run() {
             search_keyword_one,
             get_saucers_list,
             upload_image,
-            yandex,
-            tineye,
-            iqdb,
-            saucenao,
+            sauce,
             search_keyword,
             stop_search,
             download,

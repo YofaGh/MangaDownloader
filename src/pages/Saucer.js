@@ -15,7 +15,6 @@ export default function Saucer() {
   useEffect(() => {
     const fetchSaucers = async () => {
       const response = await invoke("get_saucers_list");
-      console.log(response);
       setSites(response);
     };
     fetchSaucers();
@@ -27,11 +26,11 @@ export default function Saucer() {
       multiple: false,
     }).then((path) => {
       setCurrentStatus("Uploading");
-      invoke("upload_image", {path}).then((response) => {
+      invoke("upload_image", { path }).then((response) => {
         setUrl(response);
         dispatchSuccess(`Uploaded ${response}`);
         setCurrentStatus(null);
-      })
+      });
     });
   };
 
@@ -45,7 +44,7 @@ export default function Saucer() {
         const site = sites[i];
         let element = document.getElementById(site);
         element.classList.add("active");
-        const res = await invoke(site, {url});
+        const res = await invoke("sauce", { saucer: site, url });
         setResults((prevResults) => [
           ...prevResults,
           ...res.map((item) => ({ site, ...item })),

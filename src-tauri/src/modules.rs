@@ -9,13 +9,11 @@ pub mod nhentai_net;
 // bato.to
 // doujins.com
 // ehentai.to
-// hentaifox.com
 // imhentai.xxx
 // lusicous.net
 // magzino.top
 // manga18.club
 // mangapark.to
 // manytoon.com
-// nhentai.net
 // nhentai.xxx
 // truemanga.com

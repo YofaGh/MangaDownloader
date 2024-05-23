@@ -1,7 +1,7 @@
 use crate::assets;
 use serde_json::{from_value, Value};
 use std::collections::HashMap;
-use std::fs::{create_dir_all, read_dir, ReadDir};
+use std::fs::{create_dir_all, read_dir};
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
@@ -71,11 +71,12 @@ pub async fn download(
             },
         )
         .expect("failed to emit event");
-    let dirs: ReadDir = read_dir(&d_path).unwrap();
-    let mut exists_images: Vec<String> = Vec::new();
-    for dir in dirs {
-        exists_images.push(dir.unwrap().path().to_str().unwrap().to_string());
-    }
+    let exists_images: Vec<String> = read_dir(&d_path)
+        .unwrap()
+        .into_iter()
+        .enumerate()
+        .map(|(_, dir)| dir.unwrap().path().to_str().unwrap().to_string())
+        .collect();
     let mut last_corrupted: String = "".to_string();
     let mut has_saved_names: bool = false;
     let mut saved_names: Vec<String> = Vec::new();

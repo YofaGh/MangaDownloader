@@ -54,9 +54,9 @@ pub fn load_up_checks(data_dir: String) {
         format!("{}/settings.json", data_dir),
         to_value(&default_settings).unwrap(),
     );
-    for file in file_array {
+    file_array.into_iter().enumerate().for_each(|(_, file)| {
         save_file(format!("{}/{}", data_dir, file), from_str("[]").unwrap());
-    }
+    })
 }
 
 fn save_file(path: String, data: Value) {
@@ -222,23 +222,22 @@ pub async fn search_by_keyword(
 
 #[tauri::command]
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
-    let mut modules: Vec<HashMap<String, Value>> = Vec::new();
-    for module in get_all_modules() {
-        modules.push(HashMap::from([
-            ("type".to_string(), to_value("Manga").unwrap()),
-            ("domain".to_string(), to_value(module.get_domain()).unwrap()),
-            ("logo".to_string(), to_value(module.get_logo()).unwrap()),
-            (
-                "searchable".to_string(),
-                to_value(module.is_searchable()).unwrap(),
-            ),
-            (
-                "is_coded".to_string(),
-                Value::Bool(module.is_coded()),
-            ),
-        ]));
-    }
-    modules
+    get_all_modules()
+        .into_iter()
+        .enumerate()
+        .map(|(_, module)| {
+            HashMap::from([
+                ("type".to_string(), to_value("Manga").unwrap()),
+                ("domain".to_string(), to_value(module.get_domain()).unwrap()),
+                ("logo".to_string(), to_value(module.get_logo()).unwrap()),
+                (
+                    "searchable".to_string(),
+                    to_value(module.is_searchable()).unwrap(),
+                ),
+                ("is_coded".to_string(), Value::Bool(module.is_coded())),
+            ])
+        })
+        .collect()
 }
 
 fn get_module(domain: &str) -> Box<dyn Module> {

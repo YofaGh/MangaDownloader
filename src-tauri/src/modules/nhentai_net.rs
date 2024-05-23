@@ -93,7 +93,10 @@ impl Module for Nhentai {
             .collect();
         info.insert("Cover".to_string(), response["cover"].clone());
         info.insert("Title".to_string(), response["title"].clone());
-        info.insert("Pages".to_string(), Value::from(images[0].as_array().unwrap().len()));
+        info.insert(
+            "Pages".to_string(),
+            Value::from(images[0].as_array().unwrap().len()),
+        );
         let mut extras: HashMap<&str, Value> = HashMap::new();
         extras.insert("Artists", response["artist"].clone());
         extras.insert("Authors", response["author"].clone());
@@ -130,11 +133,16 @@ impl Module for Nhentai {
             .values()
             .cloned()
             .collect();
-        let mut image_urls: Vec<String> = Vec::new();
-        for image in images[0].as_array().unwrap() {
-            image_urls.push(image.as_str().unwrap().to_string());
-        }
-        (image_urls, Value::Bool(false))
+        (
+            images[0]
+                .as_array()
+                .unwrap()
+                .into_iter()
+                .enumerate()
+                .map(|(_, image)| image.as_str().unwrap().to_string())
+                .collect(),
+            Value::Bool(false),
+        )
     }
     async fn get_chapters(&self, _: &str) -> Vec<HashMap<String, String>> {
         Default::default()

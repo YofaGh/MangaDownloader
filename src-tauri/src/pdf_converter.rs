@@ -12,12 +12,12 @@ pub async fn convert_folder(path_to_source: String, path_to_destination: String,
         images.len(),
     )
     .unwrap();
-    for (image, _) in images {
+    images.into_iter().enumerate().for_each(|(_, (image, _))| {
         let config: PageConfig = PageConfig::new()
             .size(PageSize::Custom(image.width(), image.height()))
             .quality(100);
         file.add_page_from_image(image, Some(format!("Image")), Some(config))
             .unwrap();
-    }
+    });
     file.finish().unwrap();
 }

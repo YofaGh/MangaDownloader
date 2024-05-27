@@ -27,8 +27,12 @@ import {
 } from "./Provider";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import { appDataDir } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  readTextFile,
+  writeTextFile,
+  BaseDirectory,
+} from "@tauri-apps/plugin-fs";
 
 export default function App() {
   const [settings, setSettings] = [useSettings(), useSetSettings()];
@@ -47,51 +51,51 @@ export default function App() {
   const dispatchSuccess = useSuccessNotification();
 
   const readFile = async (file, setter) => {
-    const dataDirPath = await appDataDir();
-    const contents = await invoke("read_file", {
-      path: `${dataDirPath}/${file}`,
+    readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then((contents) => {
+      const data = JSON.parse(contents);
+      const transformedData =
+        file === "library.json"
+          ? Object.entries(data).map(([title, details]) => ({
+              title,
+              status: details.include,
+              domain: details.domain,
+              url: details.url,
+              cover: details.cover,
+              last_downloaded_chapter: details.last_downloaded_chapter,
+            }))
+          : data;
+      setter(transformedData);
     });
-    const data = JSON.parse(contents);
-    const transformedData =
-      file === "library.json"
-        ? Object.entries(data).map(([title, details]) => ({
-            title,
-            status: details.include,
-            domain: details.domain,
-            url: details.url,
-            cover: details.cover,
-            last_downloaded_chapter: details.last_downloaded_chapter,
-          }))
-        : data;
-    setter(transformedData);
   };
 
   const writeFile = async (fileName, data) => {
-    if (data) {
-      if (fileName === "library.json") {
-        data = data.reduce(
-          (
-            acc,
-            { title, status, domain, url, cover, last_downloaded_chapter }
-          ) => {
-            acc[title] = {
-              include: status,
-              domain,
-              url,
-              cover,
-              last_downloaded_chapter,
-            };
-            return acc;
-          },
-          {}
-        );
-      }
-      let dataDirPath = await appDataDir();
-      await invoke("write_file", {
-        path: `${dataDirPath}/${fileName}`,
-        data: JSON.stringify(data, null, 2),
-      });
+    if (!data) {
+      return;
     }
+    if (fileName === "library.json") {
+      data = data.reduce(
+        (
+          acc,
+          { title, status, domain, url, cover, last_downloaded_chapter }
+        ) => {
+          acc[title] = {
+            include: status,
+            domain,
+            url,
+            cover,
+            last_downloaded_chapter,
+          };
+          return acc;
+        },
+        {}
+      );
+    }
+    await writeTextFile(
+      fileName,
+      JSON.stringify(data, null, 2),
+      { baseDir: BaseDirectory.AppData },
+      "utf8"
+    );
   };
 
   const removeDirectory = async (path, recursive) => {
@@ -634,7 +638,8 @@ export default function App() {
                     ...prevSettings,
                     download_path: selectedPath,
                   }));
-                  document.getElementById("browse-modal").style.display = "none";
+                  document.getElementById("browse-modal").style.display =
+                    "none";
                   startDownloading();
                 }
               }}

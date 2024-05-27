@@ -10,7 +10,7 @@ use std::{
 
 use crate::assets::detect_images;
 
-pub async fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) {
+pub fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
     if !images.is_empty() {
         create_dir_all(path_to_destination.clone()).unwrap();

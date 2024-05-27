@@ -23,8 +23,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             open_folder,
             remove_directory,
-            read_file,
-            write_file,
             get_info,
             get_chapters,
             get_module_type,

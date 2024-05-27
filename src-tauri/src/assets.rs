@@ -3,9 +3,9 @@ use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
 use reqwest::Response;
-use serde_json::{from_str, to_value, Value};
+use serde_json::{to_string_pretty, to_value, Value};
 use std::collections::HashMap;
-use std::io::{Read, Seek, Write};
+use std::io::{Seek, Write};
 use std::process::Command;
 use std::{
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
@@ -55,13 +55,21 @@ pub fn load_up_checks(data_dir: String) {
         to_value(&default_settings).unwrap(),
     );
     file_array.into_iter().enumerate().for_each(|(_, file)| {
-        save_file(format!("{}/{}", data_dir, file), from_str("[]").unwrap());
+        save_file(format!("{}/{}", data_dir, file), Value::Array(Vec::new()));
     })
 }
 
 fn save_file(path: String, data: Value) {
     if !Path::new(&path).exists() {
-        write_file(path, serde_json::to_string_pretty(&data).unwrap());
+        let mut f: File = OpenOptions::new()
+            .write(true)
+            .read(true)
+            .create(true)
+            .open(&path)
+            .unwrap();
+        let _ = f.set_len(0);
+        write!(f, "{}", &to_string_pretty(&data).unwrap()).unwrap();
+        f.rewind().ok();
     }
 }
 
@@ -71,31 +79,6 @@ pub fn open_folder(path: String) {
         .args(["/select,", &path])
         .spawn()
         .ok();
-}
-
-#[tauri::command]
-pub fn write_file(path: String, data: String) {
-    let mut f: File = OpenOptions::new()
-        .write(true)
-        .read(true)
-        .create(true)
-        .open(&path)
-        .unwrap();
-    let _ = f.set_len(0);
-    write!(f, "{}", &data).unwrap();
-    f.rewind().ok();
-}
-
-#[tauri::command]
-pub fn read_file(path: String) -> String {
-    let mut f: File = OpenOptions::new()
-        .write(true)
-        .read(true)
-        .open(&path)
-        .unwrap();
-    let mut buf: String = String::new();
-    f.read_to_string(&mut buf).unwrap();
-    buf
 }
 
 #[tauri::command]
@@ -110,18 +93,17 @@ pub fn remove_directory(path: String, recursive: bool) {
 }
 
 #[tauri::command]
-pub async fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {
+pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {
     image_merger::merge_folder(
         path_to_source,
         path_to_destination,
         if merge_method == "Fit" { true } else { false },
-    )
-    .await;
+    );
 }
 
 #[tauri::command]
-pub async fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) {
-    pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name).await;
+pub fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) {
+    pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name);
 }
 
 #[tauri::command]
@@ -227,12 +209,12 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
         .enumerate()
         .map(|(_, module)| {
             HashMap::from([
-                ("type".to_string(), to_value("Manga").unwrap()),
-                ("domain".to_string(), to_value(module.get_domain()).unwrap()),
-                ("logo".to_string(), to_value(module.get_logo()).unwrap()),
+                ("type".to_string(), Value::String(module.get_type())),
+                ("domain".to_string(), Value::String(module.get_domain())),
+                ("logo".to_string(), Value::String(module.get_logo())),
                 (
                     "searchable".to_string(),
-                    to_value(module.is_searchable()).unwrap(),
+                    Value::Bool(module.is_searchable()),
                 ),
                 ("is_coded".to_string(), Value::Bool(module.is_coded())),
             ])

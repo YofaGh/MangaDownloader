@@ -46,7 +46,7 @@ export default function Search({
     };
 
     fetchModules();
-  });
+  }, []);
 
   useEffect(() => {
     if (searchingStatus && searchingStatus.searched) {

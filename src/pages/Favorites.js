@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { FavoriteWebtoon } from "../components";
-import { useSettings } from "../Provider";
+import { useSettingsStore, useFavoritesStore } from "../store";
 
-export default function Favorites({ favorites, setFavorites }) {
-  const { load_covers } = useSettings();
+export default function Favorites() {
+  const { favorites, removeFromFavorites } = useFavoritesStore();
+  const { load_covers } = useSettingsStore((state) => state.settings);
 
   return (
     <div className="container">
@@ -18,7 +19,7 @@ export default function Favorites({ favorites, setFavorites }) {
             }`}
             key={webtoon.id}
           >
-            <FavoriteWebtoon webtoon={webtoon} setFavorites={setFavorites} load_covers={load_covers} />
+            <FavoriteWebtoon webtoon={webtoon} removeFromFavorites={removeFromFavorites} load_covers={load_covers} />
           </Link>
         ))}
       </div>

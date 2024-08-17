@@ -1,31 +1,19 @@
-import { useState } from "react";
 import { Queue, Downloaded, PushButton } from "../components";
+import { useDownloadTabStore } from "../store";
 
-export default function Download({
-  queue,
-  addQueueMessage,
-  downloaded,
-  addDownloadedMessage,
-}) {
-  const [current, setCurrent] = useState("queue");
+export default function Download() {
+  const { downloadTab, setDownloadTab } = useDownloadTabStore();
 
   return (
     <div className="container">
       <div className="scrollmenu">
-        <PushButton label={"Queue"} onClick={() => setCurrent("queue")} />
+        <PushButton label={"Queue"} onClick={() => setDownloadTab("queue")} />
         <PushButton
           label={"Downloaded"}
-          onClick={() => setCurrent("downloaded")}
+          onClick={() => setDownloadTab("downloaded")}
         />
       </div>
-      {current === "queue" ? (
-        <Queue queue={queue} addQueueMessage={addQueueMessage} />
-      ) : (
-        <Downloaded
-          downloaded={downloaded}
-          addDownloadedMessage={addDownloadedMessage}
-        />
-      )}
+      {downloadTab === "queue" ? <Queue /> : <Downloaded />}
     </div>
   );
 }

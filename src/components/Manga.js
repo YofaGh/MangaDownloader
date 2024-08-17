@@ -9,21 +9,23 @@ import {
   ChapterButton,
   PushButton,
   retrieveImage,
-  chunkArray
+  chunkArray,
 } from ".";
 import { invoke } from "@tauri-apps/api/core";
-import { useSettings } from "../Provider";
+import {
+  useSettingsStore,
+  useQueueMessagesStore,
+  useLibraryMessagesStore,
+  useLibraryStore,
+} from "../store";
 import { useNavigate } from "react-router-dom";
 
 export default function Manga({
   module,
   url,
-  addWebtoonToQueue,
   isFavorite,
   updateWebtoon,
-  addLibraryMessage,
   isInLibrary,
-  library,
 }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
@@ -32,7 +34,10 @@ export default function Manga({
   const [chapters, setChapters] = useState([]);
   const [imageSrc, setImageSrc] = useState("");
   const navigate = useNavigate();
-  const { load_covers } = useSettings();
+  const { load_covers } = useSettingsStore((state) => state.settings);
+  const { addQueueMessage } = useQueueMessagesStore();
+  const { addLibraryMessage } = useLibraryMessagesStore();
+  const { library } = useLibraryStore();
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -40,7 +45,9 @@ export default function Manga({
         setWebtoon(response);
         setWebtoonLoaded(true);
         setMangaTitleForLibrary(response.Title);
-        setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+        setImageSrc(
+          load_covers ? response.Cover : "./assets/default-cover.svg"
+        );
       });
     };
     fetchManga();
@@ -62,15 +69,19 @@ export default function Manga({
   };
 
   const addManga = (chapter, status) => {
-    addWebtoonToQueue({
-      type: "manga",
-      id: `${module}_$_${url}_$_${chapter.url}`,
-      title: webtoon.Title,
-      info: chapter.name,
-      module: module,
-      manga: url,
-      chapter: chapter.url,
-      status: status,
+    addQueueMessage({
+      addWebtoon: {
+        webtoon: {
+          type: "manga",
+          id: `${module}_$_${url}_$_${chapter.url}`,
+          title: webtoon.Title,
+          info: chapter.name,
+          module: module,
+          manga: url,
+          chapter: chapter.url,
+          status: status,
+        },
+      },
     });
   };
 
@@ -183,9 +194,10 @@ export default function Manga({
             {webtoon.Summary}
           </div>
           <div className="info-sec">
-            {webtoon.Extras && Object.entries(webtoon.Extras).map(([key, value]) => (
-              <Infoed key={key} title={`${key}:`} info={value} />
-            ))}
+            {webtoon.Extras &&
+              Object.entries(webtoon.Extras).map(([key, value]) => (
+                <Infoed key={key} title={`${key}:`} info={value} />
+              ))}
             <div style={{ display: "inline-flex" }}>
               {webtoon.Dates &&
                 Object.entries(webtoon.Dates).map(([key, value]) => (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { SearchBar, SaucerResult, Loading } from "../components";
-import { useSettings, useSuccessNotification } from "../Provider";
+import { useSettingsStore, useNotificationStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
@@ -9,8 +9,8 @@ export default function Saucer() {
   const [sites, setSites] = useState([]);
   const [results, setResults] = useState([]);
   const [currentStatus, setCurrentStatus] = useState(null);
-  const dispatchSuccess = useSuccessNotification();
-  const { load_covers } = useSettings();
+  const { addNotification } = useNotificationStore();
+  const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
     const fetchSaucers = async () => {
@@ -28,7 +28,7 @@ export default function Saucer() {
       setCurrentStatus("Uploading");
       invoke("upload_image", { path }).then((response) => {
         setUrl(response);
-        dispatchSuccess(`Uploaded ${response}`);
+        addNotification(`Uploaded ${response}`, "SUCCESS");
         setCurrentStatus(null);
       });
     });

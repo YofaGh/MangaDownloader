@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { MCard, chunkArray, ModuleChecker } from "../components";
-import { useSettings } from "../Provider";
+import { useSettingsStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { remove } from "@tauri-apps/plugin-fs";
 
 export default function Modules() {
   const [modules, setModules] = useState([]);
-  const { load_covers, data_dir_path } = useSettings();
+  const { load_covers, data_dir_path } = useSettingsStore((state) => state.settings);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const chunkedModules = chunkArray(modules, 3);
 
@@ -133,7 +133,7 @@ export default function Modules() {
       let save_names = [];
       const response = await invoke("get_images", {
         domain: module.domain,
-        manga: sample.doujin,
+        manga: sample.code,
         chapter: "",
       });
       images = response[0];

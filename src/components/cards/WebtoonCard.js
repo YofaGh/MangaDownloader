@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from "..";
 import { invoke } from "@tauri-apps/api/core";
+import { useLibraryMessagesStore } from "../../store"
 
 export default function Wcard({
   webtoon,
-  addLibraryMessage,
   update,
   load_covers,
 }) {
@@ -13,6 +13,8 @@ export default function Wcard({
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
+  const { addLibraryMessage } = useLibraryMessagesStore();
+
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);

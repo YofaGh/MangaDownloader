@@ -1,7 +1,11 @@
 import { DCard } from ".";
 import { invoke } from "@tauri-apps/api/core";
+import { useDownloadedMessagesStore, useDownloadedStore } from "../store";
 
-export default function Downloaded({ downloaded, addDownloadedMessage }) {
+export default function Downloaded() {
+  const addDownloadedMessage = useDownloadedMessagesStore((state) => state.addDownloadedMessage);
+  const { downloaded } = useDownloadedStore();
+
   const removeWebtoon = (index) => {
     addDownloadedMessage({ removeWebtoon: { index } });
   };

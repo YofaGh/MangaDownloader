@@ -1,19 +1,18 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { FilterToggleButton } from "../components";
-import { useSettings, useSetSettings, useErrorNotification } from "../Provider";
+import { useSettingsStore, useNotificationStore, useDownloadingStore } from "../store";
 
-export default function Settings({ downloading }) {
-  const [settings, setSettings] = [useSettings(), useSetSettings()];
-  const dispatchError = useErrorNotification();
+export default function Settings() {
+  const { settings, updateSettings } = useSettingsStore();
+  const { addNotification } = useNotificationStore();
+  const { downloading } = useDownloadingStore();
+
   const changeFilePath = async () => {
     const path = await open({
       directory: true,
     });
     if (path) {
-      setSettings((prevSettings) => ({
-        ...prevSettings,
-        download_path: path,
-      }));
+      updateSettings({ download_path: path });
     }
   };
   return (
@@ -28,10 +27,7 @@ export default function Settings({ downloading }) {
               className="cyberpunk-checkbox"
               checked={settings.auto_merge}
               onChange={() =>
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  auto_merge: !prevSettings.auto_merge,
-                }))
+                updateSettings({ auto_merge: !settings.auto_merge })
               }
             ></input>
           </label>
@@ -44,10 +40,7 @@ export default function Settings({ downloading }) {
               className="cyberpunk-checkbox"
               checked={settings.auto_convert}
               onChange={() =>
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  auto_convert: !prevSettings.auto_convert,
-                }))
+                updateSettings({ auto_convert: !settings.auto_convert })
               }
             ></input>
           </label>
@@ -59,10 +52,7 @@ export default function Settings({ downloading }) {
             selected={settings.merge_method === "Normal"}
             onChange={() => {
               if (settings.merge_method === "Fit") {
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  merge_method: "Normal",
-                }));
+                updateSettings({ merge_method: "Normal" });
               }
             }}
           />
@@ -71,10 +61,7 @@ export default function Settings({ downloading }) {
             selected={settings.merge_method === "Fit"}
             onChange={() => {
               if (settings.merge_method === "Normal") {
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  merge_method: "Fit",
-                }));
+                updateSettings({ merge_method: "Fit" });
               }
             }}
           />
@@ -89,10 +76,7 @@ export default function Settings({ downloading }) {
               className="cyberpunk-checkbox"
               checked={settings.load_covers}
               onChange={() =>
-                setSettings((prevSettings) => ({
-                  ...prevSettings,
-                  load_covers: !prevSettings.load_covers,
-                }))
+                updateSettings({ load_covers: !settings.load_covers })
               }
             ></input>
           </label>
@@ -106,10 +90,7 @@ export default function Settings({ downloading }) {
             defaultValue={settings.sleep_time}
             onChange={(e) =>
               e.target.valueAsNumber > 0 &&
-              setSettings((prevSettings) => ({
-                ...prevSettings,
-                sleep_time: e.target.valueAsNumber,
-              }))
+              updateSettings({ sleep_time: e.target.valueAsNumber })
             }
           ></input>
           &nbsp;&nbsp;
@@ -123,10 +104,7 @@ export default function Settings({ downloading }) {
             defaultValue={settings.default_search_depth}
             onChange={(e) =>
               e.target.valueAsNumber > 0 &&
-              setSettings((prevSettings) => ({
-                ...prevSettings,
-                default_search_depth: e.target.valueAsNumber,
-              }))
+              updateSettings({ default_search_depth: e.target.valueAsNumber })
             }
           ></input>
           &nbsp;&nbsp;
@@ -145,7 +123,7 @@ export default function Settings({ downloading }) {
           className="playstore-button texts"
           onClick={() => {
             if (downloading) {
-              dispatchError("There's a download in progress. Stop it first.");
+              addNotification("There's a download in progress. Stop it first.", "ERROR");
               return;
             }
             changeFilePath();

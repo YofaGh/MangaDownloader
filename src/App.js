@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Modules,
@@ -15,18 +15,25 @@ import {
 } from "./pages";
 import {
   TopBar,
-  PushButton,
+  NotificationProvider,
+  DownloadPathModal,
   fixNameForFolder,
   convert,
   merge,
 } from "./components";
 import {
-  useSetSettings,
-  useSettings,
-  useSuccessNotification,
-} from "./Provider";
+  useNotificationStore,
+  useSettingsStore,
+  useDownloadedStore,
+  useFavoritesStore,
+  useLibraryStore,
+  useQueueStore,
+  useQueueMessagesStore,
+  useLibraryMessagesStore,
+  useDownloadedMessagesStore,
+  useDownloadingStore,
+} from "./store";
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import {
   readTextFile,
@@ -35,37 +42,59 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 export default function App() {
-  const [settings, setSettings] = [useSettings(), useSetSettings()];
-  const [queue, setQueue] = useState([]);
-  const [queueMessages, setQueueMessages] = useState([]);
-  const [downloadedMessages, setDownloadedMessages] = useState([]);
-  const [downloading, setDownloading] = useState(null);
-  const [downloaded, setDownloaded] = useState([]);
-  const [searchingStatus, setSearchingStatus] = useState(null);
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [library, setLibrary] = useState([]);
-  const [libraryMessages, setLibraryMessages] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [selectedModulesForSearch, setSelectedModulesForSearch] = useState([]);
-  const dispatchSuccess = useSuccessNotification();
+  const { addNotification } = useNotificationStore();
+  const { settings, updateSettings } = useSettingsStore();
+  const {
+    queue,
+    setQueue,
+    addToQueue,
+    removeFromQueue,
+    updateItemInQueue,
+    reOrderQueue,
+    deleteItemKeysInQueue,
+    deleteKeysFromAllItemsInQueue,
+    updateAllItemsInQueue,
+  } = useQueueStore();
+  const {
+    downloaded,
+    setDownloaded,
+    addToDownloaded,
+    deleteDownloadedByIndex,
+    deleteAllDownloaded,
+  } = useDownloadedStore();
+  const {
+    library,
+    setLibrary,
+    addToLibrary,
+    removeFromLibrary,
+    updateItemInLibrary,
+  } = useLibraryStore();
+  const { favorites, setFavorites } = useFavoritesStore();
+  const { downloading, setDownloading, clearDownloading } =
+    useDownloadingStore();
+  const { downloadedMessages, addDownloadedMessage } =
+    useDownloadedMessagesStore();
+  const { queueMessages, addQueueMessage } = useQueueMessagesStore();
+  const { libraryMessages, addLibraryMessage } = useLibraryMessagesStore();
 
   const readFile = async (file, setter) => {
-    readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then((contents) => {
-      const data = JSON.parse(contents);
-      const transformedData =
-        file === "library.json"
-          ? Object.entries(data).map(([title, details]) => ({
-              title,
-              status: details.include,
-              domain: details.domain,
-              url: details.url,
-              cover: details.cover,
-              last_downloaded_chapter: details.last_downloaded_chapter,
-            }))
-          : data;
-      setter(transformedData);
-    });
+    readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then(
+      (contents) => {
+        const data = JSON.parse(contents);
+        const transformedData =
+          file === "library.json"
+            ? Object.entries(data).map(([title, details]) => ({
+                title,
+                status: details.include,
+                domain: details.domain,
+                url: details.url,
+                cover: details.cover,
+                last_downloaded_chapter: details.last_downloaded_chapter,
+              }))
+            : data;
+        setter(transformedData);
+      }
+    );
   };
 
   const writeFile = async (fileName, data) => {
@@ -102,12 +131,13 @@ export default function App() {
     await invoke("remove_directory", { path, recursive });
   };
 
-  const stopWorker = async (command) => {
-    await invoke(command);
+  const stopDownloader = async () => {
+    await invoke("stop_download");
+    clearDownloading();
   };
 
   useEffect(() => {
-    readFile("settings.json", setSettings);
+    readFile("settings.json", updateSettings);
     readFile("queue.json", setQueue);
     readFile("downloaded.json", setDownloaded);
     readFile("favorites.json", setFavorites);
@@ -115,13 +145,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (settings) {
-      if (!settings.download_path) {
-        const modal = document.getElementById("browse-modal");
-        modal.style.display = "block";
-      } else {
-        startDownloading();
-      }
+    if (!settings) {
+      return;
+    }
+    if (settings.download_path) {
+      startDownloading();
+    } else {
+      document.getElementById("browse-modal").style.display = "block";
     }
   }, [settings]);
 
@@ -129,11 +159,8 @@ export default function App() {
     while (queueMessages.length > 0) {
       const message = queueMessages.shift();
       if (message.setWebtoonStatus) {
-        const updatedList = queue.map((item) => {
-          if (item.id === message.setWebtoonStatus.webtoon.id) {
-            item.status = message.setWebtoonStatus.status;
-          }
-          return item;
+        updateItemInQueue(message.setWebtoonStatus.webtoon.id, {
+          status: message.setWebtoonStatus.status,
         });
         if (
           downloading &&
@@ -141,15 +168,13 @@ export default function App() {
           (message.setWebtoonStatus.status === "Paused" ||
             message.setWebtoonStatus.status === "Not Started")
         ) {
-          stopWorker("stop_download");
-          setDownloading(null);
+          stopDownloader();
         }
         if (message.setWebtoonStatus.status === "Not Started") {
-          let indexOfTodo = updatedList.findIndex(
-            (item) => item.id === message.setWebtoonStatus.webtoon.id
-          );
-          delete updatedList[indexOfTodo].downloading;
-          delete updatedList[indexOfTodo].totalImages;
+          deleteItemKeysInQueue(message.setWebtoonStatus.webtoon.id, [
+            "downloading",
+            "totalImages",
+          ]);
           let folderName =
             message.setWebtoonStatus.webtoon.type === "manga"
               ? `${fixNameForFolder(message.setWebtoonStatus.webtoon.title)}/${
@@ -166,35 +191,21 @@ export default function App() {
             );
           }
         }
-        setQueue(updatedList);
         if (message.setWebtoonStatus.status === "Started" && !downloading) {
           startDownloading();
         }
       }
       if (message.setAllWebtoonsStatus) {
-        let updatedList = queue.map((item) => {
-          if (message.setAllWebtoonsStatus.status === "Paused") {
-            if (item.downloading) {
-              item.status = "Paused";
-            }
-          } else {
-            item.status = message.setAllWebtoonsStatus.status;
-          }
-          return item;
-        });
+        updateAllItemsInQueue({ status: message.setAllWebtoonsStatus.status });
         if (
           (message.setAllWebtoonsStatus.status === "Paused" ||
             message.setAllWebtoonsStatus.status === "Not Started") &&
           downloading
         ) {
-          stopWorker("stop_download");
-          setDownloading(null);
+          stopDownloader();
         }
         if (message.setAllWebtoonsStatus.status === "Not Started") {
-          for (let webtoon of updatedList) {
-            delete webtoon.downloading;
-            delete webtoon.totalImages;
-          }
+          deleteKeysFromAllItemsInQueue(["downloading", "totalImages"]);
           for (const webtoon of queue) {
             let folderName =
               webtoon.type === "manga"
@@ -209,17 +220,14 @@ export default function App() {
             }
           }
         }
-        setQueue(updatedList);
         if (message.setAllWebtoonsStatus.status === "Started" && !downloading) {
           startDownloading();
         }
       }
       if (message.done) {
-        setDownloading(null);
+        clearDownloading();
         let webtoon = queue.find((item) => item.id === message.done.id);
-        setQueue((prevQueue) =>
-          prevQueue.filter((item) => item.id !== message.done.id)
-        );
+        removeFromQueue(message.done.id);
         if (webtoon.in_library) {
           addLibraryMessage({
             updateWebtoon: {
@@ -239,10 +247,11 @@ export default function App() {
         delete webtoon.downloading;
         delete webtoon.totalImages;
         addDownloadedMessage({ addWebtoon: { webtoon } });
-        dispatchSuccess(
+        addNotification(
           webtoon.type === "manga"
             ? `Downloaded ${webtoon.title} - ${webtoon.info}`
-            : `Downloaded ${webtoon.title}`
+            : `Downloaded ${webtoon.title}`,
+          "SUCCESS"
         );
         if (settings.auto_merge) {
           merge(
@@ -250,32 +259,28 @@ export default function App() {
             settings.download_path,
             settings.merge_method,
             false,
-            dispatchSuccess,
+            addNotification,
             invoke,
             null
           );
         }
         if (settings.auto_convert) {
-          convert(webtoon, false, dispatchSuccess, invoke, null);
+          convert(webtoon, false, addNotification, invoke, null);
         }
       }
       if (message.removeWebtoon) {
-        setQueue((prevQueue) =>
-          prevQueue.filter(
-            (item) => item.id !== message.removeWebtoon.webtoon.id
-          )
-        );
-        dispatchSuccess(
+        removeFromQueue(message.removeWebtoon.webtoon.id);
+        addNotification(
           message.removeWebtoon.webtoon.type === "manga"
             ? `Removed ${message.removeWebtoon.webtoon.title} - ${message.removeWebtoon.webtoon.info} from queue`
-            : `Removed ${message.removeWebtoon.webtoon.title} from queue`
+            : `Removed ${message.removeWebtoon.webtoon.title} from queue`,
+          "SUCCESS"
         );
         if (
           downloading &&
           message.removeWebtoon.webtoon.id === downloading.id
         ) {
-          stopWorker("stop_download");
-          setDownloading(null);
+          stopDownloader();
         }
         let folderName =
           message.removeWebtoon.webtoon.type === "manga"
@@ -287,64 +292,35 @@ export default function App() {
       }
       if (message.addWebtoon) {
         if (!queue.find((item) => item.id === message.addWebtoon.webtoon.id)) {
-          setQueue((queue) => {
-            let data = [...queue];
-            data.push(message.addWebtoon.webtoon);
-            return data;
-          });
-          dispatchSuccess(
+          addToQueue(message.addWebtoon.webtoon);
+          addNotification(
             message.addWebtoon.webtoon.type === "manga"
               ? `Added ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} to queue`
-              : `Added ${message.addWebtoon.webtoon.title} to queue`
+              : `Added ${message.addWebtoon.webtoon.title} to queue`,
+            "SUCCESS"
           );
         } else {
-          setQueue((queue) => {
-            let data = [...queue];
-            let indexOfTodo = data.findIndex(
-              (item) => item.id === message.addWebtoon.webtoon.id
-            );
-            data[indexOfTodo] = message.addWebtoon.webtoon;
-            return data;
-          });
-          dispatchSuccess(
+          updateItemInQueue(message.addWebtoon.webtoon);
+          addNotification(
             message.addWebtoon.webtoon.type === "manga"
               ? `Updated ${message.addWebtoon.webtoon.title} - ${message.addWebtoon.webtoon.info} in queue`
-              : `Updated ${message.addWebtoon.webtoon.title} in queue`
+              : `Updated ${message.addWebtoon.webtoon.title} in queue`,
+            "SUCCESS"
           );
         }
       }
       if (message.downloading) {
-        setQueue((queue) => {
-          let data = [...queue];
-          let indexOfTodo = data.findIndex(
-            (item) => item.id === message.downloading.id
-          );
-          data[indexOfTodo] = {
-            ...data[indexOfTodo],
-            downloading: message.downloading.image,
-          };
-          return data;
+        updateItemInQueue(message.downloading.id, {
+          downloading: message.downloading.image,
         });
       }
       if (message.totalImages) {
-        setQueue((queue) => {
-          let data = [...queue];
-          let indexOfTodo = data.findIndex(
-            (item) => item.id === message.totalImages.id
-          );
-          data[indexOfTodo] = {
-            ...data[indexOfTodo],
-            totalImages: message.totalImages.total,
-          };
-          return data;
+        updateItemInQueue(message.totalImages.id, {
+          totalImages: message.totalImages.total,
         });
       }
       if (message.reOrderQueue) {
-        setQueue((prevQueue) => {
-          return message.reOrderQueue.order.map((webtoon) =>
-            prevQueue.find((item) => item.id === webtoon)
-          );
-        });
+        reOrderQueue(message.reOrderQueue.order);
       }
     }
   }, [queueMessages, queue, downloading]);
@@ -353,20 +329,13 @@ export default function App() {
     while (downloadedMessages.length > 0) {
       const message = downloadedMessages.shift();
       if (message.addWebtoon) {
-        setDownloaded((downloaded) => [
-          message.addWebtoon.webtoon,
-          ...downloaded,
-        ]);
+        addToDownloaded(message.addWebtoon.webtoon);
       }
       if (message.removeWebtoon) {
-        setDownloaded((prevDownloaded) =>
-          prevDownloaded.filter(
-            (_, index) => index !== message.removeWebtoon.index
-          )
-        );
+        deleteDownloadedByIndex(message.removeWebtoon.index);
       }
       if (message.removeAllWebtoons) {
-        setDownloaded([]);
+        deleteAllDownloaded();
       }
     }
   }, [downloadedMessages, downloaded]);
@@ -401,8 +370,11 @@ export default function App() {
     while (libraryMessages.length > 0) {
       const message = libraryMessages.shift();
       if (message.addWebtoon) {
-        setLibrary((library) => [...library, message.addWebtoon.webtoon]);
-        dispatchSuccess(`Added ${message.addWebtoon.webtoon.title} to library`);
+        addToLibrary(message.addWebtoon.webtoon);
+        addNotification(
+          `Added ${message.addWebtoon.webtoon.title} to library`,
+          "SUCCESS"
+        );
       }
       if (message.removeWebtoon) {
         let ww = library.find(
@@ -410,27 +382,20 @@ export default function App() {
             `${webtoon.domain}_$_${webtoon.url}` ===
             `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
         );
-        setLibrary((prevLibrary) =>
-          prevLibrary.filter(
-            (webtoon) =>
-              `${webtoon.domain}_$_${webtoon.url}` !==
-              `${message.removeWebtoon.domain}_$_${message.removeWebtoon.url}`
-          )
+        removeFromLibrary(
+          message.removeWebtoon.domain,
+          message.removeWebtoon.url
         );
-        dispatchSuccess(`Removed ${ww.title} from library`);
+        addNotification(`Removed ${ww.title} from library`, "SUCCESS");
       }
       if (message.updateWebtoon) {
-        setLibrary((prevLibrary) =>
-          prevLibrary.map((webtoon) => {
-            if (
-              webtoon.domain === message.updateWebtoon.domain &&
-              webtoon.url === message.updateWebtoon.url
-            ) {
-              webtoon.last_downloaded_chapter =
-                message.updateWebtoon.last_downloaded_chapter;
-            }
-            return webtoon;
-          })
+        updateItemInLibrary(
+          message.updateWebtoon.domain,
+          message.updateWebtoon.url,
+          {
+            last_downloaded_chapter:
+              message.updateWebtoon.last_downloaded_chapter,
+          }
         );
       }
     }
@@ -457,10 +422,7 @@ export default function App() {
             total: event.payload.total_images,
           },
         };
-        setQueueMessages((prevQueueMessages) => [
-          ...prevQueueMessages,
-          totalImages,
-        ]);
+        addQueueMessage(totalImages);
       });
       await listen("downloading", (event) => {
         let downloading = {
@@ -469,10 +431,7 @@ export default function App() {
             image: event.payload.image,
           },
         };
-        setQueueMessages((prevQueueMessages) => [
-          ...prevQueueMessages,
-          downloading,
-        ]);
+        addQueueMessage(downloading);
       });
       await listen("doneDownloading", (event) => {
         let done = {
@@ -481,171 +440,30 @@ export default function App() {
             download_path: event.payload.download_path,
           },
         };
-        setQueueMessages((prevQueueMessages) => [...prevQueueMessages, done]);
+        addQueueMessage(done);
       });
     }
-  };
-
-  const addQueueMessage = (message) => {
-    setQueueMessages((prevQueueMessages) => [...prevQueueMessages, message]);
-  };
-
-  const addDownloadedMessage = (message) => {
-    setDownloadedMessages((prevDownloadedMessages) => [
-      ...prevDownloadedMessages,
-      message,
-    ]);
-  };
-
-  const addLibraryMessage = (message) => {
-    setLibraryMessages((prevLibraryMessages) => [
-      ...prevLibraryMessages,
-      message,
-    ]);
-  };
-
-  const addWebtoonToQueue = (webtoon) => {
-    addQueueMessage({ addWebtoon: { webtoon } });
-  };
-
-  const startSearching = async (modules, keyword, depth, absolute) => {
-    setSearchKeyword(keyword);
-    setSelectedModulesForSearch(modules);
-    setSearchResults([]);
-    setSearchingStatus({ searching: { module: modules[0].name } });
-    invoke("search_keyword", {
-      modules: modules.map((item) => item.name),
-      keyword,
-      sleepTime: settings.sleep_time,
-      depth: depth,
-      absolute: absolute,
-    });
-    await listen("doneSearching", () => {
-      setSearchingStatus("searched");
-    });
-    await listen("searchingModule", (event) => {
-      setSearchingStatus({
-        searching: {
-          module: event.payload.module,
-        },
-      });
-    });
-    await listen("searchedModule", (event) => {
-      setSearchResults((prevResults) => [
-        ...prevResults,
-        ...event.payload.result,
-      ]);
-    });
-  };
-
-  const resetSearch = () => {
-    stopWorker("stop_search");
-    setSearchKeyword("");
-    setSearchingStatus(null);
-    setSearchResults([]);
-    setSelectedModulesForSearch([]);
   };
 
   return (
     <Router>
       <div>
-        <TopBar
-          currentDownloadStatus={
-            downloading
-              ? { downloading: downloading }
-              : { downloaded: downloaded[0] }
-          }
-        />
+        <TopBar />
+        <NotificationProvider />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route
-            path="/library"
-            element={
-              <Library
-                library={library}
-                addLibraryMessage={addLibraryMessage}
-                addWebtoonToQueue={addWebtoonToQueue}
-              />
-            }
-          />
-          <Route
-            path="/search"
-            element={
-              <Search
-                startSearching={startSearching}
-                searchingStatus={searchingStatus}
-                searchResults={searchResults}
-                resetSearch={resetSearch}
-                selectedModulesForSearch={selectedModulesForSearch}
-                searchKeyword={searchKeyword}
-              />
-            }
-          />
-          <Route
-            path="/download"
-            element={
-              <Download
-                queue={queue}
-                addQueueMessage={addQueueMessage}
-                downloaded={downloaded}
-                addDownloadedMessage={addDownloadedMessage}
-              />
-            }
-          />
-          <Route
-            path="/favorites"
-            element={
-              <Favorites favorites={favorites} setFavorites={setFavorites} />
-            }
-          />
+          <Route path="/library" element={<Library />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/download" element={<Download />} />
+          <Route path="/favorites" element={<Favorites />} />
           <Route path="/modules" element={<Modules />} />
-          <Route
-            path="/settings"
-            element={<Settings downloading={downloading} />}
-          />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<About />} />
           <Route path="/saucer" element={<Saucer />} />
-          <Route
-            path="/:module/webtoon/:url*"
-            element={
-              <Webtoon
-                addWebtoonToQueue={addWebtoonToQueue}
-                favorites={favorites}
-                setFavorites={setFavorites}
-                addLibraryMessage={addLibraryMessage}
-                library={library}
-              />
-            }
-          />
+          <Route path="/:module/webtoon/:url*" element={<Webtoon />} />
           <Route path="/:module" element={<Module />} />
         </Routes>
-        <div id="browse-modal" className="modal">
-          <div className="modal-content" style={{ textAlign: "center" }}>
-            You need to specify a folder to download the webtoons in it.
-            <br />
-            You can later change the folder in settings.
-            <br />
-            <br />
-            <br />
-            <PushButton
-              label={"Browse"}
-              onClick={async () => {
-                let selectedPath = await open({
-                  directory: true,
-                });
-                if (selectedPath) {
-                  setSettings((prevSettings) => ({
-                    ...prevSettings,
-                    download_path: selectedPath,
-                  }));
-                  document.getElementById("browse-modal").style.display =
-                    "none";
-                  startDownloading();
-                }
-              }}
-            />
-          </div>
-        </div>
+        <DownloadPathModal startDownloading={startDownloading} />
       </div>
     </Router>
   );

@@ -1,13 +1,11 @@
 import { Wcard, HomeButton, chunkArray } from "../components";
-import { useSettings } from "../Provider";
+import { useSettingsStore, useQueueMessagesStore, useLibraryStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
-export default function Library({
-  library,
-  addLibraryMessage,
-  addWebtoonToQueue,
-}) {
-  const { load_covers } = useSettings();
+export default function Library() {
+  const { load_covers } = useSettingsStore((state) => state.settings);
+  const { addQueueMessage } = useQueueMessagesStore();
+  const { library } = useLibraryStore();
 
   const updateSingle = async (webtoon) => {
     const allChapters = await invoke("get_chapters", {
@@ -33,16 +31,18 @@ export default function Library({
       chaptersToDownload = chaptersToDownload.concat(allChapters);
     }
     for (const chapter of chaptersToDownload) {
-      addWebtoonToQueue({
-        type: "manga",
-        id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
-        title: webtoon.title,
-        info: chapter.name,
-        module: webtoon.domain,
-        manga: webtoon.url,
-        chapter: chapter.url,
-        in_library: true,
-        status: "Started",
+      addQueueMessage({
+        addWebtoon: {
+          type: "manga",
+          id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
+          title: webtoon.title,
+          info: chapter.name,
+          module: webtoon.domain,
+          manga: webtoon.url,
+          chapter: chapter.url,
+          in_library: true,
+          status: "Started",
+        },
       });
     }
   };
@@ -71,7 +71,6 @@ export default function Library({
                 <div key={webtoon.title} className="card-wrapper">
                   <Wcard
                     webtoon={webtoon}
-                    addLibraryMessage={addLibraryMessage}
                     update={updateSingle}
                     load_covers={load_covers}
                   />

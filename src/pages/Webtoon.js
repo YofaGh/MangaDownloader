@@ -1,21 +1,18 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
-import { useSuccessNotification } from "../Provider";
+import { useNotificationStore, useFavoritesStore, useLibraryStore } from "../store";
 import { Manga, Doujin } from "../components";
 
-export default function Webtoon({
-  addWebtoonToQueue,
-  favorites,
-  setFavorites,
-  addLibraryMessage,
-  library,
-}) {
+export default function Webtoon() {
   const { module, url } = useParams();
   const [moduleType, setModuleType] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isInLibrary, setIsInLibrary] = useState(false);
-  const dispatchSuccess = useSuccessNotification();
+  const { addNotification } = useNotificationStore();
+  const { favorites, addToFavorites, removeFromFavorites } =
+    useFavoritesStore();
+  const { library } = useLibraryStore();
 
   useEffect(() => {
     const fetchModuleType = async () => {
@@ -39,22 +36,19 @@ export default function Webtoon({
 
   const updateWebtoon = ({ title, cover }) => {
     if (isFavorite) {
-      setFavorites((prevFavorites) =>
-        prevFavorites.filter(
-          (webtoon) => webtoon.id !== `${moduleType}_$_${module}_$_${url}`
-        )
-      );
-      dispatchSuccess(`Removed ${title} from favorites`);
+      removeFromFavorites(`${moduleType}_$_${module}_$_${url}`);
+      addNotification(`Removed ${title} from favorites`, "SUCCESS");
       setIsFavorite(false);
     } else {
       if (
         !favorites.some((wt) => wt.id === `${moduleType}_$_${module}_$_${url}`)
       ) {
-        setFavorites((prevFavorites) => [
-          ...prevFavorites,
-          { title, id: `${moduleType}_$_${module}_$_${url}`, cover },
-        ]);
-        dispatchSuccess(`Added ${title} to favorites`);
+        addToFavorites({
+          title,
+          id: `${moduleType}_$_${module}_$_${url}`,
+          cover,
+        });
+        addNotification(`Added ${title} to favorites`, "SUCCESS");
       }
       setIsFavorite(true);
     }
@@ -64,18 +58,14 @@ export default function Webtoon({
     <Manga
       module={module}
       url={url}
-      addWebtoonToQueue={addWebtoonToQueue}
       isFavorite={isFavorite}
       updateWebtoon={updateWebtoon}
-      addLibraryMessage={addLibraryMessage}
       isInLibrary={isInLibrary}
-      library={library}
     />
   ) : (
     <Doujin
       module={module}
       url={url}
-      addWebtoonToQueue={addWebtoonToQueue}
       isFavorite={isFavorite}
       updateWebtoon={updateWebtoon}
     />

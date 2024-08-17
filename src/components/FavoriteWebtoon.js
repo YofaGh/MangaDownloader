@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
-import { useSuccessNotification } from "../Provider";
+import { useNotificationStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function FavoriteWebtoon({
   webtoon,
-  setFavorites,
+  removeFromFavorites,
   load_covers,
 }) {
-  const dispatchSuccess = useSuccessNotification();
+  const { addNotification } = useNotificationStore();
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
@@ -39,10 +39,8 @@ export default function FavoriteWebtoon({
                 className="buttonht"
                 onClick={(e) => {
                   e.preventDefault();
-                  setFavorites((prevFavorites) =>
-                    prevFavorites.filter((wt) => wt.id !== webtoon.id)
-                  );
-                  dispatchSuccess(`Removed ${webtoon.title} from favorites`);
+                  removeFromFavorites(webtoon.id);
+                  addNotification(`Removed ${webtoon.title} from favorites`, "SUCCESS");
                 }}
               >
                 <img

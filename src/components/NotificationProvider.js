@@ -1,9 +1,22 @@
 import { useState, useEffect } from "react";
+import { useNotificationStore } from "../store";
 
-const Notification = ({ dispatch, id, message, type }) => {
+export default function NotificationProvider() {
+  const { notifications } = useNotificationStore();
+  return (
+    <div className={"notification-wrapper"}>
+      {notifications.map((notification) => {
+        return <Notification key={notification.id} {...notification} />;
+      })}
+    </div>
+  );
+}
+
+const Notification = ({ id, message, type }) => {
   const [exit, setExit] = useState(false);
   const [width, setWidth] = useState(0);
   const [intervalID, setIntervalID] = useState(null);
+  const { removeNotification } = useNotificationStore();
 
   const handleStartTimer = () => {
     const id = setInterval(() => {
@@ -28,10 +41,7 @@ const Notification = ({ dispatch, id, message, type }) => {
     handlePauseTimer();
     setExit(true);
     setTimeout(() => {
-      dispatch({
-        type: "REMOVE_NOTIFICATION",
-        id,
-      });
+      removeNotification(id);
     }, 400);
   };
 
@@ -58,5 +68,3 @@ const Notification = ({ dispatch, id, message, type }) => {
     </div>
   );
 };
-
-export default Notification;

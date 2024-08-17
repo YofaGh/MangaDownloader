@@ -1,0 +1,124 @@
+import { create } from "zustand";
+
+export const useSettingsStore = create((set) => ({
+  settings: null,
+  updateSettings: (newData) =>
+    set((state) => ({
+      settings: { ...state.settings, ...newData },
+    })),
+}));
+
+export const useDownloadedStore = create((set) => ({
+  downloaded: [],
+  setDownloaded: (newDownloaded) => set({ downloaded: newDownloaded }),
+  updateDownloaded: (newData) =>
+    set((state) => ({
+      downloaded: { ...state.downloaded, ...newData },
+    })),
+  addToDownloaded: (newItem) =>
+    set((state) => ({
+      downloaded: [newItem, ...state.downloaded],
+    })),
+  deleteDownloadedByIndex: (index) =>
+    set((state) => ({
+      downloaded: state.downloaded.filter((_, i) => i !== index),
+    })),
+  deleteAllDownloaded: () => set({ downloaded: [] }),
+}));
+
+export const useQueueStore = create((set) => ({
+  queue: [],
+  setQueue: (newQueue) => set({ queue: newQueue }),
+  addToQueue: (newData) => {
+    set((state) => ({
+      queue: [...state.queue, newData],
+    }));
+  },
+  deleteItemKeysInQueue: (id, keys) =>
+    set((state) => ({
+      queue: state.queue.map((item) =>
+        item.id === id
+          ? (() => {
+              const newItem = { ...item };
+              keys.forEach((key) => {
+                delete newItem[key];
+              });
+              return newItem;
+            })()
+          : item
+      ),
+    })),
+  deleteKeysFromAllItemsInQueue: (keys) =>
+    set((state) => ({
+      queue: state.queue.map((item) => {
+        const newItem = { ...item };
+        keys.forEach((key) => {
+          delete newItem[key];
+        });
+        return newItem;
+      }),
+    })),
+  updateItemInQueue: (id, chn) =>
+    set((state) => ({
+      queue: state.queue.map((item) =>
+        item.id === id ? { ...item, ...chn } : item
+      ),
+    })),
+  updateAllItemsInQueue: (chn) =>
+    set((state) => ({
+      queue: state.queue.map((item) => ({
+        ...item,
+        ...chn,
+      })),
+    })),
+  reOrderQueue: (newQueue) =>
+    set((state) => ({
+      queue: newQueue.map((nItem) =>
+        state.queue.find((item) => item.id === nItem)
+      ),
+    })),
+  removeFromQueue: (id) =>
+    set((state) => ({
+      queue: state.queue.filter((entry) => entry.id !== id),
+    })),
+}));
+
+export const useFavoritesStore = create((set) => ({
+  favorites: [],
+  setFavorites: (newFavorites) => set({ favorites: newFavorites }),
+  addToFavorites: (newData) =>
+    set((state) => ({
+      favorites: [...state.favorites, newData],
+    })),
+  removeFromFavorites: (id) =>
+    set((state) => ({
+      favorites: state.favorites.filter((entry) => entry.id !== id),
+    })),
+}));
+
+export const useLibraryStore = create((set) => ({
+  library: [],
+  setLibrary: (newLibrary) => set({ library: newLibrary }),
+  updateLibrary: (newData) =>
+    set((state) => ({
+      library: { ...state.library, ...newData },
+    })),
+  addToLibrary: (newData) =>
+    set((state) => ({
+      library: [...state.library, newData],
+    })),
+  removeFromLibrary: (domain, url) =>
+    set((state) => ({
+      library: state.library.filter(
+        (entry) => entry.domain !== domain && entry.url !== url
+      ),
+    })),
+  updateItemInLibrary: (domain, url, chn) =>
+    set((state) => ({
+      library: state.library.map((entry) =>
+        entry.domain !== domain && entry.url !== url
+          ? { ...entry, ...chn }
+          : entry
+      ),
+    })),
+}));

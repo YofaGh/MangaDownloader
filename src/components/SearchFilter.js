@@ -60,7 +60,7 @@ export default function SearchFilter({
               type="number"
               value={depth}
               onChange={(e) => {
-                setDepth(e.target.value);
+                setDepth(Number(e.target.value));
               }}
               name="text"
               className="input-depth"

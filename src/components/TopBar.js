@@ -2,10 +2,17 @@ import { useState } from "react";
 import { SideBar } from ".";
 import { useNavigate } from "react-router-dom";
 import { getCurrent } from "@tauri-apps/api/window";
+import { useDownloadingStore, useDownloadedStore } from "../store";
 
-export default function TopBar({ currentDownloadStatus }) {
+export default function TopBar() {
   const appWindow = getCurrent();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { downloading } = useDownloadingStore();
+  const { downloaded } = useDownloadedStore();
+  const currentDownloadStatus = downloading
+    ? { downloading: downloading }
+    : { downloaded: downloaded[0] };
+
   const navigate = useNavigate();
   let currentDownloadLabel = null;
   if (currentDownloadStatus.downloading) {

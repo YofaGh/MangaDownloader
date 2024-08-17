@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
-import { useSettings } from "../Provider";
+import { useSettingsStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function Module() {
   const { module } = useParams();
-  const { default_search_depth, sleep_time, load_covers } = useSettings();
+  const { default_search_depth, sleep_time, load_covers } = useSettingsStore((state) => state.settings);
   const [input, setInput] = useState("");
   const [absolute, setAbsolute] = useState(false);
   const [results, setResults] = useState([]);

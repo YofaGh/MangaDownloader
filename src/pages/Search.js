@@ -6,28 +6,35 @@ import {
   WSearchCard,
   PushButton,
 } from "../components";
-import { useSettings } from "../Provider";
+import { useSettingsStore, useSearchStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
-export default function Search({
-  startSearching,
-  searchingStatus,
-  searchResults,
-  resetSearch,
-  selectedModulesForSearch,
-  searchKeyword,
-}) {
+export default function Search() {
   const [input, setInput] = useState("");
   const [types, updateTypes] = useState([
     { name: "Manga", selected: true },
     { name: "Doujin", selected: true },
   ]);
   const [modules, updateModules] = useState([]);
-  const { default_search_depth, load_covers } = useSettings();
+  const { default_search_depth, load_covers, sleep_time } =
+    useSettingsStore((state) => state.settings);
   const [depth, setDepth] = useState(default_search_depth);
   const [absolute, setAbsolute] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
+  const {
+    searchResults,
+    searchStatus,
+    searchKeyword,
+    selectedSearchModules,
+    setSearching,
+    doneSearching,
+    setSearchKeyword,
+    addSearchResult,
+    setSelectedSearchModules,
+    clearSearch,
+  } = useSearchStore();
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -49,11 +56,11 @@ export default function Search({
   }, []);
 
   useEffect(() => {
-    if (searchingStatus && searchingStatus.searched) {
+    if (searchStatus && searchStatus.searched) {
       const sortMenu = document.getElementById("sort-menu");
       sortMenu.style.opacity = sortOpen ? "1" : "0";
     }
-  }, [sortOpen, searchingStatus]);
+  }, [sortOpen, searchStatus]);
 
   const updateSortBy = (newSortBy) => {
     setSortBy(newSortBy);
@@ -63,6 +70,34 @@ export default function Search({
       return 0;
     });
     setSortOpen(!sortOpen);
+  };
+
+  const resetSearch = async () => {
+    await invoke("stop_search");
+    clearSearch();
+  };
+
+  const startSearching = async (modules, keyword, depth, absolute) => {
+    clearSearch();
+    setSearchKeyword(keyword);
+    setSelectedSearchModules(modules);
+    setSearching(modules[0].name);
+    invoke("search_keyword", {
+      modules: modules.map((item) => item.name),
+      keyword,
+      sleepTime: sleep_time,
+      depth: depth,
+      absolute: absolute,
+    });
+    await listen("doneSearching", () => {
+      doneSearching();
+    });
+    await listen("searchingModule", (event) => {
+      setSearching(event.payload.module);
+    });
+    await listen("searchedModule", (event) => {
+      addSearchResult(event.payload.result);
+    });
   };
 
   const showHideModal = (isShow) => {
@@ -77,7 +112,7 @@ export default function Search({
   let titleSortClass = `f-menu-item ${sortBy === "name" ? "selected" : ""}`;
   let pageSortClass = `f-menu-item ${sortBy === "page" ? "selected" : ""}`;
 
-  if (searchingStatus === null) {
+  if (searchStatus.status === null) {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
@@ -126,7 +161,7 @@ export default function Search({
         />
       </div>
     );
-  } else if (searchingStatus.searching) {
+  } else if (searchStatus.searching) {
     return (
       <div className="container">
         <div className="header-r">
@@ -134,7 +169,7 @@ export default function Search({
           <PushButton label={"Terminate"} onClick={resetSearch} />
         </div>
         <div className="s-cont">
-          {selectedModulesForSearch.map((item) => {
+          {selectedSearchModules.map((item) => {
             let num = searchResults.filter(
               (result) => result.domain === item.name
             ).length;
@@ -146,14 +181,14 @@ export default function Search({
                 selected={searchResults.some(
                   (result) => result.domain === item.name
                 )}
-                loading={searchingStatus.searching.module === item.name}
+                loading={searchStatus.searching.module === item.name}
               />
             );
           })}
         </div>
       </div>
     );
-  } else if (searchingStatus === "searched") {
+  } else if (searchStatus.status === "searched") {
     return (
       <div className="container">
         <div className="header-r">
@@ -180,7 +215,7 @@ export default function Search({
           </ul>
         </div>
         <div className="s-cont">
-          {selectedModulesForSearch.map((item) => {
+          {selectedSearchModules.map((item) => {
             return (
               <FilterButton
                 key={item.name}

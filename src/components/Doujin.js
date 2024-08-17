@@ -1,41 +1,45 @@
 import { useState, useEffect } from "react";
-import { Infoed, FlipButton, getDate, getDateTime, retrieveImage, Loading } from ".";
-import { useSettings } from "../Provider";
+import {
+  Infoed,
+  FlipButton,
+  getDate,
+  getDateTime,
+  retrieveImage,
+  Loading,
+} from ".";
+import { useSettingsStore, useQueueMessagesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
-export default function Doujin({
-  module,
-  url,
-  addWebtoonToQueue,
-  isFavorite,
-  updateWebtoon,
-}) {
+export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
-  const { load_covers } = useSettings();
+  const { load_covers } = useSettingsStore((state) => state.settings);
+  const { addQueueMessage } = useQueueMessagesStore();
 
   useEffect(() => {
     const fetchManga = async () => {
-      const response = await invoke("get_info", {domain: module, url});
+      const response = await invoke("get_info", { domain: module, url });
       setWebtoon(response);
       setWebtoonLoaded(true);
-      setImageSrc(
-        load_covers ? response.Cover : "./assets/default-cover.svg"
-      );
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
     };
     fetchManga();
   }, [module, url]);
 
   const addDoujin = (status) => {
-    addWebtoonToQueue({
-      type: "doujin",
-      id: `${module}_$_${url}`,
-      title: webtoon.Title,
-      info: url,
-      module: module,
-      doujin: url,
-      status: status,
+    addQueueMessage({
+      addWebtoon: {
+        webtoon: {
+          type: "doujin",
+          id: `${module}_$_${url}`,
+          title: webtoon.Title,
+          info: url,
+          module: module,
+          doujin: url,
+          status: status,
+        },
+      },
     });
   };
 
@@ -48,7 +52,13 @@ export default function Doujin({
             alt=""
             src={imageSrc}
             onError={() => {
-              retrieveImage(imageSrc, module, setImageSrc, invoke, "./assets/default-cover.svg");
+              retrieveImage(
+                imageSrc,
+                module,
+                setImageSrc,
+                invoke,
+                "./assets/default-cover.svg"
+              );
             }}
           ></img>
         </div>

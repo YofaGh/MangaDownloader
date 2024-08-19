@@ -7,7 +7,11 @@ import {
   retrieveImage,
   Loading,
 } from ".";
-import { useSettingsStore, useQueueMessagesStore } from "../store";
+import {
+  useSettingsStore,
+  useQueueStore,
+  useNotificationStore,
+} from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
@@ -15,7 +19,8 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
   const { load_covers } = useSettingsStore((state) => state.settings);
-  const { addQueueMessage } = useQueueMessagesStore();
+  const { queue, addToQueue, updateItemInQueue } = useQueueStore();
+  const { addNotification } = useNotificationStore();
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -28,19 +33,22 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   }, [module, url]);
 
   const addDoujin = (status) => {
-    addQueueMessage({
-      addWebtoon: {
-        webtoon: {
-          type: "doujin",
-          id: `${module}_$_${url}`,
-          title: webtoon.Title,
-          info: url,
-          module: module,
-          doujin: url,
-          status: status,
-        },
-      },
-    });
+    const webt = {
+      type: "doujin",
+      id: `${module}_$_${url}`,
+      title: webtoon.Title,
+      info: url,
+      module: module,
+      doujin: url,
+      status: status,
+    };
+    if (!queue.find((item) => item.id === webt.id)) {
+      addToQueue(webt);
+      addNotification(`Added ${webt.title} to queue`, "SUCCESS");
+    } else {
+      updateItemInQueue(webt);
+      addNotification(`Updated ${webt.title} in queue`, "SUCCESS");
+    }
   };
 
   return webtoonLoaded ? (

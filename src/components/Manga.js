@@ -14,9 +14,10 @@ import {
 import { invoke } from "@tauri-apps/api/core";
 import {
   useSettingsStore,
-  useQueueMessagesStore,
-  useLibraryMessagesStore,
+  useQueueStore,
   useLibraryStore,
+  useNotificationStore,
+  useDownloadingStore
 } from "../store";
 import { useNavigate } from "react-router-dom";
 
@@ -35,9 +36,10 @@ export default function Manga({
   const [imageSrc, setImageSrc] = useState("");
   const navigate = useNavigate();
   const { load_covers } = useSettingsStore((state) => state.settings);
-  const { addQueueMessage } = useQueueMessagesStore();
-  const { addLibraryMessage } = useLibraryMessagesStore();
-  const { library } = useLibraryStore();
+  const { queue, addToQueue, updateItemInQueue } = useQueueStore();
+  const { addNotification } = useNotificationStore();
+  const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
+  const { downloading, clearDownloading } = useDownloadingStore();
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -69,20 +71,29 @@ export default function Manga({
   };
 
   const addManga = (chapter, status) => {
-    addQueueMessage({
-      addWebtoon: {
-        webtoon: {
-          type: "manga",
-          id: `${module}_$_${url}_$_${chapter.url}`,
-          title: webtoon.Title,
-          info: chapter.name,
-          module: module,
-          manga: url,
-          chapter: chapter.url,
-          status: status,
-        },
-      },
-    });
+    const webt = {
+      type: "manga",
+      id: `${module}_$_${url}_$_${chapter.url}`,
+      title: webtoon.Title,
+      info: chapter.name,
+      module: module,
+      manga: url,
+      chapter: chapter.url,
+      status: status,
+    };
+    if (!queue.find((item) => item.id === webt.id)) {
+      addToQueue(webt);
+      addNotification(
+        `Added ${webt.title} - ${chapter.name} to queue`,
+        "SUCCESS"
+      );
+    } else {
+      updateItemInQueue(webt);
+      addNotification(
+        `Updated ${webt.title} - ${chapter.name} in queue`,
+        "SUCCESS"
+      );
+    }
   };
 
   const addAllChapters = (status) => {
@@ -91,32 +102,32 @@ export default function Manga({
     }
   };
 
-  const updateLibrary = () => {
+  const updateLibrary = async () => {
     if (isInLibrary) {
-      addLibraryMessage({
-        removeWebtoon: {
-          domain: module,
-          url,
-        },
-      });
+      const id = `${module}_$_${url}`;
+      const webt = library.find((item) => item.id === id);
+      removeFromLibrary(id);
+      addNotification(`Removed ${webt.title} from Library`, "SUCCESS");
+      if (downloading && webt.id === downloading.id) {
+        await invoke("stop_download");
+        clearDownloading();;
+      }
     } else {
       showHideModal(true);
     }
   };
 
   const addMangaToLibrary = () => {
-    addLibraryMessage({
-      addWebtoon: {
-        webtoon: {
-          title: mangaTitleForLibrary,
-          status: true,
-          domain: module,
-          url,
-          cover: webtoon.Cover,
-          last_downloaded_chapter: null,
-        },
-      },
+    addToLibrary({
+      title: mangaTitleForLibrary,
+      id: `${module}_$_${url}`,
+      status: true,
+      domain: module,
+      url,
+      cover: webtoon.Cover,
+      last_downloaded_chapter: null,
     });
+    addNotification(`Added ${mangaTitleForLibrary} to library`, "SUCCESS");
   };
 
   return webtoonLoaded ? (

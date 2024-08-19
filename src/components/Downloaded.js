@@ -1,22 +1,21 @@
 import { DCard } from ".";
 import { invoke } from "@tauri-apps/api/core";
-import { useDownloadedMessagesStore, useDownloadedStore } from "../store";
+import { useDownloadedStore } from "../store";
 
 export default function Downloaded() {
-  const addDownloadedMessage = useDownloadedMessagesStore((state) => state.addDownloadedMessage);
-  const { downloaded } = useDownloadedStore();
+  const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } = useDownloadedStore();
 
   const removeWebtoon = (index) => {
-    addDownloadedMessage({ removeWebtoon: { index } });
+    deleteDownloadedByIndex(index);
   };
   const removeAllWebtoons = () => {
-    addDownloadedMessage({ removeAllWebtoons: {} });
+    deleteAllDownloaded();
   };
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => {
       invoke("remove_directory", { path: webtoon.path, recursive: true });
     });
-    addDownloadedMessage({ removeAllWebtoons: {} });
+    deleteAllDownloaded();
   };
   return downloaded.length !== 0 ? (
     <div className="queue-div">

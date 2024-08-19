@@ -1,16 +1,4 @@
-export default function QCard({ webtoon, addQueueMessage }) {
-  const removeWebtoon = () => {
-    addQueueMessage({
-      removeWebtoon: { webtoon },
-    });
-  };
-
-  const setWebtoonStatus = (status) => {
-    addQueueMessage({
-      setWebtoonStatus: { webtoon, status },
-    });
-  };
-
+export default function QCard({ webtoon, deleteWebtoon, setWebtoonStatus }) {
   return (
     <div className="queue-card">
       <div className="infog">
@@ -24,13 +12,13 @@ export default function QCard({ webtoon, addQueueMessage }) {
             <div className="d-status">
               Downlading Image
               <br />
-              {(webtoon.downloading || 0) + ""}/
-              {(webtoon.totalImages || 0) + ""}
+              {(webtoon.image || 0) + ""}/
+              {(webtoon.total || 0) + ""}
             </div>
           ) : (
             <div className="d-status">
-              Downladed {(webtoon.downloading || 0) + ""}/
-              {(webtoon.totalImages || 0) + ""} Images
+              Downladed {(webtoon.image || 0) + ""}/
+              {(webtoon.total || 0) + ""} Images
             </div>
           )}
         </div>
@@ -38,13 +26,13 @@ export default function QCard({ webtoon, addQueueMessage }) {
         <></>
       )}
       <div className="button-containerrr">
-        <button className="buttonh" onClick={removeWebtoon}>
+        <button className="buttonh" onClick={() => deleteWebtoon(webtoon)}>
           <img alt="" src="./assets/trash.svg" className="icon"></img>
           <span className="tooltip">Delete</span>
         </button>
         <button
           className="buttonh"
-          onClick={() => setWebtoonStatus("Not Started")}
+          onClick={() => setWebtoonStatus(webtoon, "Not Started")}
         >
           <img alt="" src="./assets/stop.svg" className="icon"></img>
           <span className="tooltip">Stop</span>
@@ -52,7 +40,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
         {webtoon.status === "Not Started" || webtoon.status === "Paused" ? (
           <button
             className="buttonh"
-            onClick={() => setWebtoonStatus("Started")}
+            onClick={() => setWebtoonStatus(webtoon, "Started")}
           >
             <img alt="" src="./assets/start.svg" className="icon"></img>
             <span className="tooltip">Start</span>
@@ -60,7 +48,7 @@ export default function QCard({ webtoon, addQueueMessage }) {
         ) : (
           <button
             className="buttonh"
-            onClick={() => setWebtoonStatus("Paused")}
+            onClick={() => setWebtoonStatus(webtoon, "Paused")}
           >
             <img alt="" src="./assets/pause.svg" className="icon"></img>
             <span className="tooltip">Pause</span>

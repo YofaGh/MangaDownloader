@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export const useSearchStore = create((set) => ({
   searchStatus: {
@@ -58,10 +58,7 @@ export const useNotificationStore = create((set) => ({
   notifications: [],
   addNotification: (message, type) => {
     set((state) => ({
-      notifications: [
-        ...state.notifications,
-        { id: uuidv4(), type, message },
-      ],
+      notifications: [...state.notifications, { id: uuidv4(), type, message }],
     }));
   },
   removeNotification: (id) => {
@@ -74,4 +71,10 @@ export const useNotificationStore = create((set) => ({
 export const useDownloadTabStore = create((set) => ({
   downloadTab: "queue",
   setDownloadTab: (newVal) => set({ downloadTab: newVal }),
-}))
+}));
+
+export const useInitDownloadStore = create((set) => ({
+  initDownload: 0,
+  increaseInitDownload: () =>
+    set((state) => ({ initDownload: state.initDownload + 1 })),
+}));

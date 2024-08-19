@@ -26,14 +26,17 @@ export const useDownloadedStore = create((set) => ({
   deleteAllDownloaded: () => set({ downloaded: [] }),
 }));
 
-export const useQueueStore = create((set) => ({
+export const useQueueStore = create((set, get) => ({
   queue: [],
   setQueue: (newQueue) => set({ queue: newQueue }),
-  addToQueue: (newData) => {
+  addToQueue: (newData) =>
     set((state) => ({
       queue: [...state.queue, newData],
-    }));
-  },
+    })),
+  addToQueueBulk: (newItems) =>
+    set((state) => ({
+      queue: [...state.queue, ...newItems],
+    })),
   deleteItemKeysInQueue: (id, keys) =>
     set((state) => ({
       queue: state.queue.map((item) =>
@@ -107,18 +110,14 @@ export const useLibraryStore = create((set) => ({
     set((state) => ({
       library: [...state.library, newData],
     })),
-  removeFromLibrary: (domain, url) =>
+  removeFromLibrary: (id) =>
     set((state) => ({
-      library: state.library.filter(
-        (entry) => entry.domain !== domain && entry.url !== url
-      ),
+      library: state.library.filter((entry) => entry.id !== id),
     })),
-  updateItemInLibrary: (domain, url, chn) =>
+  updateItemInLibrary: (id, chn) =>
     set((state) => ({
       library: state.library.map((entry) =>
-        entry.domain !== domain && entry.url !== url
-          ? { ...entry, ...chn }
-          : entry
+        entry.id === id ? { ...entry, ...chn } : entry
       ),
     })),
 }));

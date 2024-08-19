@@ -2,19 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from "..";
 import { invoke } from "@tauri-apps/api/core";
-import { useLibraryMessagesStore } from "../../store"
+import { useLibraryStore, useNotificationStore, useDownloadingStore } from "../../store";
 
-export default function Wcard({
-  webtoon,
-  update,
-  load_covers,
-}) {
+export default function Wcard({ webtoon, update, load_covers }) {
   const [loaded, setLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
-  const { addLibraryMessage } = useLibraryMessagesStore();
-
+  const { removeFromLibrary } = useLibraryStore();
+  const { addNotification } = useNotificationStore();
+  const { downloading, clearDownloading } = useDownloadingStore();
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
@@ -23,13 +20,13 @@ export default function Wcard({
     setLoaded(true);
   };
 
-  const remove = () => {
-    addLibraryMessage({
-      removeWebtoon: {
-        domain: webtoon.domain,
-        url: webtoon.url,
-      },
-    });
+  const remove = async () => {
+    if (downloading && webtoon.id === downloading.id) {
+      await invoke("stop_download");
+      clearDownloading();
+    }
+    removeFromLibrary(webtoon.id);
+    addNotification(`Removed ${webtoon.title} from Library`, "SUCCESS");
   };
 
   return (

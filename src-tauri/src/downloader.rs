@@ -13,6 +13,7 @@ static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
 struct DoneDownloading {
     webtoon_id: String,
     download_path: String,
+    total: i32,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -159,6 +160,7 @@ pub async fn download(
             DoneDownloading {
                 webtoon_id: webtoon.get("id").unwrap().to_string(),
                 download_path: d_path,
+                total: i,
             },
         )
         .expect("failed to emit event");

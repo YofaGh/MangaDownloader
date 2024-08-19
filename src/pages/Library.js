@@ -1,11 +1,17 @@
 import { Wcard, HomeButton, chunkArray } from "../components";
-import { useSettingsStore, useQueueMessagesStore, useLibraryStore } from "../store";
+import {
+  useSettingsStore,
+  useQueueStore,
+  useLibraryStore,
+  useNotificationStore,
+} from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function Library() {
   const { load_covers } = useSettingsStore((state) => state.settings);
-  const { addQueueMessage } = useQueueMessagesStore();
+  const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
+  const { addNotification } = useNotificationStore();
 
   const updateSingle = async (webtoon) => {
     const allChapters = await invoke("get_chapters", {
@@ -30,21 +36,20 @@ export default function Library() {
     } else {
       chaptersToDownload = chaptersToDownload.concat(allChapters);
     }
-    for (const chapter of chaptersToDownload) {
-      addQueueMessage({
-        addWebtoon: {
-          type: "manga",
-          id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
-          title: webtoon.title,
-          info: chapter.name,
-          module: webtoon.domain,
-          manga: webtoon.url,
-          chapter: chapter.url,
-          in_library: true,
-          status: "Started",
-        },
-      });
-    }
+    addToQueueBulk(
+      chaptersToDownload.map((chapter) => ({
+        type: "manga",
+        id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
+        title: webtoon.title,
+        info: chapter.name,
+        module: webtoon.domain,
+        manga: webtoon.url,
+        chapter: chapter.url,
+        inLibrary: true,
+        status: "Started",
+      }))
+    );
+    addNotification(`Added ${webtoon.title} to queue`, "SUCCESS");
   };
 
   const chunkedWebtoons = chunkArray(library, 3);
@@ -58,8 +63,8 @@ export default function Library() {
             svg="./assets/download.svg"
             label="Update All"
             onClick={() => {
-              if (library.array.length > 0) {
-                library.array.forEach(updateSingle);
+              if (library.length > 0) {
+                library.forEach(updateSingle);
               }
             }}
           />

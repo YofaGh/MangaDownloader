@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
-import { useNotificationStore, useFavoritesStore, useLibraryStore } from "../store";
+import {
+  useNotificationStore,
+  useFavoritesStore,
+  useLibraryStore,
+} from "../store";
 import { Manga, Doujin } from "../components";
 
 export default function Webtoon() {
@@ -25,9 +29,7 @@ export default function Webtoon() {
       );
       if (response === "Manga") {
         setIsInLibrary(
-          library.some(
-            (webtoon) => webtoon.url === url && webtoon.domain === module
-          )
+          library.some((webtoon) => webtoon.id === `${module}_$_${url}`)
         );
       }
     };

@@ -65,7 +65,7 @@ export default function Search() {
           module.searchable &&
           module.selected
       )
-      .map((item) => item.name);
+      .map((item) => item.domain);
     setSearchKeyword(searchKeyword);
     setSelectedSearchModules(selectedSearchModulesr);
     setSearching(selectedSearchModulesr[0]);

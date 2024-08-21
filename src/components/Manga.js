@@ -36,19 +36,15 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const { downloading, clearDownloading } = useDownloadingStore();
 
   useEffect(() => {
-    (() => {
-      invoke("get_info", { domain: module, url }).then((response) => {
-        setWebtoon(response);
-        setWebtoonLoaded(true);
-        setMangaTitleForLibrary(response.Title);
-        setImageSrc(
-          load_covers ? response.Cover : "./assets/default-cover.svg"
-        );
-      });
-      invoke("get_chapters", { domain: module, url }).then((response) => {
-        setChapters(response);
-        setLoadingChapters(false);
-      });
+    (async () => {
+      const response = await invoke("get_info", { domain: module, url });
+      setWebtoon(response);
+      setWebtoonLoaded(true);
+      setMangaTitleForLibrary(response.Title);
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+      const chapters = await invoke("get_chapters", { domain: module, url });
+      setChapters(chapters);
+      setLoadingChapters(false);
     })();
   }, [module, url]);
 

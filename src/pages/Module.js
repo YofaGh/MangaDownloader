@@ -6,7 +6,9 @@ import { invoke } from "@tauri-apps/api/core";
 
 export default function Module() {
   const { module } = useParams();
-  const { default_search_depth, sleep_time, load_covers } = useSettingsStore((state) => state.settings);
+  const { default_search_depth, sleep_time, load_covers } = useSettingsStore(
+    (state) => state.settings
+  );
   const [input, setInput] = useState("");
   const [absolute, setAbsolute] = useState(false);
   const [results, setResults] = useState([]);
@@ -21,18 +23,17 @@ export default function Module() {
     modal.style.display = isShow ? "block" : "none";
   };
 
-  const startSearching = () => {
+  const startSearching = async () => {
     setSearchingStatus("searching");
-    invoke("search_keyword_one", {
+    const response = await invoke("search_keyword_one", {
       module,
       keyword: input,
       sleepTime: sleep_time,
       depth,
       absolute,
-    }).then((response) => {
-      setResults(response);
-      setSearchingStatus("searched");
     });
+    setResults(response);
+    setSearchingStatus("searched");
   };
 
   useEffect(() => {

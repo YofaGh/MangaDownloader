@@ -23,14 +23,11 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const { addNotification } = useNotificationStore();
 
   useEffect(() => {
-    (() => {
-      invoke("get_info", { domain: module, url }).then((response) => {
-        setWebtoon(response);
-        setWebtoonLoaded(true);
-        setImageSrc(
-          load_covers ? response.Cover : "./assets/default-cover.svg"
-        );
-      });
+    (async () => {
+      const response = await invoke("get_info", { domain: module, url });
+      setWebtoon(response);
+      setWebtoonLoaded(true);
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
     })();
   }, [module, url]);
 

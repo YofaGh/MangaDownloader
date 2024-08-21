@@ -22,7 +22,7 @@ export const useDownloadedStore = create((set) => ({
   deleteAllDownloaded: () => set({ downloaded: [] }),
 }));
 
-export const useQueueStore = create((set, get) => ({
+export const useQueueStore = create((set) => ({
   queue: [],
   setQueue: (newQueue) => set({ queue: newQueue }),
   addToQueue: (newData) =>

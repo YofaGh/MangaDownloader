@@ -56,6 +56,33 @@ export default function App() {
   const isFirstRender = useRef(true);
 
   const useDebouncedWriteFile = (fileName, data, delay) => {
+    const writeFile = async (fileName, data) => {
+      if (fileName === "library.json") {
+        data = data.reduce(
+          (
+            acc,
+            { id, title, status, domain, url, cover, last_downloaded_chapter }
+          ) => {
+            acc[title] = {
+              include: status,
+              id,
+              domain,
+              url,
+              cover,
+              last_downloaded_chapter,
+            };
+            return acc;
+          },
+          {}
+        );
+      }
+      await writeTextFile(
+        fileName,
+        JSON.stringify(data, null, 2),
+        { baseDir: BaseDirectory.AppData },
+        "utf8"
+      );
+    };
     const timerRef = useRef(null);
     useEffect(() => {
       if (!data) return;
@@ -69,54 +96,27 @@ export default function App() {
     }, [data, fileName, delay]);
   };
 
-  const writeFile = async (fileName, data) => {
-    if (fileName === "library.json") {
-      data = data.reduce(
-        (
-          acc,
-          { id, title, status, domain, url, cover, last_downloaded_chapter }
-        ) => {
-          acc[title] = {
-            include: status,
-            id,
-            domain,
-            url,
-            cover,
-            last_downloaded_chapter,
-          };
-          return acc;
-        },
-        {}
-      );
-    }
-    await writeTextFile(
-      fileName,
-      JSON.stringify(data, null, 2),
-      { baseDir: BaseDirectory.AppData },
-      "utf8"
-    );
-  };
-
   useEffect(() => {
     const readFile = async (file, setter) => {
-      readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then(
-        (contents) => {
-          const data = JSON.parse(contents);
-          const transformedData =
-            file === "library.json"
-              ? Object.entries(data).map(([title, details]) => ({
-                  title,
-                  id: details.id,
-                  status: details.include,
-                  domain: details.domain,
-                  url: details.url,
-                  cover: details.cover,
-                  last_downloaded_chapter: details.last_downloaded_chapter,
-                }))
-              : data;
-          setter(transformedData);
-        }
+      const contents = await readTextFile(
+        file,
+        { baseDir: BaseDirectory.AppData },
+        "utf8"
       );
+      const data = JSON.parse(contents);
+      const transformedData =
+        file === "library.json"
+          ? Object.entries(data).map(([title, details]) => ({
+              title,
+              id: details.id,
+              status: details.include,
+              domain: details.domain,
+              url: details.url,
+              cover: details.cover,
+              last_downloaded_chapter: details.last_downloaded_chapter,
+            }))
+          : data;
+      setter(transformedData);
     };
 
     readFile("settings.json", updateSettings);
@@ -124,18 +124,14 @@ export default function App() {
     readFile("downloaded.json", setDownloaded);
     readFile("favorites.json", setFavorites);
     readFile("library.json", setLibrary);
-    (() => {
-      invoke("get_modules").then((response) => {
-        setModules(
-          response.map((module) => {
-            const item = { ...module };
-            item.name = item.domain;
-            delete item.domain;
-            item.selected = true;
-            return item;
-          })
-        );
-      });
+    (async () => {
+      const response = await invoke("get_modules");
+      setModules(
+        response.map((module) => {
+          module.selected = true;
+          return module;
+        })
+      );
     })();
   }, []);
 

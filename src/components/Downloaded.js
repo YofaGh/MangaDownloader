@@ -1,9 +1,18 @@
-import { DCard } from ".";
+import { DCard, ActionButtonBig, merge, convert } from ".";
 import { invoke } from "@tauri-apps/api/core";
-import { useDownloadedStore } from "../store";
+import {
+  useDownloadedStore,
+  useSettingsStore,
+  useNotificationStore,
+} from "../store";
 
 export default function Downloaded() {
-  const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } = useDownloadedStore();
+  const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } =
+    useDownloadedStore();
+  const { download_path, merge_method } = useSettingsStore(
+    (state) => state.settings
+  );
+  const { addNotification } = useNotificationStore();
 
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => {
@@ -11,19 +20,56 @@ export default function Downloaded() {
     });
     deleteAllDownloaded();
   };
-  return downloaded.length !== 0 ? (
+
+  const deleteFolder = (path, index) => {
+    invoke("remove_directory", { path, recursive: true });
+    deleteDownloadedByIndex(index);
+  };
+
+  const openFolder = (path) => {
+    invoke("open_folder", { path });
+  };
+
+  const mergeImages = (webtoon) => {
+    merge(
+      webtoon,
+      download_path,
+      merge_method,
+      true,
+      addNotification,
+      invoke,
+      openFolder
+    );
+  };
+
+  const convertImages = (webtoon) => {
+    convert(webtoon, true, addNotification, invoke, openFolder);
+  };
+
+  if (downloaded.length === 0) {
+    return (
+      <div className="queue-div">
+        <div className="manage">
+          <div className="info-manage">Number of Items: 0</div>
+        </div>
+      </div>
+    );
+  }
+  return (
     <div className="queue-div">
       <div className="manage">
         <div className="info-manage">Number of Items: {downloaded.length}</div>
         <div className="manage-btn">
-          <button className="buttong" onClick={deleteAllDownloaded}>
-            <img alt="" src="./assets/delete.svg" className="icon"></img>
-            <span className="tooltip">Remove All from List</span>
-          </button>
-          <button className="buttong" onClick={deleteAllWebtoons}>
-            <img alt="" src="./assets/trash.svg" className="icon"></img>
-            <span className="tooltip">Delete All</span>
-          </button>
+          <ActionButtonBig
+            tooltip="Remove All from List"
+            svgName="delete"
+            onClick={deleteAllDownloaded}
+          />
+          <ActionButtonBig
+            tooltip="Delete All"
+            svgName="trash"
+            onClick={deleteAllWebtoons}
+          />
         </div>
       </div>
       <div className="queue-list">
@@ -33,17 +79,17 @@ export default function Downloaded() {
               <li key={webtoon.id}>
                 <DCard
                   webtoon={webtoon}
-                  removeWebtoon={() => deleteDownloadedByIndex(index)}
+                  index={index}
+                  mergeImages={mergeImages}
+                  convertImages={convertImages}
+                  removeWebtoon={deleteDownloadedByIndex}
+                  deleteFolder={deleteFolder}
                 />
               </li>
             );
           })}
         </ul>
       </div>
-    </div>
-  ) : (
-    <div className="no-info">
-      <h2>There are no downloaded webtoons</h2>
     </div>
   );
 }

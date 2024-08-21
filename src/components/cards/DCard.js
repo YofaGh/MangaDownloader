@@ -1,20 +1,13 @@
-import { convert, merge } from "..";
-import { useSettingsStore, useNotificationStore } from "../../store";
-import { invoke } from "@tauri-apps/api/core";
+import { ActionButtonCustom, ActionButtonSmall } from "..";
 
-export default function DCard({ webtoon, removeWebtoon }) {
-  const { addNotification } = useNotificationStore();
-  const { download_path, merge_method } = useSettingsStore((state) => state.settings);
-
-  const deleteFolder = () => {
-    invoke("remove_directory", { path: webtoon.path, recursive: true });
-    removeWebtoon(webtoon);
-  };
-
-  const openFolder = (path) => {
-    invoke("open_folder", { path });
-  };
-
+export default function DCard({
+  webtoon,
+  index,
+  removeWebtoon,
+  deleteFolder,
+  mergeImages,
+  convertImages,
+}) {
   return (
     <div className="queue-card">
       <div className="infog">
@@ -26,40 +19,10 @@ export default function DCard({ webtoon, removeWebtoon }) {
         <div className="d-status">Downladed {webtoon.images + ""} Images</div>
       </div>
       <div className="button-containerrr">
-        <button
-          className="buttonh"
-          onClick={() =>
-            merge(
-              webtoon,
-              download_path,
-              merge_method,
-              true,
-              addNotification,
-              invoke,
-              openFolder
-            )
-          }
-        >
-          <img alt="" src="./assets/merge.svg" className="icofn"></img>
-          <span className="tooltip">Merge</span>
-        </button>
-        <button
-          className="buttonh"
-          onClick={() =>
-            convert(webtoon, true, addNotification, invoke, openFolder)
-          }
-        >
-          <img alt="" src="./assets/pdf.svg" className="icofn"></img>
-          <span className="tooltip">Convert to PDF</span>
-        </button>
-        <button className="buttonh" onClick={removeWebtoon}>
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
-          <span className="tooltip">Remove</span>
-        </button>
-        <button className="buttonh" onClick={deleteFolder}>
-          <img alt="" src="./assets/trash.svg" className="icon"></img>
-          <span className="tooltip">Delete Folder</span>
-        </button>
+        <ActionButtonCustom onClick={() => mergeImages(webtoon)} svgName="merge" tooltip="Merge" />
+        <ActionButtonCustom onClick={() => convertImages(webtoon)} svgName="pdf" tooltip="Convert to PDF" />
+        <ActionButtonSmall onClick={() => removeWebtoon(index)} svgName="delete" tooltip="Remove" />
+        <ActionButtonSmall onClick={() => deleteFolder(webtoon.path, index)} svgName="trash" tooltip="Delete Folder" />
       </div>
     </div>
   );

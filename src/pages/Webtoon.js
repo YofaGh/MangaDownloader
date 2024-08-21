@@ -13,7 +13,7 @@ export default function Webtoon() {
   const { addNotification } = useNotificationStore();
   const { favorites, addToFavorites, removeFromFavorites } =
     useFavoritesStore();
-  const moduleType = useModulesStore(state => state.modules).find(m => m.name === module).type;
+  const moduleType = useModulesStore(state => state.modules).find(m => m.domain === module).type;
 
   useEffect(() => {
     setIsFavorite(

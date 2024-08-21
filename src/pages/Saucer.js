@@ -13,25 +13,22 @@ export default function Saucer() {
   const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
-    (() => {
-      invoke("get_saucers_list").then((response) => {
-        setSites(response);
-      });
+    (async () => {
+      const response = await invoke("get_saucers_list");
+      setSites(response);
     })();
   }, []);
 
   const setFile = async () => {
-    open({
+    const path = await open({
       directory: false,
       multiple: false,
-    }).then((path) => {
-      setCurrentStatus("Uploading");
-      invoke("upload_image", { path }).then((response) => {
-        setUrl(response);
-        addNotification(`Uploaded ${response}`, "SUCCESS");
-        setCurrentStatus(null);
-      });
     });
+    setCurrentStatus("Uploading");
+    const response = await invoke("upload_image", { path });
+    setUrl(response);
+    addNotification(`Uploaded ${response}`, "SUCCESS");
+    setCurrentStatus(null);
   };
 
   useEffect(() => {

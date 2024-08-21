@@ -28,6 +28,12 @@ export { default as FlipButton } from "./buttons/FlipButton";
 export { default as HomeButton } from "./buttons/HomeButton";
 export { default as PushButton } from "./buttons/PushButton";
 export {
+  ActionButtonBig,
+  ActionButtonSmall,
+  ActionButtonCustom,
+} from "./buttons/ActionButtons";
+
+export {
   fixNameForFolder,
   merge,
   convert,

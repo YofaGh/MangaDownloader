@@ -23,7 +23,7 @@ export default function MCard({ module, checkModule, load_covers }) {
               onError={() => {
                 retrieveImage(
                   imageSrc,
-                  module.name,
+                  module.domain,
                   setImageSrc,
                   invoke,
                   "./assets/module-cyan.svg"
@@ -31,9 +31,9 @@ export default function MCard({ module, checkModule, load_covers }) {
               }}
             />
           </div>
-          <div className="m-name">{module.name}</div>
+          <div className="m-name">{module.domain}</div>
           <div className="button-container">
-            <Link to={`/${module.name}`} state={{ module }}>
+            <Link to={`/${module.domain}`} state={{ module }}>
               <button className="m-button search-btn">
                 <img
                   alt=""

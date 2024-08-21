@@ -81,11 +81,11 @@ export default function SearchFilter({ showHideModal }) {
             )
             .map((module) => (
               <FilterToggleButton
-                key={module.name}
-                label={module.name}
+                key={module.domain}
+                label={module.domain}
                 selected={module.selected}
                 onChange={(e) =>
-                  updateModuleSelected(module.name, e.target.checked)
+                  updateModuleSelected(module.domain, e.target.checked)
                 }
               />
             ))}

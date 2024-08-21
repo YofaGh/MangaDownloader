@@ -2,7 +2,7 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
-export const convert = (
+export const convert = async (
   webtoon,
   openPath,
   addNotification,
@@ -13,24 +13,23 @@ export const convert = (
     webtoon.type === "manga"
       ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}.pdf`
       : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}.pdf`;
-  invoke("convert", {
+  await invoke("convert", {
     pathToSource: webtoon.path,
     pathToDestination: webtoon.path,
     pdfName,
-  }).then(() => {
-    addNotification(
-      webtoon.type === "manga"
-        ? `Converted ${webtoon.title} - ${webtoon.info}`
-        : `Converted ${webtoon.title}`,
-      "SUCCESS"
-    );
-    if (openPath) {
-      openFile(`${webtoon.path}\\${pdfName}`);
-    }
   });
+  addNotification(
+    webtoon.type === "manga"
+      ? `Converted ${webtoon.title} - ${webtoon.info}`
+      : `Converted ${webtoon.title}`,
+    "SUCCESS"
+  );
+  if (openPath) {
+    openFile(`${webtoon.path}\\${pdfName}`);
+  }
 };
 
-export const merge = (
+export const merge = async (
   webtoon,
   download_path,
   mergeMethod,
@@ -47,21 +46,20 @@ export const merge = (
         "\\" +
         webtoon.info
       : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
-  invoke("merge", {
+  await invoke("merge", {
     pathToSource: webtoon.path,
     pathToDestination: mergePath,
     mergeMethod,
-  }).then(() => {
-    addNotification(
-      webtoon.type === "manga"
-        ? `Merged ${webtoon.title} - ${webtoon.info}`
-        : `Merged ${webtoon.title}`,
-      "SUCCESS"
-    );
-    if (openPath) {
-      openFolder(mergePath);
-    }
   });
+  addNotification(
+    webtoon.type === "manga"
+      ? `Merged ${webtoon.title} - ${webtoon.info}`
+      : `Merged ${webtoon.title}`,
+    "SUCCESS"
+  );
+  if (openPath) {
+    openFolder(mergePath);
+  }
 };
 
 export const getDate = (datetime) => {
@@ -76,7 +74,7 @@ export const getDateTime = (datetime) => {
   }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 };
 
-export const retrieveImage = (
+export const retrieveImage = async (
   imageSrc,
   module,
   setImageSrc,
@@ -84,12 +82,11 @@ export const retrieveImage = (
   defImage
 ) => {
   try {
-    invoke("retrieve_image", {
+    const response = await invoke("retrieve_image", {
       domain: module,
       url: imageSrc,
-    }).then((response) => {
-      setImageSrc(response);
     });
+    setImageSrc(response);
   } catch (error) {
     setImageSrc(defImage);
   }

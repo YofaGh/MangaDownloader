@@ -195,7 +195,7 @@ export default function Modules() {
         {chunkedModules.map((chunk, index) => (
           <div key={index} className="card-row">
             {chunk.map((module) => (
-              <div key={module.name} className="card-wrapper">
+              <div key={module.domain} className="card-wrapper">
                 <MCard
                   module={module}
                   load_covers={load_covers}

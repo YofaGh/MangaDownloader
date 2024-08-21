@@ -77,10 +77,10 @@ export const useInitDownloadStore = create((set) => ({
 export const useModulesStore = create((set) => ({
   modules: [],
   setModules: (newVal) => set({ modules: newVal }),
-  updateModuleSelected: (name, selected) =>
+  updateModuleSelected: (domain, selected) =>
     set((state) => ({
       modules: state.modules.map((module) =>
-        module.name === name ? { ...module, selected } : module
+        module.domain === domain ? { ...module, selected } : module
       ),
     })),
   updateModulesSelected: (selected) =>

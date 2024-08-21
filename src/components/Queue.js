@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { QCard, fixNameForFolder } from ".";
+import { QCard, fixNameForFolder, ActionButtonBig } from ".";
 import {
   useQueueStore,
   useDownloadingStore,
@@ -20,13 +20,14 @@ export default function Queue() {
     deleteItemKeysInQueue,
     deleteKeysFromAllItemsInQueue,
   } = useQueueStore();
-  const { downloading, clearDownloading } =
-    useDownloadingStore();
+  const { downloading, clearDownloading } = useDownloadingStore();
   const settings = useSettingsStore((state) => state.settings);
   const [queueEditable, setQueueEditable] = useState(false);
   const [queu, setQueu] = useState(queue);
   const { addNotification } = useNotificationStore();
-  const increaseInitDownload = useInitDownloadStore((state) => state.increaseInitDownload);
+  const increaseInitDownload = useInitDownloadStore(
+    (state) => state.increaseInitDownload
+  );
 
   function handleOnDragEnd(result) {
     if (!result.destination) return;
@@ -141,53 +142,30 @@ export default function Queue() {
       increaseInitDownload();
     }
   };
-
-  return queue.length !== 0 ? (
+  if (queue.length === 0)
+    return (
+      <div className="queue-div">
+        <div className="manage">
+          <div className="info-manage">Number of Items: 0</div>
+        </div>
+      </div>
+    );
+  return (
     <div className="queue-div">
       <div className="manage">
         <div className="info-manage">Number of Items: {queu.length}</div>
         {!queueEditable ? (
           <div className="manage-btn">
-            <button className="buttong" onClick={() => setQueueEditable(true)}>
-              <img alt="" src="./assets/edit.svg" className="icon"></img>
-              <span className="tooltip">Edit List</span>
-            </button>
-            <button
-              className="buttong"
-              onClick={() => setAllWebtoonsStatus("Not Started")}
-            >
-              <img alt="" src="./assets/stop.svg" className="icon"></img>
-              <span className="tooltip">Stop All</span>
-            </button>
-            <button
-              className="buttong"
-              onClick={() => setAllWebtoonsStatus("Paused")}
-            >
-              <img alt="" src="./assets/pause.svg" className="icon"></img>
-              <span className="tooltip">Pause All</span>
-            </button>
-            <button
-              className="buttong"
-              onClick={() => setAllWebtoonsStatus("Started")}
-            >
-              <img alt="" src="./assets/start.svg" className="icon"></img>
-              <span className="tooltip">Start All</span>
-            </button>
-            <button className="buttong" onClick={deleteAllWebtoons}>
-              <img alt="" src="./assets/trash.svg" className="icon"></img>
-              <span className="tooltip">Delete All</span>
-            </button>
+            <ActionButtonBig tooltip="Edit List" svgName="edit" onClick={() => setQueueEditable(true)} />
+            <ActionButtonBig tooltip="Stop All" svgName="stop" onClick={() => setAllWebtoonsStatus("Not Started")} />
+            <ActionButtonBig tooltip="Pause All" svgName="pause" onClick={() => setAllWebtoonsStatus("Paused")} />
+            <ActionButtonBig tooltip="Start All" svgName="start" onClick={() => setAllWebtoonsStatus("Started")} />
+            <ActionButtonBig tooltip="Delete All" svgName="trash" onClick={deleteAllWebtoons} />
           </div>
         ) : (
           <div className="manage-btn">
-            <button className="buttong" onClick={discardChanges}>
-              <img alt="" src="./assets/delete.svg" className="icon"></img>
-              <span className="tooltip">Discard</span>
-            </button>
-            <button className="buttong" onClick={confirmChanges}>
-              <img alt="" src="./assets/done.svg" className="icon"></img>
-              <span className="tooltip">Apply</span>
-            </button>
+            <ActionButtonBig tooltip="Discard" svgName="delete" onClick={discardChanges} />
+            <ActionButtonBig tooltip="Apply" svgName="done" onClick={confirmChanges} />
           </div>
         )}
       </div>
@@ -230,10 +208,6 @@ export default function Queue() {
           </Droppable>
         </DragDropContext>
       </div>
-    </div>
-  ) : (
-    <div className="no-info">
-      <h2>There are no webtoons</h2>
     </div>
   );
 }

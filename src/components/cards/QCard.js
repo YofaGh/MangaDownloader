@@ -1,4 +1,4 @@
-export default function QCard({ webtoon, deleteWebtoon, setWebtoonStatus }) {
+export default function QCard({ webtoon, removeWebtoonFromQueue, setWebtoonStatus }) {
   return (
     <div className="queue-card">
       <div className="infog">
@@ -26,7 +26,7 @@ export default function QCard({ webtoon, deleteWebtoon, setWebtoonStatus }) {
         <></>
       )}
       <div className="button-containerrr">
-        <button className="buttonh" onClick={() => deleteWebtoon(webtoon)}>
+        <button className="buttonh" onClick={() => removeWebtoonFromQueue(webtoon)}>
           <img alt="" src="./assets/trash.svg" className="icon"></img>
           <span className="tooltip">Delete</span>
         </button>

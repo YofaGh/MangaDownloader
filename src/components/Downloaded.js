@@ -5,12 +5,6 @@ import { useDownloadedStore } from "../store";
 export default function Downloaded() {
   const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } = useDownloadedStore();
 
-  const removeWebtoon = (index) => {
-    deleteDownloadedByIndex(index);
-  };
-  const removeAllWebtoons = () => {
-    deleteAllDownloaded();
-  };
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => {
       invoke("remove_directory", { path: webtoon.path, recursive: true });
@@ -22,7 +16,7 @@ export default function Downloaded() {
       <div className="manage">
         <div className="info-manage">Number of Items: {downloaded.length}</div>
         <div className="manage-btn">
-          <button className="buttong" onClick={removeAllWebtoons}>
+          <button className="buttong" onClick={deleteAllDownloaded}>
             <img alt="" src="./assets/delete.svg" className="icon"></img>
             <span className="tooltip">Remove All from List</span>
           </button>
@@ -39,7 +33,7 @@ export default function Downloaded() {
               <li key={webtoon.id}>
                 <DCard
                   webtoon={webtoon}
-                  removeWebtoon={() => removeWebtoon(index)}
+                  removeWebtoon={() => deleteDownloadedByIndex(index)}
                 />
               </li>
             );

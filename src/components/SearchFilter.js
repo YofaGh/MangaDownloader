@@ -1,38 +1,17 @@
 import { FilterToggleButton, PushButton } from ".";
+import { useSearchStore, useModulesStore } from "../store";
 
-export default function SearchFilter({
-  types,
-  updateTypes,
-  modules,
-  updateModules,
-  showHideModal,
-  depth,
-  setDepth,
-  absolute,
-  setAbsolute,
-}) {
-  const setTypes = (index, checked) => {
-    const newTypes = [...types];
-    newTypes[index].selected = checked;
-    updateTypes(newTypes);
-  };
-
-  const checkAllModules = (checked) => {
-    const newModules = modules.map((module) => {
-      module.selected = checked;
-      return module;
-    });
-    updateModules(newModules);
-  };
-
-  const setModules = (moduleName, checked) => {
-    const updatedModules = [...modules];
-    const index = updatedModules.findIndex(
-      (module) => module.name === moduleName
-    );
-    updatedModules[index].selected = checked;
-    updateModules(updatedModules);
-  };
+export default function SearchFilter({ showHideModal }) {
+  const {
+    searchModuleTypes,
+    updateSearchModuleTypeByIndex,
+    searchAbsolute,
+    setSearchAbsolute,
+    searchDepth,
+    setSearchDepth,
+  } = useSearchStore();
+  const { modules, updateModuleSelected, updateModulesSelected } =
+    useModulesStore();
 
   return (
     <div id="myModal" className="modal">
@@ -45,12 +24,14 @@ export default function SearchFilter({
         </button>
         <div className="filter-types">
           <h2>Type:&nbsp;</h2>
-          {types.map((type, index) => (
+          {searchModuleTypes.map((type, index) => (
             <FilterToggleButton
               key={type.name}
               label={type.name}
               selected={type.selected}
-              onChange={(e) => setTypes(index, e.target.checked)}
+              onChange={(e) =>
+                updateSearchModuleTypeByIndex(index, e.target.checked)
+              }
             />
           ))}
           &nbsp;&nbsp;
@@ -58,9 +39,9 @@ export default function SearchFilter({
             <h2>Depth:&nbsp;&nbsp;</h2>
             <input
               type="number"
-              value={depth}
+              value={searchDepth}
               onChange={(e) => {
-                setDepth(Number(e.target.value));
+                setSearchDepth(Number(e.target.value));
               }}
               name="text"
               className="input-depth"
@@ -73,8 +54,8 @@ export default function SearchFilter({
               <input
                 type="checkbox"
                 className="cyberpunk-checkbox"
-                checked={absolute}
-                onChange={(e) => setAbsolute(e.target.checked)}
+                checked={searchAbsolute}
+                onChange={(e) => setSearchAbsolute(e.target.checked)}
               ></input>
             </label>
           </div>
@@ -83,24 +64,29 @@ export default function SearchFilter({
           <h2>Modules</h2>
           <PushButton
             label={"Check All"}
-            onClick={() => checkAllModules(true)}
+            onClick={() => updateModulesSelected(true)}
           />
           <PushButton
             label={"Uncheck All"}
-            onClick={() => checkAllModules(false)}
+            onClick={() => updateModulesSelected(false)}
           />
         </div>
         <div className="filter-types">
           {modules
+            .filter((module) => module.searchable)
             .filter((module) =>
-              types.some((type) => type.name === module.type && type.selected)
+              searchModuleTypes.some(
+                (type) => type.name === module.type && type.selected
+              )
             )
             .map((module) => (
               <FilterToggleButton
                 key={module.name}
                 label={module.name}
                 selected={module.selected}
-                onChange={(e) => setModules(module.name, e.target.checked)}
+                onChange={(e) =>
+                  updateModuleSelected(module.name, e.target.checked)
+                }
               />
             ))}
         </div>

@@ -1,27 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MCard, chunkArray, ModuleChecker } from "../components";
-import { useSettingsStore } from "../store";
+import { useSettingsStore, useModulesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { remove } from "@tauri-apps/plugin-fs";
 
 export default function Modules() {
-  const [modules, setModules] = useState([]);
-  const { load_covers, data_dir_path } = useSettingsStore((state) => state.settings);
+  const { load_covers, data_dir_path } = useSettingsStore(
+    (state) => state.settings
+  );
   const [moduleToCheck, setModuleToCheck] = useState([]);
-  const chunkedModules = chunkArray(modules, 3);
-
-  useEffect(() => {
-    const fetchModules = async () => {
-      invoke("get_modules").then((response) => {
-        setModules(response);
-      });
-    };
-    fetchModules();
-  });
+  const chunkedModules = chunkArray(
+    useModulesStore((state) => state.modules),
+    3
+  );
 
   const showHideModal = (isShow) => {
-    const modal = document.getElementById("checkModal");
-    modal.style.display = isShow ? "block" : "none";
+    document.getElementById("checkModal").style.display = isShow
+      ? "block"
+      : "none";
   };
 
   window.addEventListener("click", (event) => {

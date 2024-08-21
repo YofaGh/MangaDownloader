@@ -114,10 +114,6 @@ export default function Queue() {
     }
   };
 
-  const deleteWebtoon = (webtoon) => {
-    removeWebtoonFromQueue(webtoon);
-  };
-
   const setWebtoonStatus = async (webtoon, status) => {
     updateItemInQueue(webtoon.id, { status });
     if (
@@ -220,7 +216,7 @@ export default function Queue() {
                         >
                           <QCard
                             webtoon={webtoon}
-                            deleteWebtoon={deleteWebtoon}
+                            removeWebtoonFromQueue={removeWebtoonFromQueue}
                             setWebtoonStatus={setWebtoonStatus}
                           />
                         </li>

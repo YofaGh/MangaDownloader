@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Modules,
@@ -30,6 +30,7 @@ import {
   useQueueStore,
   useDownloadingStore,
   useInitDownloadStore,
+  useModulesStore,
 } from "./store";
 import { listen, once } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -49,33 +50,26 @@ export default function App() {
   const { favorites, setFavorites } = useFavoritesStore();
   const { downloading, setDownloading, clearDownloading } =
     useDownloadingStore();
+  const setModules = useModulesStore((state) => state.setModules);
   const { initDownload, increaseInitDownload } = useInitDownloadStore();
+  const debouncerDelay = 5000;
+  const isFirstRender = useRef(true);
 
-  const readFile = async (file, setter) => {
-    readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then(
-      (contents) => {
-        const data = JSON.parse(contents);
-        const transformedData =
-          file === "library.json"
-            ? Object.entries(data).map(([title, details]) => ({
-                title,
-                id: details.id,
-                status: details.include,
-                domain: details.domain,
-                url: details.url,
-                cover: details.cover,
-                last_downloaded_chapter: details.last_downloaded_chapter,
-              }))
-            : data;
-        setter(transformedData);
+  const useDebouncedWriteFile = (fileName, data, delay) => {
+    const timerRef = useRef(null);
+    useEffect(() => {
+      if (!data) return;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
-    );
+      timerRef.current = setTimeout(() => {
+        writeFile(fileName, data);
+      }, delay);
+      return () => clearTimeout(timerRef.current);
+    }, [data, fileName, delay]);
   };
 
   const writeFile = async (fileName, data) => {
-    if (!data) {
-      return;
-    }
     if (fileName === "library.json") {
       data = data.reduce(
         (
@@ -104,32 +98,58 @@ export default function App() {
   };
 
   useEffect(() => {
+    const readFile = async (file, setter) => {
+      readTextFile(file, { baseDir: BaseDirectory.AppData }, "utf8").then(
+        (contents) => {
+          const data = JSON.parse(contents);
+          const transformedData =
+            file === "library.json"
+              ? Object.entries(data).map(([title, details]) => ({
+                  title,
+                  id: details.id,
+                  status: details.include,
+                  domain: details.domain,
+                  url: details.url,
+                  cover: details.cover,
+                  last_downloaded_chapter: details.last_downloaded_chapter,
+                }))
+              : data;
+          setter(transformedData);
+        }
+      );
+    };
+
     readFile("settings.json", updateSettings);
     readFile("queue.json", setQueue);
     readFile("downloaded.json", setDownloaded);
     readFile("favorites.json", setFavorites);
     readFile("library.json", setLibrary);
+    (async () => {
+      const response = await invoke("get_modules");
+      setModules(
+        response.map((module) => {
+          const item = { ...module };
+          item.name = item.domain;
+          delete item.domain;
+          item.selected = true;
+          return item;
+        })
+      );
+    })();
   }, []);
 
   useEffect(() => {
-    if (!settings) {
-      return;
-    }
-    if (settings.download_path) {
-      increaseInitDownload();
-    } else {
-      document.getElementById("browse-modal").style.display = "block";
-    }
+    if (!isFirstRender.current) return;
+    isFirstRender.current = false;
+    if (!settings) return;
+    if (settings.download_path) increaseInitDownload();
+    else document.getElementById("browse-modal").style.display = "block";
   }, [settings]);
 
   const startDownloading = async () => {
-    if (downloading) {
-      return;
-    }
+    if (downloading) return;
     const webtoon = queue.find((item) => item.status === "Started");
-    if (!webtoon) {
-      return;
-    }
+    if (!webtoon) return;
     setDownloading(webtoon);
     const { total, inLibrary, image, ...rest } = webtoon;
     invoke("download", {
@@ -199,30 +219,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!downloading) {
-      startDownloading();
-    }
+    if (!downloading) startDownloading();
   }, [downloading, queue, initDownload]);
 
-  useEffect(() => {
-    writeFile("queue.json", queue);
-  }, [queue]);
-
-  useEffect(() => {
-    writeFile("downloaded.json", downloaded);
-  }, [downloaded]);
-
-  useEffect(() => {
-    writeFile("settings.json", settings);
-  }, [settings]);
-
-  useEffect(() => {
-    writeFile("favorites.json", favorites);
-  }, [favorites]);
-
-  useEffect(() => {
-    writeFile("library.json", library);
-  }, [library]);
+  useDebouncedWriteFile("queue.json", queue, debouncerDelay);
+  useDebouncedWriteFile("downloaded.json", downloaded, debouncerDelay);
+  useDebouncedWriteFile("settings.json", settings, debouncerDelay);
+  useDebouncedWriteFile("favorites.json", favorites, debouncerDelay);
+  useDebouncedWriteFile("library.json", library, debouncerDelay);
 
   return (
     <Router>

@@ -2,28 +2,19 @@ import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 
 export const useSearchStore = create((set) => ({
-  searchStatus: {
-    status: null,
-    searching: null,
-  },
+  searchStatus: { init: true },
+  searchAbsolute: false,
+  searchDepth: 0,
   searchKeyword: "",
   searchResults: [],
   selectedSearchModules: [],
+  searchModuleTypes: [
+    { name: "Manga", selected: true },
+    { name: "Doujin", selected: true },
+  ],
 
-  setSearching: (module) =>
-    set({
-      searchStatus: {
-        status: "searching",
-        searching: { module },
-      },
-    }),
-  doneSearching: () =>
-    set({
-      searchStatus: {
-        status: "searched",
-        searching: null,
-      },
-    }),
+  setSearching: (module) => set({ searchStatus: { searching: module } }),
+  doneSearching: () => set({ searchStatus: { searched: true } }),
 
   setSearchKeyword: (newSearchKeyword) =>
     set({ searchKeyword: newSearchKeyword }),
@@ -40,12 +31,16 @@ export const useSearchStore = create((set) => ({
     set({
       selectedSearchModules: [],
       searchResults: [],
-      searchKeyword: "",
-      searchStatus: {
-        status: null,
-        searching: null,
-      },
+      searchStatus: { init: true },
     }),
+  updateSearchModuleTypeByIndex: (index, selected) =>
+    set((state) => ({
+      searchModuleTypes: state.searchModuleTypes.map((moduleType, i) =>
+        i === index ? { ...moduleType, selected } : moduleType
+      ),
+    })),
+  setSearchAbsolute: (newAbsolute) => set({ searchAbsolute: newAbsolute }),
+  setSearchDepth: (newDepth) => set({ searchDepth: newDepth }),
 }));
 
 export const useDownloadingStore = create((set) => ({
@@ -77,4 +72,19 @@ export const useInitDownloadStore = create((set) => ({
   initDownload: 0,
   increaseInitDownload: () =>
     set((state) => ({ initDownload: state.initDownload + 1 })),
+}));
+
+export const useModulesStore = create((set) => ({
+  modules: [],
+  setModules: (newVal) => set({ modules: newVal }),
+  updateModuleSelected: (name, selected) =>
+    set((state) => ({
+      modules: state.modules.map((module) =>
+        module.name === name ? { ...module, selected } : module
+      ),
+    })),
+  updateModulesSelected: (selected) =>
+    set((state) => ({
+      modules: state.modules.map((module) => ({ ...module, selected })),
+    })),
 }));

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   SearchBar,
   SearchFilter,
@@ -6,27 +6,23 @@ import {
   WSearchCard,
   PushButton,
 } from "../components";
-import { useSettingsStore, useSearchStore } from "../store";
+import { useSettingsStore, useSearchStore, useModulesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, once } from "@tauri-apps/api/event";
 
 export default function Search() {
-  const [input, setInput] = useState("");
-  const [types, updateTypes] = useState([
-    { name: "Manga", selected: true },
-    { name: "Doujin", selected: true },
-  ]);
-  const [modules, updateModules] = useState([]);
-  const { default_search_depth, load_covers, sleep_time } =
-    useSettingsStore((state) => state.settings);
-  const [depth, setDepth] = useState(default_search_depth);
-  const [absolute, setAbsolute] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
+  const modules = useModulesStore((state) => state.modules);
+  const { default_search_depth, load_covers, sleep_time } = useSettingsStore(
+    (state) => state.settings
+  );
   const [sortBy, setSortBy] = useState("");
   const {
     searchResults,
     searchStatus,
     searchKeyword,
+    searchDepth,
+    setSearchDepth,
+    searchAbsolute,
     selectedSearchModules,
     setSearching,
     doneSearching,
@@ -34,33 +30,9 @@ export default function Search() {
     addSearchResult,
     setSelectedSearchModules,
     clearSearch,
+    searchModuleTypes,
   } = useSearchStore();
-
-  useEffect(() => {
-    const fetchModules = async () => {
-      const response = await invoke("get_modules");
-      updateModules(
-        response
-          .filter((module) => module.searchable)
-          .map((module) => {
-            const item = { ...module };
-            item.name = item.domain;
-            delete item.domain;
-            item.selected = true;
-            return item;
-          })
-      );
-    };
-
-    fetchModules();
-  }, []);
-
-  useEffect(() => {
-    if (searchStatus && searchStatus.searched) {
-      const sortMenu = document.getElementById("sort-menu");
-      sortMenu.style.opacity = sortOpen ? "1" : "0";
-    }
-  }, [sortOpen, searchStatus]);
+  if (searchDepth === 0) setSearchDepth(default_search_depth);
 
   const updateSortBy = (newSortBy) => {
     setSortBy(newSortBy);
@@ -69,7 +41,12 @@ export default function Search() {
       if (a[newSortBy] > b[newSortBy]) return 1;
       return 0;
     });
-    setSortOpen(!sortOpen);
+    toggleSortMenu();
+  };
+
+  const toggleSortMenu = async () => {
+    const sortMenu = document.getElementById("sort-menu");
+    sortMenu.style.opacity = sortMenu.style.opacity === "1" ? "0" : "1";
   };
 
   const resetSearch = async () => {
@@ -77,19 +54,29 @@ export default function Search() {
     clearSearch();
   };
 
-  const startSearching = async (modules, keyword, depth, absolute) => {
+  const startSearching = async () => {
     clearSearch();
-    setSearchKeyword(keyword);
-    setSelectedSearchModules(modules);
-    setSearching(modules[0].name);
+    const selectedSearchModulesr = modules
+      .filter(
+        (module) =>
+          searchModuleTypes.some(
+            (type) => type.name === module.type && type.selected
+          ) &&
+          module.searchable &&
+          module.selected
+      )
+      .map((item) => item.name);
+    setSearchKeyword(searchKeyword);
+    setSelectedSearchModules(selectedSearchModulesr);
+    setSearching(selectedSearchModulesr[0]);
     invoke("search_keyword", {
-      modules: modules.map((item) => item.name),
-      keyword,
+      modules: selectedSearchModulesr,
+      keyword: searchKeyword,
       sleepTime: sleep_time,
-      depth: depth,
-      absolute: absolute,
+      depth: searchDepth,
+      absolute: searchAbsolute,
     });
-    await listen("doneSearching", () => {
+    await once("doneSearching", () => {
       doneSearching();
     });
     await listen("searchingModule", (event) => {
@@ -101,8 +88,9 @@ export default function Search() {
   };
 
   const showHideModal = (isShow) => {
-    const modal = document.getElementById("myModal");
-    modal.style.display = isShow ? "block" : "none";
+    document.getElementById("myModal").style.display = isShow
+      ? "block"
+      : "none";
   };
 
   window.addEventListener("click", (event) => {
@@ -112,7 +100,7 @@ export default function Search() {
   let titleSortClass = `f-menu-item ${sortBy === "name" ? "selected" : ""}`;
   let pageSortClass = `f-menu-item ${sortBy === "page" ? "selected" : ""}`;
 
-  if (searchStatus.status === null) {
+  if (searchStatus.init) {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
@@ -122,24 +110,8 @@ export default function Search() {
           >
             <img alt="" src="./assets/filter.svg" className="btn-icon"></img>
           </button>
-          <SearchBar input={input} setInput={setInput} />
-          <button
-            className="m-button search-btn"
-            onClick={() => {
-              startSearching(
-                modules
-                  .filter((module) =>
-                    types.some(
-                      (type) => type.name === module.type && type.selected
-                    )
-                  )
-                  .filter((item) => item.selected),
-                input,
-                depth,
-                absolute
-              );
-            }}
-          >
+          <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
+          <button className="m-button search-btn" onClick={startSearching}>
             <img
               alt=""
               src="./assets/search.svg"
@@ -148,17 +120,7 @@ export default function Search() {
             ></img>
           </button>
         </div>
-        <SearchFilter
-          types={types}
-          updateTypes={updateTypes}
-          modules={modules}
-          updateModules={updateModules}
-          showHideModal={showHideModal}
-          depth={depth}
-          setDepth={setDepth}
-          absolute={absolute}
-          setAbsolute={setAbsolute}
-        />
+        <SearchFilter showHideModal={showHideModal} />
       </div>
     );
   } else if (searchStatus.searching) {
@@ -171,33 +133,30 @@ export default function Search() {
         <div className="s-cont">
           {selectedSearchModules.map((item) => {
             let num = searchResults.filter(
-              (result) => result.domain === item.name
+              (result) => result.domain === item
             ).length;
             num = num === 0 ? "" : num;
             return (
               <FilterButton
-                key={item.name}
-                label={`${item.name}  ${num}`}
+                key={item}
+                label={`${item}  ${num}`}
                 selected={searchResults.some(
-                  (result) => result.domain === item.name
+                  (result) => result.domain === item
                 )}
-                loading={searchStatus.searching.module === item.name}
+                loading={searchStatus.searching === item}
               />
             );
           })}
         </div>
       </div>
     );
-  } else if (searchStatus.status === "searched") {
+  } else if (searchStatus.searched) {
     return (
       <div className="container">
         <div className="header-r">
           <h2>Keyword : {searchKeyword}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <button
-            className="m-button sort-btn"
-            onClick={() => setSortOpen(!sortOpen)}
-          >
+          <button className="m-button sort-btn" onClick={toggleSortMenu}>
             <img
               alt=""
               src="./assets/sort.svg"
@@ -216,11 +175,12 @@ export default function Search() {
         </div>
         <div className="s-cont">
           {selectedSearchModules.map((item) => {
+            console.log(selectedSearchModules);
             return (
               <FilterButton
-                key={item.name}
-                label={`${item.name} ${
-                  searchResults.filter((result) => result.domain === item.name)
+                key={item}
+                label={`${item} ${
+                  searchResults.filter((result) => result.domain === item)
                     .length
                 }`}
                 selected={true}
@@ -237,7 +197,6 @@ export default function Search() {
         </div>
       </div>
     );
-  } else {
-    return <div className="container"></div>;
   }
+  return <div className="container"></div>;
 }

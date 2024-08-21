@@ -11,10 +11,6 @@ export const useSettingsStore = create((set) => ({
 export const useDownloadedStore = create((set) => ({
   downloaded: [],
   setDownloaded: (newDownloaded) => set({ downloaded: newDownloaded }),
-  updateDownloaded: (newData) =>
-    set((state) => ({
-      downloaded: { ...state.downloaded, ...newData },
-    })),
   addToDownloaded: (newItem) =>
     set((state) => ({
       downloaded: [newItem, ...state.downloaded],

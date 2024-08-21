@@ -13,11 +13,11 @@ export default function Saucer() {
   const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
-    const fetchSaucers = async () => {
-      const response = await invoke("get_saucers_list");
-      setSites(response);
-    };
-    fetchSaucers();
+    (() => {
+      invoke("get_saucers_list").then((response) => {
+        setSites(response);
+      });
+    })();
   }, []);
 
   const setFile = async () => {

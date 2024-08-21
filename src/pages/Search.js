@@ -175,7 +175,6 @@ export default function Search() {
         </div>
         <div className="s-cont">
           {selectedSearchModules.map((item) => {
-            console.log(selectedSearchModules);
             return (
               <FilterButton
                 key={item}

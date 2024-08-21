@@ -17,17 +17,11 @@ import {
   useQueueStore,
   useLibraryStore,
   useNotificationStore,
-  useDownloadingStore
+  useDownloadingStore,
 } from "../store";
 import { useNavigate } from "react-router-dom";
 
-export default function Manga({
-  module,
-  url,
-  isFavorite,
-  updateWebtoon,
-  isInLibrary,
-}) {
+export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -42,7 +36,7 @@ export default function Manga({
   const { downloading, clearDownloading } = useDownloadingStore();
 
   useEffect(() => {
-    const fetchManga = async () => {
+    (() => {
       invoke("get_info", { domain: module, url }).then((response) => {
         setWebtoon(response);
         setWebtoonLoaded(true);
@@ -51,18 +45,11 @@ export default function Manga({
           load_covers ? response.Cover : "./assets/default-cover.svg"
         );
       });
-    };
-    fetchManga();
-  }, [module, url]);
-
-  useEffect(() => {
-    const get_chapterss = async () => {
       invoke("get_chapters", { domain: module, url }).then((response) => {
         setChapters(response);
         setLoadingChapters(false);
       });
-    };
-    get_chapterss();
+    })();
   }, [module, url]);
 
   const showHideModal = (isShow) => {
@@ -103,14 +90,14 @@ export default function Manga({
   };
 
   const updateLibrary = async () => {
-    if (isInLibrary) {
+    if (library.some((webtoon) => webtoon.id === `${module}_$_${url}`)) {
       const id = `${module}_$_${url}`;
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
       addNotification(`Removed ${webt.title} from Library`, "SUCCESS");
       if (downloading && webt.id === downloading.id) {
         await invoke("stop_download");
-        clearDownloading();;
+        clearDownloading();
       }
     } else {
       showHideModal(true);
@@ -190,7 +177,9 @@ export default function Manga({
                 <img
                   alt=""
                   src={
-                    isInLibrary
+                    library.some(
+                      (webtoon) => webtoon.id === `${module}_$_${url}`
+                    )
                       ? "./assets/library.svg"
                       : "./assets/add_to_library.svg"
                   }

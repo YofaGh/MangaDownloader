@@ -52,7 +52,7 @@ export default function App() {
     useDownloadingStore();
   const setModules = useModulesStore((state) => state.setModules);
   const { initDownload, increaseInitDownload } = useInitDownloadStore();
-  const debouncerDelay = 5000;
+  const debouncerDelay = 2000;
   const isFirstRender = useRef(true);
 
   const useDebouncedWriteFile = (fileName, data, delay) => {
@@ -124,17 +124,18 @@ export default function App() {
     readFile("downloaded.json", setDownloaded);
     readFile("favorites.json", setFavorites);
     readFile("library.json", setLibrary);
-    (async () => {
-      const response = await invoke("get_modules");
-      setModules(
-        response.map((module) => {
-          const item = { ...module };
-          item.name = item.domain;
-          delete item.domain;
-          item.selected = true;
-          return item;
-        })
-      );
+    (() => {
+      invoke("get_modules").then((response) => {
+        setModules(
+          response.map((module) => {
+            const item = { ...module };
+            item.name = item.domain;
+            delete item.domain;
+            item.selected = true;
+            return item;
+          })
+        );
+      });
     })();
   }, []);
 

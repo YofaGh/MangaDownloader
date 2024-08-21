@@ -1,40 +1,27 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
 import {
   useNotificationStore,
   useFavoritesStore,
-  useLibraryStore,
+  useModulesStore,
 } from "../store";
 import { Manga, Doujin } from "../components";
 
 export default function Webtoon() {
   const { module, url } = useParams();
-  const [moduleType, setModuleType] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isInLibrary, setIsInLibrary] = useState(false);
   const { addNotification } = useNotificationStore();
   const { favorites, addToFavorites, removeFromFavorites } =
     useFavoritesStore();
-  const { library } = useLibraryStore();
+  const moduleType = useModulesStore(state => state.modules).find(m => m.name === module).type;
 
   useEffect(() => {
-    const fetchModuleType = async () => {
-      const response = await invoke("get_module_type", { domain: module });
-      setModuleType(response);
-      setIsFavorite(
-        favorites.some(
-          (webtoon) => webtoon.id === `${response}_$_${module}_$_${url}`
-        )
-      );
-      if (response === "Manga") {
-        setIsInLibrary(
-          library.some((webtoon) => webtoon.id === `${module}_$_${url}`)
-        );
-      }
-    };
-    fetchModuleType();
-  });
+    setIsFavorite(
+      favorites.some(
+        (webtoon) => webtoon.id === `${moduleType}_$_${module}_$_${url}`
+      )
+    );
+  }, []);
 
   const updateWebtoon = ({ title, cover }) => {
     if (isFavorite) {
@@ -62,7 +49,6 @@ export default function Webtoon() {
       url={url}
       isFavorite={isFavorite}
       updateWebtoon={updateWebtoon}
-      isInLibrary={isInLibrary}
     />
   ) : (
     <Doujin

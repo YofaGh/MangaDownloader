@@ -2,7 +2,7 @@ export const fixNameForFolder = (manga) => {
   return manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 };
 
-export const convert = async (
+export const convert = (
   webtoon,
   openPath,
   addNotification,
@@ -21,7 +21,8 @@ export const convert = async (
     addNotification(
       webtoon.type === "manga"
         ? `Converted ${webtoon.title} - ${webtoon.info}`
-        : `Converted ${webtoon.title}`, "SUCCESS"
+        : `Converted ${webtoon.title}`,
+      "SUCCESS"
     );
     if (openPath) {
       openFile(`${webtoon.path}\\${pdfName}`);
@@ -29,7 +30,7 @@ export const convert = async (
   });
 };
 
-export const merge = async (
+export const merge = (
   webtoon,
   download_path,
   mergeMethod,
@@ -46,7 +47,7 @@ export const merge = async (
         "\\" +
         webtoon.info
       : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
-  await invoke("merge", {
+  invoke("merge", {
     pathToSource: webtoon.path,
     pathToDestination: mergePath,
     mergeMethod,
@@ -54,7 +55,8 @@ export const merge = async (
     addNotification(
       webtoon.type === "manga"
         ? `Merged ${webtoon.title} - ${webtoon.info}`
-        : `Merged ${webtoon.title}`, "SUCCESS"
+        : `Merged ${webtoon.title}`,
+      "SUCCESS"
     );
     if (openPath) {
       openFolder(mergePath);
@@ -74,7 +76,7 @@ export const getDateTime = (datetime) => {
   }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 };
 
-export const retrieveImage = async (
+export const retrieveImage = (
   imageSrc,
   module,
   setImageSrc,
@@ -82,8 +84,12 @@ export const retrieveImage = async (
   defImage
 ) => {
   try {
-    const response = await invoke("retrieve_image", {domain: module, url: imageSrc});
-    setImageSrc(response);
+    invoke("retrieve_image", {
+      domain: module,
+      url: imageSrc,
+    }).then((response) => {
+      setImageSrc(response);
+    });
   } catch (error) {
     setImageSrc(defImage);
   }

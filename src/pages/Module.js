@@ -21,17 +21,18 @@ export default function Module() {
     modal.style.display = isShow ? "block" : "none";
   };
 
-  const startSearching = async () => {
+  const startSearching = () => {
     setSearchingStatus("searching");
-    const response = await invoke("search_keyword_one", {
+    invoke("search_keyword_one", {
       module,
       keyword: input,
       sleepTime: sleep_time,
       depth,
       absolute,
+    }).then((response) => {
+      setResults(response);
+      setSearchingStatus("searched");
     });
-    setResults(response);
-    setSearchingStatus("searched");
   };
 
   useEffect(() => {

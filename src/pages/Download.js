@@ -7,11 +7,8 @@ export default function Download() {
   return (
     <div className="container">
       <div className="scrollmenu">
-        <PushButton label={"Queue"} onClick={() => setDownloadTab("queue")} />
-        <PushButton
-          label={"Downloaded"}
-          onClick={() => setDownloadTab("downloaded")}
-        />
+        <PushButton label="Queue" onClick={() => setDownloadTab("queue")} />
+        <PushButton label="Downloaded" onClick={() => setDownloadTab("downloaded")} />
       </div>
       {downloadTab === "queue" ? <Queue /> : <Downloaded />}
     </div>

@@ -7,6 +7,7 @@ import {
   getDateTime,
   Loading,
   ChapterButton,
+  DownloadButton,
   PushButton,
   retrieveImage,
   chunkArray,
@@ -220,23 +221,8 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
         </div>
       ) : (
         <div>
-          <button className="btnn" onClick={() => addAllChapters("Started")}>
-            <span>Download All Chapters</span>
-            <div className="top"></div>
-            <div className="left"></div>
-            <div className="bottom"></div>
-            <div className="right"></div>
-          </button>
-          <button
-            className="btnn"
-            onClick={() => addAllChapters("Not Started")}
-          >
-            <span>Add All Chapters to Queue</span>
-            <div className="top"></div>
-            <div className="left"></div>
-            <div className="bottom"></div>
-            <div className="right"></div>
-          </button>
+          <DownloadButton label="Download All Chapters" onClick={() => addAllChapters("Started")}/>
+          <DownloadButton label="Add All Chapters to Queue" onClick={() => addAllChapters("Not Started")} />
           <br />
           <br />
           <div>

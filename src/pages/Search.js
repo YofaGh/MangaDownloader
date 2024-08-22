@@ -5,6 +5,7 @@ import {
   FilterButton,
   WSearchCard,
   PushButton,
+  ExpandButton
 } from "../components";
 import { useSettingsStore, useSearchStore, useModulesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
@@ -104,21 +105,9 @@ export default function Search() {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
-          <button
-            className="m-button filter-btn"
-            onClick={() => showHideModal(true)}
-          >
-            <img alt="" src="./assets/filter.svg" className="btn-icon"></img>
-          </button>
+          <ExpandButton name="filter" dimension={20} onClick={() => showHideModal(true)} />
           <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
-          <button className="m-button search-btn" onClick={startSearching}>
-            <img
-              alt=""
-              src="./assets/search.svg"
-              className="btn-icon"
-              style={{ width: 20, height: 20 }}
-            ></img>
-          </button>
+          <ExpandButton name="search" dimension={20} onClick={startSearching} />
         </div>
         <SearchFilter showHideModal={showHideModal} />
       </div>
@@ -156,14 +145,7 @@ export default function Search() {
         <div className="header-r">
           <h2>Keyword : {searchKeyword}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <button className="m-button sort-btn" onClick={toggleSortMenu}>
-            <img
-              alt=""
-              src="./assets/sort.svg"
-              className="btn-icon"
-              style={{ width: 20, height: 20 }}
-            ></img>
-          </button>
+          <ExpandButton name="sort" dimension={20} onClick={toggleSortMenu} />
           <ul id="sort-menu" className="f-menu">
             <li className={titleSortClass}>
               <button onClick={() => updateSortBy("name")}>Title</button>

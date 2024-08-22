@@ -13,12 +13,7 @@ export default function Favorites() {
       </div>
       <div className="f-container">
         {favorites.map((webtoon) => (
-          <Link
-            to={`/${webtoon.id.split("_$_")[1]}/webtoon/${
-              webtoon.id.split("_$_")[2]
-            }`}
-            key={webtoon.id}
-          >
+          <Link to={`/${webtoon.id.split("_$_")[1]}/webtoon/${webtoon.id.split("_$_")[2]}`} key={webtoon.id} >
             <FavoriteWebtoon webtoon={webtoon} removeFromFavorites={removeFromFavorites} load_covers={load_covers} />
           </Link>
         ))}

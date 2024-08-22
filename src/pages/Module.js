@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { SearchBar, PushButton, WSearchCard, Loading } from "../components";
+import { SearchBar, PushButton, ExpandButton, WSearchCard, Loading } from "../components";
 import { useSettingsStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -65,12 +65,7 @@ export default function Module() {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
-          <button
-            className="m-button filter-btn"
-            onClick={() => showHideModal(true)}
-          >
-            <img alt="" src="./assets/filter.svg" className="btn-icon"></img>
-          </button>
+          <ExpandButton name="filter" dimension={20} onClick={() => showHideModal(true)} />
           <SearchBar
             input={input}
             setInput={setInput}
@@ -79,24 +74,10 @@ export default function Module() {
             }`}
           />
           <Link to={`/${module}/webtoon/${input}`}>
-            <button className="m-button goto-btn">
-              <img
-                alt=""
-                src="./assets/goto.svg"
-                className="btn-icon"
-                style={{ width: 20, height: 20 }}
-              ></img>
-            </button>
+            <ExpandButton name="goto" dimension={20} />
           </Link>
           {moduleDetm.searchable && (
-            <button className="m-button search-btn" onClick={startSearching}>
-              <img
-                alt=""
-                src="./assets/search.svg"
-                className="btn-icon"
-                style={{ width: 20, height: 20 }}
-              ></img>
-            </button>
+            <ExpandButton name="search" dimension={20} onClick={startSearching} />
           )}
         </div>
         <div id="mod-Modal" className="modal">
@@ -153,17 +134,7 @@ export default function Module() {
         <div className="header-r">
           <h2>Keyword : {input}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <button
-            className="m-button sort-btn"
-            onClick={() => setSortOpen(!sortOpen)}
-          >
-            <img
-              alt=""
-              src="./assets/sort.svg"
-              className="btn-icon"
-              style={{ width: 20, height: 20 }}
-            ></img>
-          </button>
+          <ExpandButton name="sort" dimension={20} onClick={() => setSortOpen(!sortOpen)} />
           <ul id="sort-menu" className="f-menu">
             <li className={titleSortClass}>
               <button onClick={() => updateSortBy("name")}>Title</button>

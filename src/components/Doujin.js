@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Infoed,
   FlipButton,
+  DownloadButton,
   getDate,
   getDateTime,
   retrieveImage,
@@ -117,20 +118,8 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
         </div>
       </div>
       <div>
-        <button className="btnn" onClick={() => addDoujin("Started")}>
-          <span>Download Doujin</span>
-          <div className="top"></div>
-          <div className="left"></div>
-          <div className="bottom"></div>
-          <div className="right"></div>
-        </button>
-        <button className="btnn" onClick={() => addDoujin("Not Started")}>
-          <span>Add Doujin to Queue</span>
-          <div className="top"></div>
-          <div className="left"></div>
-          <div className="bottom"></div>
-          <div className="right"></div>
-        </button>
+        <DownloadButton label="Download Doujin" onClick={() => addDoujin("Started")} />
+        <DownloadButton label="Add Doujin to Queue" onClick={() => addDoujin("Not Started")} />
       </div>
     </div>
   ) : (

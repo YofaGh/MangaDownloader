@@ -1,7 +1,7 @@
-export default function HomeButton({ label, svg, onClick }) {
+export default function HomeButton({ label, svgName, onClick }) {
   return (
     <button className="playstore-button" onClick={onClick ? onClick : null}>
-      <img alt="" src={svg} className="iconn"></img>
+      <img alt="" src={`./assets/${svgName}.svg`} className="iconn"></img>
       <span className="texts">
         <span className="text-2">{label}</span>
       </span>

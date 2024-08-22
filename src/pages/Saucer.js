@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SearchBar, SaucerResult, Loading } from "../components";
+import { SearchBar, ExpandButton, SaucerResult, Loading } from "../components";
 import { useSettingsStore, useNotificationStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -110,17 +110,7 @@ export default function Saucer() {
             setInput={setUrl}
             placeHolder={"Enter image url"}
           />
-          <button
-            className="m-button search-btn"
-            onClick={() => setCurrentStatus("Saucing")}
-          >
-            <img
-              alt=""
-              src="./assets/search.svg"
-              className="btn-icon"
-              style={{ width: "20px", height: "20px" }}
-            ></img>
-          </button>
+          <ExpandButton name="search" dimension={20} onClick={() => setCurrentStatus("Saucing")}/>
         </div>
         <p>Or</p>
         <div className="locate-container">

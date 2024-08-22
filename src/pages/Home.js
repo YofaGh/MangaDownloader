@@ -10,22 +10,22 @@ export default function HomePage() {
         </div>
         <div className="home-buttons">
           <Link to={{ pathname: "library" }}>
-            <HomeButton label={"Library"} svg={"./assets/library.svg"} />
+            <HomeButton label="Library" svgName="library" />
           </Link>
           <Link to={{ pathname: "search" }}>
-            <HomeButton label={"Search"} svg={"./assets/search.svg"} />
+            <HomeButton label="Search" svgName="search" />
           </Link>
           <Link to={{ pathname: "download" }}>
-            <HomeButton label={"Download"} svg={"./assets/dPage.svg"} />
+            <HomeButton label="Download" svgName="dPage" />
           </Link>
           <Link to={{ pathname: "modules" }}>
-            <HomeButton label={"Modules"} svg={"./assets/module.svg"} />
+            <HomeButton label="Modules" svgName="module" />
           </Link>
           <Link to={{ pathname: "favorites" }}>
-            <HomeButton label={"Favorites"} svg={"./assets/favorites.svg"} />
+            <HomeButton label="Favorites" svgName="favorites" />
           </Link>
           <Link to={{ pathname: "saucer" }}>
-            <HomeButton label={"Saucer"} svg={"./assets/saucer.svg"} />
+            <HomeButton label="Saucer" svgName="saucer" />
           </Link>
         </div>
       </div>

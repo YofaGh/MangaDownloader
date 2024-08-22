@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage } from "..";
+import { retrieveImage, ExpandButton } from "..";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function MCard({ module, checkModule, load_covers }) {
@@ -34,26 +34,9 @@ export default function MCard({ module, checkModule, load_covers }) {
           <div className="m-name">{module.domain}</div>
           <div className="button-container">
             <Link to={`/${module.domain}`} state={{ module }}>
-              <button className="m-button search-btn">
-                <img
-                  alt=""
-                  src="./assets/search.svg"
-                  className="btn-icon"
-                  style={{ width: 30, height: 30 }}
-                ></img>
-              </button>
+              <ExpandButton name="search" dimension={30} />
             </Link>
-            <button
-              className="m-button check-btn"
-              onClick={() => checkModule(module)}
-            >
-              <img
-                alt=""
-                src="./assets/check.svg"
-                className="btn-icon"
-                style={{ width: 30, height: 30 }}
-              ></img>
-            </button>
+              <ExpandButton name="check" dimension={30} onClick={() => checkModule(module)} />
           </div>
         </div>
       </div>

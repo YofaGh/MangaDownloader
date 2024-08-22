@@ -26,7 +26,9 @@ export { default as FilterButton } from "./buttons/FilterButton";
 export { default as FilterToggleButton } from "./buttons/FilterToggleButton";
 export { default as FlipButton } from "./buttons/FlipButton";
 export { default as HomeButton } from "./buttons/HomeButton";
+export { default as DownloadButton } from "./buttons/DownloadButton";
 export { default as PushButton } from "./buttons/PushButton";
+export { default as ExpandButton } from "./buttons/ExpandButton";
 export {
   ActionButtonBig,
   ActionButtonSmall,

@@ -8,6 +8,7 @@ export { default as ModuleChecker } from "./ModuleChecker";
 export { default as NotificationProvider } from "./NotificationProvider";
 export { default as Queue } from "./Queue";
 export { default as Rating } from "./Rating";
+export { default as CheckBox } from "./CheckBox";
 export { default as SearchBar } from "./SearchBar";
 export { default as SearchFilter } from "./SearchFilter";
 export { default as SideBar } from "./SideBar";

@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { SearchBar, PushButton, ExpandButton, WSearchCard, Loading } from "../components";
+import {
+  SearchBar,
+  CheckBox,
+  PushButton,
+  ExpandButton,
+  WSearchCard,
+  Loading,
+} from "../components";
 import { useSettingsStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -65,7 +72,11 @@ export default function Module() {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
-          <ExpandButton name="filter" dimension={20} onClick={() => showHideModal(true)} />
+          <ExpandButton
+            name="filter"
+            dimension={20}
+            onClick={() => showHideModal(true)}
+          />
           <SearchBar
             input={input}
             setInput={setInput}
@@ -77,7 +88,11 @@ export default function Module() {
             <ExpandButton name="goto" dimension={20} />
           </Link>
           {moduleDetm.searchable && (
-            <ExpandButton name="search" dimension={20} onClick={startSearching} />
+            <ExpandButton
+              name="search"
+              dimension={20}
+              onClick={startSearching}
+            />
           )}
         </div>
         <div id="mod-Modal" className="modal">
@@ -103,15 +118,11 @@ export default function Module() {
                 &nbsp;&nbsp;
               </div>
               <div className="in-depth">
-                <h2>Only in Title:&nbsp;</h2>
-                <label className="cyberpunk-checkbox-label">
-                  <input
-                    type="checkbox"
-                    className="cyberpunk-checkbox"
-                    checked={absolute}
-                    onChange={(e) => setAbsolute(e.target.checked)}
-                  ></input>
-                </label>
+                <CheckBox
+                  label=<h2>Only in Title:</h2>
+                  checked={absolute}
+                  onChange={(e) => setAbsolute(e.target.checked)}
+                />
               </div>
             </div>
           </div>
@@ -134,7 +145,11 @@ export default function Module() {
         <div className="header-r">
           <h2>Keyword : {input}</h2>
           <PushButton label={"Reset"} onClick={resetSearch} />
-          <ExpandButton name="sort" dimension={20} onClick={() => setSortOpen(!sortOpen)} />
+          <ExpandButton
+            name="sort"
+            dimension={20}
+            onClick={() => setSortOpen(!sortOpen)}
+          />
           <ul id="sort-menu" className="f-menu">
             <li className={titleSortClass}>
               <button onClick={() => updateSortBy("name")}>Title</button>

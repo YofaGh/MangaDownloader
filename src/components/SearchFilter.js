@@ -1,4 +1,4 @@
-import { FilterToggleButton, PushButton } from ".";
+import { FilterToggleButton, PushButton, CheckBox } from ".";
 import { useSearchStore, useModulesStore } from "../store";
 
 export default function SearchFilter({ showHideModal }) {
@@ -49,15 +49,11 @@ export default function SearchFilter({ showHideModal }) {
             &nbsp;&nbsp;
           </div>
           <div className="in-depth">
-            <h2>Only in Title:&nbsp;</h2>
-            <label className="cyberpunk-checkbox-label">
-              <input
-                type="checkbox"
-                className="cyberpunk-checkbox"
-                checked={searchAbsolute}
-                onChange={(e) => setSearchAbsolute(e.target.checked)}
-              ></input>
-            </label>
+            <CheckBox
+              label=<h2>Only in Title:</h2>
+              checked={searchAbsolute}
+              onChange={() => (e) => setSearchAbsolute(e.target.checked)}
+            />
           </div>
         </div>
         <div className="filter-types align-center">

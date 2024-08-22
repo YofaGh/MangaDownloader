@@ -1,5 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { FilterToggleButton } from "../components";
+import { FilterToggleButton, CheckBox } from "../components";
 import {
   useSettingsStore,
   useNotificationStore,
@@ -31,30 +31,22 @@ export default function Settings() {
       <div className="f-header">Settings</div>
       <div className="s-utils">
         <div className="in-depth">
-          <label className="cyb-checkbox-label">
-            Auto Merge:&nbsp;
-            <input
-              type="checkbox"
-              className="cyberpunk-checkbox"
-              checked={settings.auto_merge}
-              onChange={() =>
-                updateSettings({ auto_merge: !settings.auto_merge })
-              }
-            ></input>
-          </label>
+          <CheckBox
+            label="Auto Merge:"
+            checked={settings.auto_merge}
+            onChange={() =>
+              updateSettings({ auto_merge: !settings.auto_merge })
+            }
+          />
         </div>
         <div className="in-depth">
-          <label className="cyb-checkbox-label">
-            Auto Convert To PDF:&nbsp;
-            <input
-              type="checkbox"
-              className="cyberpunk-checkbox"
-              checked={settings.auto_convert}
-              onChange={() =>
-                updateSettings({ auto_convert: !settings.auto_convert })
-              }
-            ></input>
-          </label>
+        <CheckBox
+            label="Auto Convert To PDF:"
+            checked={settings.auto_convert}
+            onChange={() =>
+              updateSettings({ auto_convert: !settings.auto_convert })
+            }
+          />
         </div>
         <div className="cyb-checkbox-label">
           Merge Method:&nbsp;
@@ -80,17 +72,13 @@ export default function Settings() {
       </div>
       <div className="s-utils">
         <div className="in-depth">
-          <label className="cyb-checkbox-label">
-            Load Covers: &nbsp;
-            <input
-              type="checkbox"
-              className="cyberpunk-checkbox"
-              checked={settings.load_covers}
-              onChange={() =>
-                updateSettings({ load_covers: !settings.load_covers })
-              }
-            ></input>
-          </label>
+          <CheckBox
+            label="Load Covers:"
+            checked={settings.load_covers}
+            onChange={() =>
+              updateSettings({ load_covers: !settings.load_covers })
+            }
+          />
         </div>
         <div className="cyb-checkbox-label">
           Sleep Time:&nbsp;&nbsp;

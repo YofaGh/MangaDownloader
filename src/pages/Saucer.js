@@ -1,70 +1,87 @@
-import { useState, useEffect } from "react";
-import { SearchBar, ExpandButton, SaucerResult, Loading } from "../components";
-import { useSettingsStore, useNotificationStore } from "../store";
+import { useEffect } from "react";
+import {
+  SearchBar,
+  ExpandButton,
+  SaucerResult,
+  Loading,
+  isUrlValid,
+  StepsCircle,
+} from "../components";
+import {
+  useSettingsStore,
+  useNotificationStore,
+  useSauceStore,
+} from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
 export default function Saucer() {
-  const [url, setUrl] = useState("");
-  const [sites, setSites] = useState([]);
-  const [results, setResults] = useState([]);
-  const [currentStatus, setCurrentStatus] = useState(null);
+  const {
+    sauceStatus,
+    sauceUrl,
+    sauceResults,
+    saucers,
+    setSauceStatus,
+    setSauceUrl,
+    addSauceResult,
+    setSaucers,
+  } = useSauceStore();
   const { addNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
-    (async () => {
-      const response = await invoke("get_saucers_list");
-      setSites(response);
-    })();
-  }, []);
+    if (saucers.length === 0) {
+      (async () => {
+        const response = await invoke("get_saucers_list");
+        setSaucers(response);
+      })();
+    }
+  }, [saucers.length, setSaucers]);
 
-  const setFile = async () => {
+  const uploadImage = async () => {
     const path = await open({
       directory: false,
       multiple: false,
     });
-    setCurrentStatus("Uploading");
+    setSauceStatus("Uploading");
     const response = await invoke("upload_image", { path });
-    setUrl(response);
+    setSauceUrl(response);
     addNotification(`Uploaded ${response}`, "SUCCESS");
-    setCurrentStatus(null);
+    setSauceStatus(null);
   };
 
   useEffect(() => {
     const startSaucer = async () => {
-      if (!url) {
+      if (!isUrlValid(sauceUrl)) {
+        addNotification("Invalid URL", "ERROR");
         return;
       }
-      setCurrentStatus("Saucing");
-      for (let i = 0; i < sites.length; i++) {
-        const site = sites[i];
+      for (let i = 0; i < saucers.length; i++) {
+        const site = saucers[i];
         let element = document.getElementById(site);
         element.classList.add("active");
-        const res = await invoke("sauce", { saucer: site, url });
-        setResults((prevResults) => [
-          ...prevResults,
-          ...res.map((item) => ({ site, ...item })),
-        ]);
+        const res = await invoke("sauce", { saucer: site, url: sauceUrl });
+        addSauceResult(res.map((item) => ({ site, ...item })));
         element.classList.remove("active");
-        element.classList.add("done");
-        let progressBar = document.querySelector(".steps-indicator");
-        progressBar.style.width = (i + 1) * 120 + "px";
+        element.classList.remove("done");
+        document.querySelector(".steps-indicator").style.width =
+          (i + 1) * 120 + "px";
       }
-      setCurrentStatus("Sauced");
+      addNotification("Sauced", "SUCCESS");
+      setSauceStatus("Sauced");
     };
 
-    if (currentStatus === "Saucing") {
+    if (sauceStatus === "Saucing") {
       startSaucer();
     }
-  }, [currentStatus, sites]);
+  }, [sauceStatus]);
 
-  if (currentStatus === "Sauced") {
+  if (sauceStatus === "Sauced") {
     return (
       <div className="container">
         <div className="f-header">Results</div>
         <div className="ff-container">
-          {results.map((result) => (
+          {sauceResults.map((result) => (
             <SaucerResult
               key={result.url}
               result={result}
@@ -74,27 +91,21 @@ export default function Saucer() {
         </div>
       </div>
     );
-  } else if (currentStatus === "Saucing") {
+  } else if (sauceStatus === "Saucing") {
     return (
       <div className="container">
         <div className="f-header">Saucing...</div>
-        <div className="steps-container">
-          <div className="steps">
-            {sites.map((site) => {
-              return (
-                <span className="steps-circle" key={site} id={site}>
-                  {site[0].toUpperCase() + site.slice(1)}
-                </span>
-              );
-            })}
-            <div className="steps-progress-bar">
-              <span className="steps-indicator"></span>
-            </div>
-          </div>
-        </div>
+        <StepsCircle
+          circles={saucers.map((site) => ({
+            id: site,
+            name: site[0].toUpperCase() + site.slice(1),
+          }))}
+          preClassName=""
+          hasProgressBar={true}
+        />
       </div>
     );
-  } else if (currentStatus === "Uploading") {
+  } else if (sauceStatus === "Uploading") {
     return (
       <div className="container">
         <Loading />
@@ -106,19 +117,23 @@ export default function Saucer() {
       <div className="container">
         <div style={{ display: "inline-flex" }}>
           <SearchBar
-            input={url}
-            setInput={setUrl}
-            placeHolder={"Enter image url"}
+            input={sauceUrl}
+            setInput={setSauceUrl}
+            placeHolder="Enter image url"
           />
-          <ExpandButton name="search" dimension={20} onClick={() => setCurrentStatus("Saucing")}/>
+          <ExpandButton
+            name="search"
+            dimension={20}
+            onClick={() => setSauceStatus("Saucing")}
+          />
         </div>
         <p>Or</p>
         <div className="locate-container">
           <div className="locate-header">
-            <label htmlFor="file" onClick={setFile}>
+            <label htmlFor="file" onClick={uploadImage}>
               <img
                 alt=""
-                src={"./assets/upload.svg"}
+                src="./assets/upload.svg"
                 className="buttonh icon"
                 style={{ width: "70px", height: "70px" }}
               ></img>

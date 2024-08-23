@@ -14,6 +14,7 @@ export { default as SearchFilter } from "./SearchFilter";
 export { default as SideBar } from "./SideBar";
 export { default as TopBar } from "./TopBar";
 export { default as DownloadPathModal } from "./DownloadPathModal";
+export { default as StepsCircle } from "./StepsCircle";
 
 export { default as DCard } from "./cards/DCard";
 export { default as MCard } from "./cards/ModuleCard";
@@ -44,4 +45,5 @@ export {
   getDateTime,
   retrieveImage,
   chunkArray,
+  isUrlValid,
 } from "./utils";

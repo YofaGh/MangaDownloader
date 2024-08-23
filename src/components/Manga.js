@@ -35,6 +35,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const { addNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
   const { downloading, clearDownloading } = useDownloadingStore();
+  const id = `${module}_$_${url}`;
 
   useEffect(() => {
     (async () => {
@@ -57,7 +58,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const addManga = (chapter, status) => {
     const webt = {
       type: "manga",
-      id: `${module}_$_${url}_$_${chapter.url}`,
+      id: `${id}_$_${chapter.url}`,
       title: webtoon.Title,
       info: chapter.name,
       module: module,
@@ -87,8 +88,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   };
 
   const updateLibrary = async () => {
-    if (library.some((webtoon) => webtoon.id === `${module}_$_${url}`)) {
-      const id = `${module}_$_${url}`;
+    if (library.some((webtoon) => webtoon.id === id)) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
       addNotification(`Removed ${webt.title} from Library`, "SUCCESS");
@@ -104,7 +104,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const addMangaToLibrary = () => {
     addToLibrary({
       title: mangaTitleForLibrary,
-      id: `${module}_$_${url}`,
+      id,
       status: true,
       domain: module,
       url,
@@ -174,9 +174,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
                 <img
                   alt=""
                   src={
-                    library.some(
-                      (webtoon) => webtoon.id === `${module}_$_${url}`
-                    )
+                    library.some((webtoon) => webtoon.id === id)
                       ? "./assets/library.svg"
                       : "./assets/add_to_library.svg"
                   }
@@ -221,8 +219,14 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
         </div>
       ) : (
         <div>
-          <DownloadButton label="Download All Chapters" onClick={() => addAllChapters("Started")}/>
-          <DownloadButton label="Add All Chapters to Queue" onClick={() => addAllChapters("Not Started")} />
+          <DownloadButton
+            label="Download All Chapters"
+            onClick={() => addAllChapters("Started")}
+          />
+          <DownloadButton
+            label="Add All Chapters to Queue"
+            onClick={() => addAllChapters("Not Started")}
+          />
           <br />
           <br />
           <div>
@@ -256,7 +260,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
           </div>
           <br />
           <input
-            placeholder={"Enter a title"}
+            placeholder="Enter a title"
             className="input"
             name="text"
             type="text"
@@ -264,7 +268,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
             onChange={(e) => setMangaTitleForLibrary(e.target.value)}
           ></input>
           <PushButton
-            label={"Ok"}
+            label="Ok"
             onClick={() => {
               if (
                 library.some((manga) => manga.title === mangaTitleForLibrary)
@@ -279,7 +283,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
               }
             }}
           />
-          <PushButton label={"Cancel"} onClick={() => showHideModal(false)} />
+          <PushButton label="Cancel" onClick={() => showHideModal(false)} />
           <br />
           <span id="pwmessage"></span>
         </div>

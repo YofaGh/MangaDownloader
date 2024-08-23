@@ -4,7 +4,7 @@ import { useNotificationStore } from "../store";
 export default function NotificationProvider() {
   const { notifications } = useNotificationStore();
   return (
-    <div className={"notification-wrapper"}>
+    <div className="notification-wrapper">
       {notifications.map((notification) => {
         return <Notification key={notification.id} {...notification} />;
       })}
@@ -64,7 +64,7 @@ const Notification = ({ id, message, type }) => {
       } ${exit ? "exit" : ""}`}
     >
       <p>{message}</p>
-      <div className={"bar"} style={{ width: `${width}%` }} />
+      <div className="bar" style={{ width: `${width}%` }} />
     </div>
   );
 };

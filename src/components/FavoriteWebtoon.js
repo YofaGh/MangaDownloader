@@ -45,7 +45,7 @@ export default function FavoriteWebtoon({
               >
                 <img
                   alt=""
-                  src={"./assets/favorites.svg"}
+                  src="./assets/favorites.svg"
                   className="icongt"
                 ></img>
               </button>

@@ -117,7 +117,7 @@ export default function Search() {
       <div className="container">
         <div className="header-r">
           <h2>Searching For : {searchKeyword}</h2>
-          <PushButton label={"Terminate"} onClick={resetSearch} />
+          <PushButton label="Terminate" onClick={resetSearch} />
         </div>
         <div className="s-cont">
           {selectedSearchModules.map((item) => {
@@ -144,7 +144,7 @@ export default function Search() {
       <div className="container">
         <div className="header-r">
           <h2>Keyword : {searchKeyword}</h2>
-          <PushButton label={"Reset"} onClick={resetSearch} />
+          <PushButton label="Reset" onClick={resetSearch} />
           <ExpandButton name="sort" dimension={20} onClick={toggleSortMenu} />
           <ul id="sort-menu" className="f-menu">
             <li className={titleSortClass}>

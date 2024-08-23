@@ -13,4 +13,5 @@ export {
   useDownloadTabStore,
   useInitDownloadStore,
   useModulesStore,
+  useSauceStore,
 } from "./store";

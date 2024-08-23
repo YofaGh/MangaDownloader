@@ -88,3 +88,24 @@ export const useModulesStore = create((set) => ({
       modules: state.modules.map((module) => ({ ...module, selected })),
     })),
 }));
+
+export const useSauceStore = create((set) => ({
+  sauceStatus: null,
+  sauceUrl: "",
+  sauceResults: [],
+  saucers: [],
+
+  setSauceStatus: (status) => set({ sauceStatus: status }),
+  setSauceUrl: (newUrl) => set({ sauceUrl: newUrl }),
+  addSauceResult: (newResult) =>
+    set((state) => ({
+      sauceResults: [...state.sauceResults, ...newResult],
+    })),
+  setSaucers: (newSaucers) => set({ saucers: newSaucers }),
+  clearSauce: () =>
+    set({
+      sauceStatus: null,
+      sauceUrl: "",
+      sauceResults: [],
+    }),
+}));

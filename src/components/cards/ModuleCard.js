@@ -36,7 +36,7 @@ export default function MCard({ module, checkModule, load_covers }) {
             <Link to={`/${module.domain}`} state={{ module }}>
               <ExpandButton name="search" dimension={30} />
             </Link>
-              <ExpandButton name="check" dimension={30} onClick={() => checkModule(module)} />
+            <ExpandButton name="check" dimension={30} onClick={() => checkModule(module)} />
           </div>
         </div>
       </div>

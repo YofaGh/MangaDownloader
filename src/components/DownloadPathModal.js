@@ -30,7 +30,7 @@ export default function DownloadPathModal() {
         <br />
         <br />
         <br />
-        <PushButton label={"Browse"} onClick={setDownloadPath} />
+        <PushButton label="Browse" onClick={setDownloadPath} />
       </div>
     </div>
   );

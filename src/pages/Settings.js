@@ -40,7 +40,7 @@ export default function Settings() {
           />
         </div>
         <div className="in-depth">
-        <CheckBox
+          <CheckBox
             label="Auto Convert To PDF:"
             checked={settings.auto_convert}
             onChange={() =>
@@ -51,7 +51,7 @@ export default function Settings() {
         <div className="cyb-checkbox-label">
           Merge Method:&nbsp;
           <FilterToggleButton
-            label={"Normal"}
+            label="Normal"
             selected={settings.merge_method === "Normal"}
             onChange={() => {
               if (settings.merge_method === "Fit") {
@@ -60,7 +60,7 @@ export default function Settings() {
             }}
           />
           <FilterToggleButton
-            label={"Fit"}
+            label="Fit"
             selected={settings.merge_method === "Fit"}
             onChange={() => {
               if (settings.merge_method === "Normal") {

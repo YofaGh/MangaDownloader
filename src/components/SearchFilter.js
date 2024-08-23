@@ -59,11 +59,11 @@ export default function SearchFilter({ showHideModal }) {
         <div className="filter-types align-center">
           <h2>Modules</h2>
           <PushButton
-            label={"Check All"}
+            label="Check All"
             onClick={() => updateModulesSelected(true)}
           />
           <PushButton
-            label={"Uncheck All"}
+            label="Uncheck All"
             onClick={() => updateModulesSelected(false)}
           />
         </div>

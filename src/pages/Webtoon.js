@@ -13,30 +13,23 @@ export default function Webtoon() {
   const { addNotification } = useNotificationStore();
   const { favorites, addToFavorites, removeFromFavorites } =
     useFavoritesStore();
-  const moduleType = useModulesStore(state => state.modules).find(m => m.domain === module).type;
+  const moduleType = useModulesStore((state) => state.modules).find(
+    (m) => m.domain === module
+  ).type;
+  const id = `${moduleType}_$_${module}_$_${url}`;
 
   useEffect(() => {
-    setIsFavorite(
-      favorites.some(
-        (webtoon) => webtoon.id === `${moduleType}_$_${module}_$_${url}`
-      )
-    );
+    setIsFavorite(favorites.some((webtoon) => webtoon.id === id));
   }, []);
 
   const updateWebtoon = ({ title, cover }) => {
     if (isFavorite) {
-      removeFromFavorites(`${moduleType}_$_${module}_$_${url}`);
+      removeFromFavorites(id);
       addNotification(`Removed ${title} from favorites`, "SUCCESS");
       setIsFavorite(false);
     } else {
-      if (
-        !favorites.some((wt) => wt.id === `${moduleType}_$_${module}_$_${url}`)
-      ) {
-        addToFavorites({
-          title,
-          id: `${moduleType}_$_${module}_$_${url}`,
-          cover,
-        });
+      if (!favorites.some((wt) => wt.id === id)) {
+        addToFavorites({ title, id, cover });
         addNotification(`Added ${title} to favorites`, "SUCCESS");
       }
       setIsFavorite(true);

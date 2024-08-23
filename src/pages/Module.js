@@ -136,7 +136,7 @@ export default function Module() {
         <div className="header-r">
           <h2>Searching For : {input}</h2>
         </div>
-        <PushButton label={"Terminate"} onClick={resetSearch} />
+        <PushButton label="Terminate" onClick={resetSearch} />
       </div>
     );
   } else if (searchingStatus === "searched") {
@@ -144,7 +144,7 @@ export default function Module() {
       <div className="container">
         <div className="header-r">
           <h2>Keyword : {input}</h2>
-          <PushButton label={"Reset"} onClick={resetSearch} />
+          <PushButton label="Reset" onClick={resetSearch} />
           <ExpandButton
             name="sort"
             dimension={20}

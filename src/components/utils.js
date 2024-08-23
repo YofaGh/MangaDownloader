@@ -96,3 +96,12 @@ export const chunkArray = (array, size) =>
   Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
     array.slice(i * size, i * size + size)
   );
+
+export const isUrlValid = (url) => {
+  try {
+    const newUrl = new URL(url);
+    return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+  } catch (_) {
+    return false;
+  }
+};

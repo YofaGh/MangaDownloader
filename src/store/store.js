@@ -105,7 +105,6 @@ export const useSauceStore = create((set) => ({
   clearSauce: () =>
     set({
       sauceStatus: null,
-      sauceUrl: "",
       sauceResults: [],
     }),
 }));

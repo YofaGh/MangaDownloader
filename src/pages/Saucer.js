@@ -6,6 +6,7 @@ import {
   Loading,
   isUrlValid,
   StepsCircle,
+  PushButton,
 } from "../components";
 import {
   useSettingsStore,
@@ -25,6 +26,7 @@ export default function Saucer() {
     setSauceUrl,
     addSauceResult,
     setSaucers,
+    clearSauce,
   } = useSauceStore();
   const { addNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
@@ -54,6 +56,7 @@ export default function Saucer() {
     const startSaucer = async () => {
       if (!isUrlValid(sauceUrl)) {
         addNotification("Invalid URL", "ERROR");
+        setSauceStatus(null);
         return;
       }
       for (let i = 0; i < saucers.length; i++) {
@@ -79,7 +82,10 @@ export default function Saucer() {
   if (sauceStatus === "Sauced") {
     return (
       <div className="container">
-        <div className="f-header">Results</div>
+        <div className="header-r">
+          <h2>Results</h2>
+          <PushButton label="Reset" onClick={clearSauce} />
+        </div>
         <div className="ff-container">
           {sauceResults.map((result) => (
             <SaucerResult

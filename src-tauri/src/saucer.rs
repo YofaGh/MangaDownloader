@@ -1,62 +1,64 @@
-use reqwest::header::{HeaderMap, HeaderValue};
-use scraper::{Html, Selector};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    multipart::{Form, Part},
+    Client, RequestBuilder,
+};
+use scraper::{element_ref::Select, Html, Selector};
 use serde_json::Value;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
+use std::{collections::HashMap, error::Error, fs::File, io::Read};
 
-fn yandex(url: &str) -> Vec<HashMap<String, String>> {
-    let response: String = reqwest::blocking::get(&format!(
+async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    let client: Client = Client::builder().build()?;
+    let request: RequestBuilder = client.get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={}",
         url
-    ))
-    .unwrap()
-    .text()
-    .unwrap();
-    let document: Html = Html::parse_document(&response);
-    let selector: Selector =
-        Selector::parse("div.cbir-section.cbir-section_name_sites div.Root").unwrap();
-    let data_raw: &str = document
+    ));
+    let response = request.send();
+    let document = Html::parse_document(&response.await?.text().await?);
+    let selector = Selector::parse("div.cbir-section.cbir-section_name_sites div.Root")?;
+    let data_raw = document
         .select(&selector)
         .next()
-        .unwrap()
+        .ok_or("Failed to find cbir-section")?
         .value()
         .attr("data-state")
-        .unwrap();
-    let data: Value = serde_json::from_str(data_raw).unwrap();
-    let sites: &Vec<Value> = data["sites"].as_array().unwrap();
+        .ok_or("Failed to find data-state attribute")?;
+    let data: Value = Value::String(data_raw.to_string());
+    let sites: &Vec<Value> = data["sites"]
+        .as_array()
+        .ok_or("Failed to get sites array")?;
     sites
         .iter()
-        .map(|site: &Value| {
-            let url: String = site["url"].as_str().unwrap().to_string();
-            let image: String = site["originalImage"]["url"].as_str().unwrap().to_string();
-            let mut map: HashMap<String, String> = HashMap::new();
+        .map(|site| {
+            let url = site["url"].as_str().ok_or("Failed to get url")?.to_string();
+            let image = site["originalImage"]["url"]
+                .as_str()
+                .ok_or("Failed to get originalImage url")?
+                .to_string();
+            let mut map = HashMap::new();
             map.insert("url".to_string(), url);
             map.insert("image".to_string(), image);
-            map
+            Ok(map)
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
 }
 
-fn tineye(url: &str) -> Vec<HashMap<String, String>> {
+async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
-    let client: reqwest::blocking::Client = reqwest::blocking::Client::new();
+    // let client: Client = Client::new();
     let mut headers: HeaderMap = HeaderMap::new();
     headers.append(
         "content-type",
         HeaderValue::from_str(
             "multipart/form-data; boundary=----WebKitFormBoundaryVxauFLsZbD7Cr1Fa",
-        )
-        .unwrap(),
+        )?,
     );
-    let mut response: Value = client
+    let client: Client = Client::builder().build()?;
+    let request: RequestBuilder = client
         .post("https://tineye.com/result_json/?sort=score&order=desc&page=1")
         .headers(headers.clone())
-        .body(data.clone())
-        .send()
-        .unwrap()
-        .json()
-        .unwrap();
+        .body(data.clone());
+    let mut response: Value = request.send().await?.json().await?;
     let total_pages: i64 = response["total_pages"].as_i64().unwrap();
     let mut matches: Vec<Value> = response["matches"].as_array().unwrap().to_vec();
     for i in 2..=total_pages {
@@ -68,9 +70,9 @@ fn tineye(url: &str) -> Vec<HashMap<String, String>> {
             .headers(headers.clone())
             .body(data.clone())
             .send()
-            .unwrap()
+            .await?
             .json()
-            .unwrap();
+            .await?;
         matches.extend(response["matches"].as_array().unwrap().to_vec());
     }
     let mut results: Vec<HashMap<String, String>> = Vec::new();
@@ -90,17 +92,16 @@ fn tineye(url: &str) -> Vec<HashMap<String, String>> {
             }
         }
     }
-    results
+    Ok(results)
 }
 
-fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
-    let response: String = reqwest::blocking::get(&format!("https://iqdb.org/?url={}", url))
-        .unwrap()
-        .text()
-        .unwrap();
-    let document: Html = Html::parse_document(&response);
-    let pages_selector: Selector = Selector::parse("div#pages").unwrap();
-    let div_selector: Selector = Selector::parse("div").unwrap();
+async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    let client: Client = Client::builder().build()?;
+    let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={}", url));
+    let response = request.send();
+    let document: Html = Html::parse_document(&response.await?.text().await?);
+    let pages_selector: Selector = Selector::parse("div#pages")?;
+    let div_selector: Selector = Selector::parse("div")?;
     let divs = document
         .select(&pages_selector)
         .next()
@@ -114,9 +115,9 @@ fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
         });
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     for div in divs {
-        let td_selector = Selector::parse("td.image").unwrap();
-        let a_selector = Selector::parse("a").unwrap();
-        let img_selector = Selector::parse("img").unwrap();
+        let td_selector = Selector::parse("td.image")?;
+        let a_selector = Selector::parse("a")?;
+        let img_selector = Selector::parse("img")?;
         if let Some(td) = div.select(&td_selector).next() {
             if let Some(td_url) = td
                 .select(&a_selector)
@@ -136,23 +137,22 @@ fn iqdb(url: &str) -> Vec<HashMap<String, String>> {
             }
         }
     }
-    results
+    Ok(results)
 }
 
-fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
-    let response = reqwest::blocking::get(&format!(
+async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    let client: Client = Client::builder().build()?;
+    let request: RequestBuilder = client.get(&format!(
         "https://saucenao.com/search.php?db=999&url={}",
         url
-    ))
-    .unwrap()
-    .text()
-    .unwrap();
-    let document: Html = Html::parse_document(&response);
-    let middle_selector: Selector = Selector::parse("div#middle").unwrap();
-    let result_selector: Selector = Selector::parse("div.result").unwrap();
-    let resultimage_selector: Selector = Selector::parse("div.resultimage").unwrap();
-    let a_selector: Selector = Selector::parse("a").unwrap();
-    let divs: scraper::element_ref::Select = document
+    ));
+    let response = request.send();
+    let document: Html = Html::parse_document(&response.await?.text().await?);
+    let middle_selector: Selector = Selector::parse("div#middle")?;
+    let result_selector: Selector = Selector::parse("div.result")?;
+    let resultimage_selector: Selector = Selector::parse("div.resultimage")?;
+    let a_selector: Selector = Selector::parse("a")?;
+    let divs: Select = document
         .select(&middle_selector)
         .next()
         .unwrap()
@@ -180,38 +180,49 @@ fn saucenao(url: &str) -> Vec<HashMap<String, String>> {
             results.push(map);
         }
     }
-    results
+    Ok(results)
 }
 
 #[tauri::command]
-pub fn sauce(saucer: &str, url: &str) -> Vec<HashMap<String, String>> {
-    match saucer {
-        "yandex" => yandex(url),
-        "tineye" => tineye(url),
-        "iqdb" => iqdb(url),
-        "saucenao" => saucenao(url),
+pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
+    match saucer.as_str() {
+        "yandex" => match yandex(url.as_str()).await {
+            Ok(results) => results,
+            Err(_) => Vec::new(),
+        },
+        "tineye" => match tineye(url.as_str()).await {
+            Ok(results) => results,
+            Err(_) => Vec::new(),
+        },
+        "iqdb" => match iqdb(url.as_str()).await {
+            Ok(results) => results,
+            Err(_) => Vec::new(),
+        },
+        "saucenao" => match saucenao(url.as_str()).await {
+            Ok(results) => results,
+            Err(_) => Vec::new(),
+        },
         _ => Vec::new(),
     }
 }
 
-#[tauri::command]
-pub fn upload_image(path: &str) -> String {
-    let mut file: File = File::open(path).unwrap();
+async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
+    let mut file: File = File::open(path)?;
     let mut bytes: Vec<u8> = Vec::new();
-    file.read_to_end(&mut bytes).unwrap();
-    let form: reqwest::blocking::multipart::Form = reqwest::blocking::multipart::Form::new()
-        .file("photo", path)
-        .unwrap();
-    let response: String = reqwest::blocking::Client::new()
+    file.read_to_end(&mut bytes)?;
+    let part: Part = Part::bytes(bytes);
+    let form: Form = Form::new().part("photo", part);
+    let client: Client = Client::builder().build()?;
+    let response: String = client
         .post("https://imgops.com/store")
         .multipart(form)
         .send()
-        .unwrap()
+        .await?
         .text()
-        .unwrap();
+        .await?;
     let document: Html = Html::parse_document(&response);
-    let content_selector: Selector = Selector::parse("div#content").unwrap();
-    let a_selector: Selector = Selector::parse("a").unwrap();
+    let content_selector: Selector = Selector::parse("div#content")?;
+    let a_selector: Selector = Selector::parse("a")?;
     let link: &str = document
         .select(&content_selector)
         .next()
@@ -222,7 +233,15 @@ pub fn upload_image(path: &str) -> String {
         .value()
         .attr("href")
         .unwrap();
-    format!("https:{}", link)
+    Ok(format!("https:{}", link))
+}
+
+#[tauri::command]
+pub async fn upload_image(path: String) -> String {
+    match upload(path.as_str()).await {
+        Ok(url) => url,
+        Err(err) => err.to_string(),
+    }
 }
 
 #[tauri::command]

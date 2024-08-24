@@ -33,58 +33,48 @@ impl Module for Readonepiece {
             "one-piece-digital-colored-comics".to_string(),
         )])
     }
-    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
-        match Self::send_request(
+    async fn download_image(
+        &self,
+        url: &str,
+        image_name: &str,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let response = Self::send_request(
             &self,
             url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        {
-            Ok(response) => {
-                let stream = response
-                    .bytes_stream()
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-                let mut reader = StreamReader::new(stream);
-                let mut file: File = match File::create(image_name).await {
-                    Ok(file) => file,
-                    Err(_) => return None,
-                };
-                match tokio::io::copy(&mut reader, &mut file).await {
-                    Ok(_) => {
-                        file.flush().await.ok()?;
-                        Some(image_name.to_string())
-                    }
-                    Err(_) => None,
-                }
-            }
-            Err(_) => None,
-        }
+        .await?;
+        let stream = response
+            .bytes_stream()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+        let mut reader = StreamReader::new(stream);
+        let mut file: File = File::create(image_name).await?;
+        tokio::io::copy(&mut reader, &mut file).await?;
+        file.flush().await.ok().unwrap();
+        Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Response {
-        Self::send_request(
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
+        Ok(Self::send_request(
             &self,
             &url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        .unwrap()
+        .await?)
     }
-    async fn get_info(&self, manga: &str) -> HashMap<String, Value> {
+    async fn get_info(
+        &self,
+        manga: &str,
+    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
-        let cover_selector: Selector = Selector::parse("div.py-4.px-6.mb-3 img").unwrap();
-        let title_selector: Selector =
-            Selector::parse("h1.my-3.font-bold.text-2xl.md\\:text-3xl").unwrap();
-        let summary_selector: Selector =
-            Selector::parse("div.py-4.px-6.mb-3 div.text-text-muted").unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
+        let cover_selector: Selector = Selector::parse("div.py-4.px-6.mb-3 img")?;
+        let title_selector: Selector = Selector::parse("h1.my-3.font-bold.text-2xl.md\\:text-3xl")?;
+        let summary_selector: Selector = Selector::parse("div.py-4.px-6.mb-3 div.text-text-muted")?;
         let cover: String = document
             .select(&cover_selector)
             .next()
@@ -111,30 +101,33 @@ impl Module for Readonepiece {
         info.insert("Cover".to_string(), to_value(cover).unwrap_or_default());
         info.insert("Title".to_string(), to_value(title).unwrap_or_default());
         info.insert("Summary".to_string(), to_value(summary).unwrap_or_default());
-        info
+        Ok(info)
     }
 
-    async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value) {
+    async fn get_images(
+        &self,
+        manga: &str,
+        chapter: &str,
+    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
-        let image_selector: Selector = Selector::parse("img.mb-3.mx-auto.js-page").unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
+        let image_selector: Selector = Selector::parse("img.mb-3.mx-auto.js-page")?;
         let images: Vec<String> = document
             .select(&image_selector)
             .map(|img| img.value().attr("src").unwrap().to_string())
             .collect();
-        (images, Value::Bool(false))
+        Ok((images, Value::Bool(false)))
     }
-    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>> {
+    async fn get_chapters(
+        &self,
+        manga: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
         let chapter_selector: Selector =
-            Selector::parse("div.bg-bg-secondary.p-3.rounded.mb-3.shadow a").unwrap();
+            Selector::parse("div.bg-bg-secondary.p-3.rounded.mb-3.shadow a")?;
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
         for element in document.select(&chapter_selector).rev() {
             let mut v: Vec<&str> = element
@@ -153,7 +146,7 @@ impl Module for Readonepiece {
             );
             chapters.push(chapter_info);
         }
-        chapters
+        Ok(chapters)
     }
     async fn search_by_keyword(
         &self,
@@ -161,8 +154,8 @@ impl Module for Readonepiece {
         _: bool,
         _: f64,
         _: u32,
-    ) -> Vec<HashMap<String, String>> {
-        Vec::<HashMap<String, String>>::new()
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+        Ok(Vec::<HashMap<String, String>>::new())
     }
 }
 

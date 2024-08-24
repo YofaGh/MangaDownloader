@@ -36,58 +36,50 @@ impl Module for Hentaifox {
     fn get_module_sample(&self) -> HashMap<String, String> {
         HashMap::from([("code".to_string(), "1".to_string())])
     }
-    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
-        match Self::send_request(
+    async fn download_image(
+        &self,
+        url: &str,
+        image_name: &str,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let response = Self::send_request(
             &self,
             url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        {
-            Ok(response) => {
-                let stream = response
-                    .bytes_stream()
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-                let mut reader = StreamReader::new(stream);
-                let mut file: File = match File::create(image_name).await {
-                    Ok(file) => file,
-                    Err(_) => return None,
-                };
-                match tokio::io::copy(&mut reader, &mut file).await {
-                    Ok(_) => {
-                        file.flush().await.ok()?;
-                        Some(image_name.to_string())
-                    }
-                    Err(_) => None,
-                }
-            }
-            Err(_) => None,
-        }
+        .await?;
+        let stream = response
+            .bytes_stream()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+        let mut reader = StreamReader::new(stream);
+        let mut file: File = File::create(image_name).await?;
+        tokio::io::copy(&mut reader, &mut file).await?;
+        file.flush().await.ok().unwrap();
+        Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Response {
-        Self::send_request(
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
+        Ok(Self::send_request(
             &self,
             &url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        .unwrap()
+        .await?)
     }
-    async fn get_info(&self, code: &str) -> HashMap<String, Value> {
+    async fn get_info(
+        &self,
+        code: &str,
+    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
-        let info_selector: Selector = Selector::parse("div.info").unwrap();
-        let cover_selector: Selector = Selector::parse("div.cover img").unwrap();
-        let h1_selector: Selector = Selector::parse("div.info h1").unwrap();
+        let info_selector: Selector = Selector::parse("div.info")?;
+        let cover_selector: Selector = Selector::parse("div.cover img")?;
+        let h1_selector: Selector = Selector::parse("div.info h1")?;
         let cover: String = document
             .select(&cover_selector)
             .next()
@@ -99,10 +91,10 @@ impl Module for Hentaifox {
             .map(|n: ElementRef| n.text().collect::<Vec<_>>().join(""))
             .unwrap_or_default();
         let info_box: ElementRef = document.select(&info_selector).next().unwrap();
-        info.insert("Cover".to_string(), to_value(cover).unwrap());
-        info.insert("Title".to_string(), to_value(title).unwrap());
+        info.insert("Cover".to_string(), to_value(cover)?);
+        info.insert("Title".to_string(), to_value(title)?);
         if let Some(posted) = info_box
-            .select(&Selector::parse("span").unwrap())
+            .select(&Selector::parse("span")?)
             .filter(|e: &ElementRef| {
                 e.text()
                     .collect::<Vec<_>>()
@@ -121,12 +113,11 @@ impl Module for Hentaifox {
                         .collect::<Vec<_>>()
                         .join("")
                         .replace("Posted: ", ""),
-                )
-                .unwrap(),
+                )?,
             );
         }
         if let Some(pages) = info_box
-            .select(&Selector::parse("span").unwrap())
+            .select(&Selector::parse("span")?)
             .filter(|e| {
                 e.text()
                     .collect::<Vec<_>>()
@@ -145,12 +136,11 @@ impl Module for Hentaifox {
                         .collect::<Vec<_>>()
                         .join("")
                         .replace("Pages: ", ""),
-                )
-                .unwrap(),
+                )?,
             );
         }
-        for box_item in info_box.select(&Selector::parse("ul:not(.g_buttons)").unwrap()) {
-            if let Some(span) = box_item.select(&Selector::parse("span").unwrap()).next() {
+        for box_item in info_box.select(&Selector::parse("ul:not(.g_buttons)")?) {
+            if let Some(span) = box_item.select(&Selector::parse("span")?).next() {
                 let key: String = span
                     .text()
                     .collect::<Vec<_>>()
@@ -158,26 +148,28 @@ impl Module for Hentaifox {
                     .trim_end_matches(':')
                     .to_string();
                 let values: Vec<String> = box_item
-                    .select(&Selector::parse("a").unwrap())
+                    .select(&Selector::parse("a")?)
                     .map(|a: ElementRef| a.text().collect::<Vec<_>>()[0].trim().to_string())
                     .collect::<Vec<_>>();
-                extras.insert(key, to_value(values).unwrap());
+                extras.insert(key, to_value(values)?);
             }
         }
-        info.insert("Extras".to_string(), to_value(extras).unwrap());
-        info
+        info.insert("Extras".to_string(), to_value(extras)?);
+        Ok(info)
     }
 
-    async fn get_images(&self, code: &str, _: &str) -> (Vec<String>, Value) {
+    async fn get_images(
+        &self,
+        code: &str,
+        _: &str,
+    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
-        let thumb_selector: Selector = Selector::parse("div.gallery_thumb img").unwrap();
-        let script_selector: Selector = Selector::parse("script").unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
+        let thumb_selector: Selector = Selector::parse("div.gallery_thumb img")?;
+        let script_selector: Selector = Selector::parse("script")?;
         let path: &str = document
             .select(&thumb_selector)
             .next()
@@ -194,7 +186,7 @@ impl Module for Hentaifox {
             .replace("var g_th = $.parseJSON('", "")
             .replace("');", "")
             .to_string();
-        let images: HashMap<String, String> = serde_json::from_str(&json_str).unwrap();
+        let images: HashMap<String, String> = serde_json::from_str(&json_str).unwrap_or_default();
         let image_urls: Vec<String> = images
             .iter()
             .map(|(key, value)| {
@@ -206,11 +198,13 @@ impl Module for Hentaifox {
                 format!("{}{}.{}", path, key, format)
             })
             .collect();
-
-        (image_urls, Value::Bool(false))
+        Ok((image_urls, Value::Bool(false)))
     }
-    async fn get_chapters(&self, _: &str) -> Vec<HashMap<String, String>> {
-        Default::default()
+    async fn get_chapters(
+        &self,
+        _: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+        Ok(Default::default())
     }
     async fn search_by_keyword(
         &self,
@@ -218,7 +212,7 @@ impl Module for Hentaifox {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Vec<HashMap<String, String>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         while page <= page_limit {
@@ -229,20 +223,19 @@ impl Module for Hentaifox {
                 None,
                 Some(true),
             )
-            .await
-            .unwrap();
+            .await?;
             if response.status().is_success() {
-                let body: String = response.text().await.unwrap();
+                let body: String = response.text().await?;
                 let document: Html = Html::parse_document(&body);
-                let thumb_selector = Selector::parse("div.thumb").unwrap();
+                let thumb_selector = Selector::parse("div.thumb")?;
                 let doujins = document.select(&thumb_selector).collect::<Vec<_>>();
                 if doujins.is_empty() {
                     break;
                 }
                 for doujin in doujins {
-                    let caption_selector: Selector = Selector::parse("div.caption a").unwrap();
-                    let category_selector: Selector = Selector::parse("a.t_cat").unwrap();
-                    let img_selector: Selector = Selector::parse("img").unwrap();
+                    let caption_selector: Selector = Selector::parse("div.caption a")?;
+                    let category_selector: Selector = Selector::parse("a.t_cat")?;
+                    let img_selector: Selector = Selector::parse("img")?;
 
                     let caption: ElementRef = doujin.select(&caption_selector).next().unwrap();
                     let title: String = caption.text().collect::<Vec<_>>().join("");
@@ -293,7 +286,7 @@ impl Module for Hentaifox {
             page += 1;
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
-        results
+        Ok(results)
     }
 }
 

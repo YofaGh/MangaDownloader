@@ -32,53 +32,45 @@ impl Module for Nhentai {
     fn get_module_sample(&self) -> HashMap<String, String> {
         HashMap::from([("code".to_string(), "2".to_string())])
     }
-    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
-        match Self::send_request(
+    async fn download_image(
+        &self,
+        url: &str,
+        image_name: &str,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let response = Self::send_request(
             &self,
             url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        {
-            Ok(response) => {
-                let stream = response
-                    .bytes_stream()
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-                let mut reader = StreamReader::new(stream);
-                let mut file: File = match File::create(image_name).await {
-                    Ok(file) => file,
-                    Err(_) => return None,
-                };
-                match tokio::io::copy(&mut reader, &mut file).await {
-                    Ok(_) => {
-                        file.flush().await.ok()?;
-                        Some(image_name.to_string())
-                    }
-                    Err(_) => None,
-                }
-            }
-            Err(_) => None,
-        }
+        .await?;
+        let stream = response
+            .bytes_stream()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+        let mut reader = StreamReader::new(stream);
+        let mut file: File = File::create(image_name).await?;
+        tokio::io::copy(&mut reader, &mut file).await?;
+        file.flush().await.ok().unwrap();
+        Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Response {
-        Self::send_request(
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
+        Ok(Self::send_request(
             &self,
             &url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        .unwrap()
+        .await?)
     }
-    async fn get_info(&self, code: &str) -> HashMap<String, Value> {
+    async fn get_info(
+        &self,
+        code: &str,
+    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let response: Value = response.json().await.unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Value = response.json().await?;
         let mut info: HashMap<String, Value> = HashMap::new();
         let images: Vec<Value> = response["chapters"]
             .as_object()
@@ -112,16 +104,18 @@ impl Module for Nhentai {
             ),
         );
         extras.insert("Description", response["description"].clone());
-        info.insert("Extras".to_string(), to_value(extras).unwrap());
-        info
+        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        Ok(info)
     }
 
-    async fn get_images(&self, code: &str, _: &str) -> (Vec<String>, Value) {
+    async fn get_images(
+        &self,
+        code: &str,
+        _: &str,
+    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let response: Value = response.json().await.unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Value = response.json().await?;
         let images: Vec<Value> = response["chapters"]
             .as_object()
             .unwrap()
@@ -133,7 +127,7 @@ impl Module for Nhentai {
             .values()
             .cloned()
             .collect();
-        (
+        Ok((
             images[0]
                 .as_array()
                 .unwrap()
@@ -142,10 +136,13 @@ impl Module for Nhentai {
                 .map(|(_, image)| image.as_str().unwrap().to_string())
                 .collect(),
             Value::Bool(false),
-        )
+        ))
     }
-    async fn get_chapters(&self, _: &str) -> Vec<HashMap<String, String>> {
-        Default::default()
+    async fn get_chapters(
+        &self,
+        _: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+        Ok(Default::default())
     }
     async fn search_by_keyword(
         &self,
@@ -153,8 +150,8 @@ impl Module for Nhentai {
         _: bool,
         _: f64,
         _: u32,
-    ) -> Vec<HashMap<String, String>> {
-        Vec::<HashMap<String, String>>::new()
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+        Ok(Vec::<HashMap<String, String>>::new())
     }
 }
 

@@ -32,61 +32,53 @@ impl Module for Manhuascan {
     fn get_module_sample(&self) -> HashMap<String, String> {
         HashMap::from([("manga".to_string(), "secret-class".to_string())])
     }
-    async fn download_image(&self, url: &str, image_name: &str) -> Option<String> {
-        match Self::send_request(
+    async fn download_image(
+        &self,
+        url: &str,
+        image_name: &str,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let response = Self::send_request(
             &self,
             url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        {
-            Ok(response) => {
-                let stream = response
-                    .bytes_stream()
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-                let mut reader = StreamReader::new(stream);
-                let mut file: File = match File::create(image_name).await {
-                    Ok(file) => file,
-                    Err(_) => return None,
-                };
-                match tokio::io::copy(&mut reader, &mut file).await {
-                    Ok(_) => {
-                        file.flush().await.ok()?;
-                        Some(image_name.to_string())
-                    }
-                    Err(_) => None,
-                }
-            }
-            Err(_) => None,
-        }
+        .await?;
+        let stream = response
+            .bytes_stream()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
+        let mut reader = StreamReader::new(stream);
+        let mut file: File = File::create(image_name).await?;
+        tokio::io::copy(&mut reader, &mut file).await?;
+        file.flush().await.ok().unwrap();
+        Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Response {
-        Self::send_request(
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
+        Ok(Self::send_request(
             &self,
             &url,
             "GET",
             Some(Self::get_download_image_headers(&self)),
             Some(true),
         )
-        .await
-        .unwrap()
+        .await?)
     }
-    async fn get_info(&self, manga: &str) -> HashMap<String, Value> {
+    async fn get_info(
+        &self,
+        manga: &str,
+    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
         let mut dates: HashMap<&str, Value> = HashMap::new();
         let info_box: Option<scraper::ElementRef> = document
-            .select(&Selector::parse("div.tsinfo.bixbox").unwrap())
+            .select(&Selector::parse("div.tsinfo.bixbox")?)
             .next();
         if let Some(element) = document
-            .select(&Selector::parse("img.wp-post-image").unwrap())
+            .select(&Selector::parse("img.wp-post-image")?)
             .next()
         {
             info.insert(
@@ -94,17 +86,14 @@ impl Module for Manhuascan {
                 to_value(element.value().attr("src").unwrap_or("")).unwrap_or_default(),
             );
         }
-        if let Some(element) = document
-            .select(&Selector::parse("h1.entry-title").unwrap())
-            .next()
-        {
+        if let Some(element) = document.select(&Selector::parse("h1.entry-title")?).next() {
             info.insert(
                 "Title".to_owned(),
                 to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
             );
         }
         if let Some(element) = document
-            .select(&Selector::parse("span.alternative").unwrap())
+            .select(&Selector::parse("span.alternative")?)
             .next()
         {
             info.insert(
@@ -121,7 +110,7 @@ impl Module for Manhuascan {
             );
         }
         if let Some(element) = document
-            .select(&Selector::parse("div.entry-content.entry-content-single").unwrap())
+            .select(&Selector::parse("div.entry-content.entry-content-single")?)
             .next()
         {
             info.insert(
@@ -129,12 +118,9 @@ impl Module for Manhuascan {
                 to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
             );
         }
-        if let Some(element) = document
-            .select(&Selector::parse("div.detail_rate").unwrap())
-            .next()
-        {
+        if let Some(element) = document.select(&Selector::parse("div.detail_rate")?).next() {
             let rating_text: String = element
-                .select(&Selector::parse("span").unwrap())
+                .select(&Selector::parse("span")?)
                 .next()
                 .unwrap()
                 .text()
@@ -152,69 +138,72 @@ impl Module for Manhuascan {
             );
         }
         if let Some(info_box) = info_box {
-            if let Some(element) = info_box.select(&Selector::parse("i").unwrap()).next() {
+            if let Some(element) = info_box.select(&Selector::parse("i")?).next() {
                 info.insert(
                     "Status".to_owned(),
                     to_value(element.text().collect::<Vec<_>>().join(" ").trim())
                         .unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("a").unwrap()).next() {
+            if let Some(element) = info_box.select(&Selector::parse("a")?).next() {
                 extras.insert(
                     "Authors",
                     to_value(element.text().collect::<Vec<_>>().join(" ").trim())
                         .unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("a").unwrap()).next() {
+            if let Some(element) = info_box.select(&Selector::parse("a")?).next() {
                 extras.insert(
                     "Artists",
                     to_value(element.text().collect::<Vec<_>>().join(" ").trim())
                         .unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("time").unwrap()).next() {
+            if let Some(element) = info_box.select(&Selector::parse("time")?).next() {
                 dates.insert(
                     "Posted On",
                     to_value(element.value().attr("datetime").unwrap_or("")).unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("time").unwrap()).next() {
+            if let Some(element) = info_box.select(&Selector::parse("time")?).next() {
                 dates.insert(
                     "Updated On",
                     to_value(element.value().attr("datetime").unwrap_or("")).unwrap_or_default(),
                 );
             }
         }
-        info.insert("Extras".to_owned(), to_value(extras).unwrap());
-        info.insert("Dates".to_owned(), to_value(dates).unwrap());
-        info
+        info.insert("Extras".to_owned(), to_value(extras)?);
+        info.insert("Dates".to_owned(), to_value(dates)?);
+        Ok(info)
     }
 
-    async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value) {
+    async fn get_images(
+        &self,
+        manga: &str,
+        chapter: &str,
+    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
         let images: Vec<String> = document
-            .select(&Selector::parse("div#readerarea img").unwrap())
+            .select(&Selector::parse("div#readerarea img")?)
             .filter_map(|img| img.value().attr("src"))
             .map(|src| src.to_string())
             .collect::<Vec<String>>();
-        (images, Value::Bool(false))
+        Ok((images, Value::Bool(false)))
     }
-    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>> {
+    async fn get_chapters(
+        &self,
+        manga: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true))
-            .await
-            .unwrap();
-        let document: Html = Html::parse_document(&response.text().await.unwrap());
-        let binding: Selector = Selector::parse("div.eph-num").unwrap();
+        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let document: Html = Html::parse_document(&response.text().await?);
+        let binding: Selector = Selector::parse("div.eph-num")?;
         let divs: Select = document.select(&binding);
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
         for div in divs.rev() {
-            if let Some(a) = div.select(&Selector::parse("a").unwrap()).next() {
+            if let Some(a) = div.select(&Selector::parse("a")?).next() {
                 let chapter_url = a
                     .value()
                     .attr("href")
@@ -229,7 +218,7 @@ impl Module for Manhuascan {
                 chapters.push(chapter_info);
             }
         }
-        chapters
+        Ok(chapters)
     }
     async fn search_by_keyword(
         &self,
@@ -237,7 +226,7 @@ impl Module for Manhuascan {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Vec<HashMap<String, String>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         while page <= page_limit {
@@ -251,18 +240,17 @@ impl Module for Manhuascan {
                 None,
                 Some(true),
             )
-            .await
-            .unwrap();
+            .await?;
             if response.status().is_success() {
-                let body: String = response.text().await.unwrap();
+                let body: String = response.text().await?;
                 let document: Html = Html::parse_document(&body);
-                let manga_selector: Selector = Selector::parse("div.bsx").unwrap();
+                let manga_selector: Selector = Selector::parse("div.bsx")?;
                 let mangas: Select = document.select(&manga_selector);
                 if mangas.clone().count() == 0 {
                     break;
                 }
                 for manga in mangas {
-                    let title_selector: Selector = Selector::parse("a").unwrap();
+                    let title_selector: Selector = Selector::parse("a")?;
                     let title_element: ElementRef = manga.select(&title_selector).next().unwrap();
                     let title: String = title_element
                         .value()
@@ -272,7 +260,7 @@ impl Module for Manhuascan {
                     if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                         continue;
                     }
-                    let latest_chapter_selector: Selector = Selector::parse("div.adds a").unwrap();
+                    let latest_chapter_selector: Selector = Selector::parse("div.adds a")?;
                     let latest_chapter: String = manga
                         .select(&latest_chapter_selector)
                         .next()
@@ -293,7 +281,7 @@ impl Module for Manhuascan {
                         .last()
                         .unwrap_or("")
                         .to_string();
-                    let thumbnail_selector: Selector = Selector::parse("img").unwrap();
+                    let thumbnail_selector: Selector = Selector::parse("img")?;
                     let thumbnail: String = manga
                         .select(&thumbnail_selector)
                         .next()
@@ -317,7 +305,7 @@ impl Module for Manhuascan {
             page += 1;
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
-        results
+        Ok(results)
     }
 }
 

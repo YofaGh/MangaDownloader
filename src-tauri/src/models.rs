@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use reqwest::Response;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 #[async_trait]
 pub trait Module: Send {
@@ -19,19 +19,30 @@ pub trait Module: Send {
     fn is_coded(&self) -> bool {
         false
     }
-    async fn download_image(&self, url: &str, image_name: &str) -> Option<String>;
-    async fn retrieve_image(&self, url: &str) -> Response;
+    async fn download_image(
+        &self,
+        url: &str,
+        image_name: &str,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>>;
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>>;
     fn get_module_sample(&self) -> HashMap<String, String>;
-    async fn get_images(&self, manga: &str, chapter: &str) -> (Vec<String>, Value);
-    async fn get_info(&self, manga: &str) -> HashMap<String, Value>;
-    async fn get_chapters(&self, manga: &str) -> Vec<HashMap<String, String>>;
+    async fn get_images(
+        &self,
+        manga: &str,
+        chapter: &str,
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>>;
+    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>>;
+    async fn get_chapters(
+        &self,
+        manga: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
     async fn search_by_keyword(
         &self,
         keyword: String,
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Vec<HashMap<String, String>>;
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
     fn rename_chapter(&self, chapter: &str) -> String {
         let mut new_name: String = String::new();
         let mut reached_number: bool = false;

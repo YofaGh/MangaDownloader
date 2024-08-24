@@ -4,13 +4,14 @@ use image::{
 };
 use rayon::prelude::*;
 use std::{
+    cmp::max,
     fs::{copy, create_dir_all},
     path::PathBuf,
 };
 
 use crate::assets::detect_images;
 
-pub fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) {
+pub fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) -> Result<(), Box<dyn std::error::Error>> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
     if !images.is_empty() {
         create_dir_all(path_to_destination.clone()).unwrap();
@@ -20,27 +21,29 @@ pub fn merge_folder(path_to_source: String, path_to_destination: String, fit_mer
             merge(images, path_to_destination);
         }
     }
+    Ok(())
 }
 
 pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) {
-    let mut lists_to_merge: Vec<Vec<(DynamicImage, PathBuf)>> = vec![];
+    let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut temp_height: u32 = 0;
+    let mut max_width: u32 = 0;
     for (image, filename) in images {
         if temp_height + image.height() < 65500 {
             temp_list.push((image.clone(), filename.clone()));
             temp_height += image.height();
+            max_width = max(max_width, image.width());
         } else {
-            lists_to_merge.push(temp_list.clone());
+            lists_to_merge.push((temp_list.clone(), max_width, temp_height));
             temp_list = vec![(image.clone(), filename.clone())];
             temp_height = image.height();
+            max_width = image.width();
         }
     }
-    lists_to_merge.push(temp_list);
-    lists_to_merge
-        .into_par_iter()
-        .enumerate()
-        .for_each(|(index, list_to_merge)| {
+    lists_to_merge.push((temp_list.clone(), max_width, temp_height));
+    lists_to_merge.into_par_iter().enumerate().for_each(
+        |(index, (list_to_merge, max_width, total_height))| {
             if list_to_merge.len() == 1 {
                 let path: &str = list_to_merge[0].1.to_str().unwrap();
                 copy(
@@ -54,12 +57,6 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) 
                 )
                 .unwrap();
             }
-            let total_height: u32 = list_to_merge.iter().map(|(img, _)| img.height()).sum();
-            let max_width: u32 = list_to_merge
-                .iter()
-                .map(|(img, _)| img.width())
-                .max()
-                .unwrap_or(0);
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
             let mut y_offset: u32 = 0;
@@ -76,11 +73,12 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) 
             imgbuf
                 .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
                 .expect("Failed to save image");
-        });
+        },
+    );
 }
 
 pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) {
-    let mut lists_to_merge: Vec<Vec<(DynamicImage, PathBuf)>> = vec![];
+    let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut current_height: u32 = 0;
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut min_width: u32 = images[0].0.width();
@@ -97,17 +95,15 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: Stri
             current_height = current_height * image.width() / min_width + image.height();
             min_width = image.width();
         } else {
-            lists_to_merge.push(temp_list.clone());
+            lists_to_merge.push((temp_list.clone(), min_width, current_height));
             temp_list = vec![(image.clone(), filename.clone())];
             min_width = image.width();
             current_height = image.height();
         }
     }
-    lists_to_merge.push(temp_list);
-    lists_to_merge
-        .into_par_iter()
-        .enumerate()
-        .for_each(|(index, list_to_merge)| {
+    lists_to_merge.push((temp_list.clone(), min_width, current_height));
+    lists_to_merge.into_par_iter().enumerate().for_each(
+        |(index, (list_to_merge, min_width, total_height))| {
             if list_to_merge.len() == 1 {
                 let path: &str = list_to_merge[0].1.to_str().unwrap();
                 copy(
@@ -120,15 +116,6 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: Stri
                     ),
                 )
                 .unwrap();
-            }
-            let min_width: u32 = list_to_merge
-                .iter()
-                .map(|(img, _)| img.width())
-                .min()
-                .unwrap_or(0);
-            let mut total_height: u32 = 0;
-            for (image, _) in list_to_merge.clone() {
-                total_height += image.height() * min_width / image.width();
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
@@ -144,5 +131,6 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: Stri
             imgbuf
                 .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
                 .expect("Failed to save image");
-        });
+        },
+    );
 }

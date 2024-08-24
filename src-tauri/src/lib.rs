@@ -25,7 +25,6 @@ pub fn run() {
             remove_directory,
             get_info,
             get_chapters,
-            get_module_type,
             get_modules,
             get_images,
             get_module_sample,

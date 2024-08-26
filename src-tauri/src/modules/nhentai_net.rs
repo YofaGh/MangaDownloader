@@ -52,16 +52,6 @@ impl Module for Nhentai {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
-        Ok(self
-            .send_request(
-                &url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?)
-    }
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;

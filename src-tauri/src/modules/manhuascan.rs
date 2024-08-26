@@ -53,16 +53,6 @@ impl Module for Manhuascan {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
-        Ok(self
-            .send_request(
-                &url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?)
-    }
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;

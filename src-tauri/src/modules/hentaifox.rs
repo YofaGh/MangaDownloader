@@ -28,16 +28,6 @@ impl Module for Hentaifox {
     fn get_module_sample(&self) -> HashMap<String, String> {
         HashMap::from([("code".to_string(), "1".to_string())])
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
-        Ok(self
-            .send_request(
-                &url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?)
-    }
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;

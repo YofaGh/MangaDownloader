@@ -5,7 +5,11 @@ use reqwest::{
     Client, Method, RequestBuilder, Response,
 };
 use serde_json::Value;
-use std::{collections::HashMap, error::Error};
+use std::{
+    collections::HashMap,
+    error::Error,
+    io::{Error as IoError, ErrorKind::Other},
+};
 use tokio::{
     fs::File,
     io::{self, AsyncWriteExt},
@@ -43,14 +47,23 @@ pub trait Module: Send + Sync {
             .await?;
         let stream = response
             .bytes_stream()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+            .map_err(|e| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(image_name).await?;
         io::copy(&mut reader, &mut file).await?;
         file.flush().await?;
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>>;
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        Ok(self
+            .send_request(
+                &url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?)
+    }
     fn get_module_sample(&self) -> HashMap<String, String>;
     async fn get_images(
         &self,
@@ -120,8 +133,8 @@ pub trait Module: Send + Sync {
         let request: RequestBuilder = client.request(method, url).headers(header_map);
         let response: Response = request.send().await?;
         if !response.status().is_success() {
-            return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(Box::new(IoError::new(
+                Other,
                 format!("Received non-200 status code: {}", response.status()),
             )));
         }

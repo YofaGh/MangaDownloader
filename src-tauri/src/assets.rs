@@ -4,13 +4,13 @@ use image::{open, DynamicImage};
 use rayon::prelude::*;
 use reqwest::Response;
 use serde_json::{to_string_pretty, to_value, Value};
-use std::collections::HashMap;
-use std::io::{Seek, Write};
-use std::process::Command;
 use std::{
+    collections::HashMap,
+    error::Error as StdError,
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
-    io::Error as DirError,
+    io::{Error as DirError, Seek, Write},
     path::{Path, PathBuf},
+    process::Command,
 };
 use tokio_util::bytes::Bytes;
 
@@ -93,7 +93,7 @@ pub fn remove_directory(path: String, recursive: bool) {
 }
 
 #[tauri::command]
-pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) {
+pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) -> String {
     match image_merger::merge_folder(
         path_to_source,
         path_to_destination,
@@ -101,7 +101,7 @@ pub fn merge(path_to_source: String, path_to_destination: String, merge_method: 
     ) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
-    };
+    }
 }
 
 #[tauri::command]
@@ -164,18 +164,15 @@ pub fn validate_image(path: &str) -> bool {
 
 #[tauri::command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    match get_module(&domain).get_info(&url).await {
-        Ok(info) => info,
-        Err(_) => HashMap::new(),
-    }
+    get_module(&domain).get_info(&url).await.unwrap_or_default()
 }
 
 #[tauri::command]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
-    match get_module(&domain).get_chapters(&url).await {
-        Ok(chapters) => chapters,
-        Err(_) => Vec::new(),
-    }
+    get_module(&domain)
+        .get_chapters(&url)
+        .await
+        .unwrap_or_default()
 }
 
 #[tauri::command]
@@ -185,29 +182,26 @@ pub fn get_module_sample(domain: String) -> HashMap<String, String> {
 
 #[tauri::command]
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
-    match get_module(&domain).get_images(&manga, &chapter).await {
-        Ok(images) => images,
-        Err(_) => (Vec::new(), Value::default()),
-    }
+    get_module(&domain)
+        .get_images(&manga, &chapter)
+        .await
+        .unwrap_or_default()
 }
 
 #[tauri::command]
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
-    match get_module(&domain).download_image(&url, &image_name).await {
-        Ok(image) => image,
-        Err(_) => None,
-    }
+    get_module(&domain)
+        .download_image(&url, &image_name)
+        .await
+        .unwrap_or_default()
 }
 
 #[tauri::command]
 pub async fn retrieve_image(domain: String, url: String) -> String {
-    match retrieve(domain, url).await {
-        Ok(image) => image,
-        Err(_) => String::new(),
-    }
+    retrieve(domain, url).await.unwrap_or_default()
 }
 
-async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn std::error::Error>> {
+async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
     let response: Response = get_module(&domain).retrieve_image(&url).await?;
     let image: Bytes = response.bytes().await.unwrap();
     let encoded_image: String = general_purpose::STANDARD.encode(image);
@@ -221,13 +215,10 @@ pub async fn search_by_keyword(
     sleep_time: f64,
     page_limit: u32,
 ) -> Vec<HashMap<String, String>> {
-    match get_module(&domain)
+    get_module(&domain)
         .search_by_keyword(keyword, absolute, sleep_time, page_limit)
         .await
-    {
-        Ok(results) => results,
-        Err(_) => Vec::new(),
-    }
+        .unwrap_or_default()
 }
 
 #[tauri::command]

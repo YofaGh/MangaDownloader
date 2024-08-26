@@ -186,22 +186,10 @@ async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Err
 #[tauri::command]
 pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
     match saucer.as_str() {
-        "yandex" => match yandex(url.as_str()).await {
-            Ok(results) => results,
-            Err(_) => Vec::new(),
-        },
-        "tineye" => match tineye(url.as_str()).await {
-            Ok(results) => results,
-            Err(_) => Vec::new(),
-        },
-        "iqdb" => match iqdb(url.as_str()).await {
-            Ok(results) => results,
-            Err(_) => Vec::new(),
-        },
-        "saucenao" => match saucenao(url.as_str()).await {
-            Ok(results) => results,
-            Err(_) => Vec::new(),
-        },
+        "yandex" => yandex(url.as_str()).await.unwrap_or_default(),
+        "tineye" => tineye(url.as_str()).await.unwrap_or_default(),
+        "iqdb" => iqdb(url.as_str()).await.unwrap_or_default(),
+        "saucenao" => saucenao(url.as_str()).await.unwrap_or_default(),
         _ => Vec::new(),
     }
 }
@@ -238,10 +226,7 @@ async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
 
 #[tauri::command]
 pub async fn upload_image(path: String) -> String {
-    match upload(path.as_str()).await {
-        Ok(url) => url,
-        Err(err) => err.to_string(),
-    }
+    upload(path.as_str()).await.unwrap_or_default()
 }
 
 #[tauri::command]

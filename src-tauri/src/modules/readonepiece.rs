@@ -1,15 +1,13 @@
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
-use futures::Future;
-use reqwest::{
-    header::{HeaderName, HeaderValue},
-    Client, Error, Method, RequestBuilder, Response,
-};
+use reqwest::Response;
 use scraper::{Html, Selector};
 use serde_json::{to_value, Value};
-use std::collections::HashMap;
-use tokio::fs::File;
-use tokio::io::{self, AsyncWriteExt};
+use std::{collections::HashMap, error::Error};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWriteExt},
+};
 use tokio_util::io::StreamReader;
 
 use crate::models::Module;
@@ -37,15 +35,15 @@ impl Module for Readonepiece {
         &self,
         url: &str,
         image_name: &str,
-    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let response = Self::send_request(
-            &self,
-            url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?;
+    ) -> Result<Option<String>, Box<dyn Error>> {
+        let response = self
+            .send_request(
+                url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?;
         let stream = response
             .bytes_stream()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
@@ -55,22 +53,19 @@ impl Module for Readonepiece {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
-        Ok(Self::send_request(
-            &self,
-            &url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?)
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        Ok(self
+            .send_request(
+                &url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?)
     }
-    async fn get_info(
-        &self,
-        manga: &str,
-    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
+    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let cover_selector: Selector = Selector::parse("div.py-4.px-6.mb-3 img")?;
         let title_selector: Selector = Selector::parse("h1.my-3.font-bold.text-2xl.md\\:text-3xl")?;
@@ -108,9 +103,9 @@ impl Module for Readonepiece {
         &self,
         manga: &str,
         chapter: &str,
-    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let image_selector: Selector = Selector::parse("img.mb-3.mx-auto.js-page")?;
         let images: Vec<String> = document
@@ -122,9 +117,9 @@ impl Module for Readonepiece {
     async fn get_chapters(
         &self,
         manga: &str,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let chapter_selector: Selector =
             Selector::parse("div.bg-bg-secondary.p-3.rounded.mb-3.shadow a")?;
@@ -140,10 +135,7 @@ impl Module for Readonepiece {
             let chapter_url: String = v.pop().unwrap_or("").replace(&format!("{}-", manga), "");
             let mut chapter_info = HashMap::new();
             chapter_info.insert("url".to_string(), chapter_url.clone());
-            chapter_info.insert(
-                "name".to_string(),
-                Self::rename_chapter(&self, &chapter_url),
-            );
+            chapter_info.insert("name".to_string(), self.rename_chapter(&chapter_url));
             chapters.push(chapter_info);
         }
         Ok(chapters)
@@ -154,7 +146,7 @@ impl Module for Readonepiece {
         _: bool,
         _: f64,
         _: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         Ok(Vec::<HashMap<String, String>>::new())
     }
 }
@@ -162,33 +154,5 @@ impl Module for Readonepiece {
 impl Readonepiece {
     pub fn new() -> Readonepiece {
         Readonepiece {}
-    }
-    pub fn send_request(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> impl Future<Output = Result<Response, Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()
-            .unwrap();
-        let request: RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
     }
 }

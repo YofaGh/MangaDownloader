@@ -1,14 +1,12 @@
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
-use futures::Future;
-use reqwest::{
-    header::{HeaderName, HeaderValue},
-    Client, Error, Method, RequestBuilder, Response,
-};
+use reqwest::Response;
 use serde_json::{to_value, Value};
-use std::collections::HashMap;
-use tokio::fs::File;
-use tokio::io::{self, AsyncWriteExt};
+use std::{collections::HashMap, error::Error};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWriteExt},
+};
 use tokio_util::io::StreamReader;
 
 use crate::models::Module;
@@ -36,15 +34,15 @@ impl Module for Nhentai {
         &self,
         url: &str,
         image_name: &str,
-    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let response = Self::send_request(
-            &self,
-            url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?;
+    ) -> Result<Option<String>, Box<dyn Error>> {
+        let response = self
+            .send_request(
+                url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?;
         let stream = response
             .bytes_stream()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
@@ -54,22 +52,19 @@ impl Module for Nhentai {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
-        Ok(Self::send_request(
-            &self,
-            &url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?)
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        Ok(self
+            .send_request(
+                &url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?)
     }
-    async fn get_info(
-        &self,
-        code: &str,
-    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
+    async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let response: Value = response.json().await?;
         let mut info: HashMap<String, Value> = HashMap::new();
         let images: Vec<Value> = response["chapters"]
@@ -112,9 +107,9 @@ impl Module for Nhentai {
         &self,
         code: &str,
         _: &str,
-    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let response: Value = response.json().await?;
         let images: Vec<Value> = response["chapters"]
             .as_object()
@@ -138,19 +133,13 @@ impl Module for Nhentai {
             Value::Bool(false),
         ))
     }
-    async fn get_chapters(
-        &self,
-        _: &str,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
-        Ok(Default::default())
-    }
     async fn search_by_keyword(
         &self,
         _: String,
         _: bool,
         _: f64,
         _: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         Ok(Vec::<HashMap<String, String>>::new())
     }
 }
@@ -158,33 +147,5 @@ impl Module for Nhentai {
 impl Nhentai {
     pub fn new() -> Nhentai {
         Nhentai {}
-    }
-    pub fn send_request(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> impl Future<Output = Result<Response, Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()
-            .unwrap();
-        let request: RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
     }
 }

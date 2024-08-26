@@ -1,10 +1,19 @@
 use async_trait::async_trait;
-use reqwest::Response;
+use futures::TryStreamExt;
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    Client, Method, RequestBuilder, Response,
+};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWriteExt},
+};
+use tokio_util::io::StreamReader;
 
 #[async_trait]
-pub trait Module: Send {
+pub trait Module: Send + Sync {
     fn get_type(&self) -> String;
     fn get_domain(&self) -> String;
     fn get_logo(&self) -> String {
@@ -23,8 +32,25 @@ pub trait Module: Send {
         &self,
         url: &str,
         image_name: &str,
-    ) -> Result<Option<String>, Box<dyn std::error::Error>>;
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>>;
+    ) -> Result<Option<String>, Box<dyn Error>> {
+        let response: Response = self
+            .send_request(
+                url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?;
+        let stream = response
+            .bytes_stream()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+        let mut reader = StreamReader::new(stream);
+        let mut file: File = File::create(image_name).await?;
+        io::copy(&mut reader, &mut file).await?;
+        file.flush().await?;
+        Ok(Some(image_name.to_string()))
+    }
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>>;
     fn get_module_sample(&self) -> HashMap<String, String>;
     async fn get_images(
         &self,
@@ -32,10 +58,9 @@ pub trait Module: Send {
         chapter: &str,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>>;
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>>;
-    async fn get_chapters(
-        &self,
-        manga: &str,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
+    async fn get_chapters(&self, _: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+        Ok(Default::default())
+    }
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -72,5 +97,34 @@ pub trait Module: Send {
                 )
             }
         }
+    }
+    async fn send_request(
+        &self,
+        url: &str,
+        method: &str,
+        headers: Option<HashMap<&str, &str>>,
+        verify: Option<bool>,
+    ) -> Result<Response, Box<dyn Error>> {
+        let client: Client = Client::builder()
+            .danger_accept_invalid_certs(verify.unwrap_or(true))
+            .build()?;
+        let method: Method = Method::from_bytes(method.as_bytes())?;
+        let mut header_map: HeaderMap = HeaderMap::new();
+        if let Some(hdrs) = headers {
+            for (k, v) in hdrs {
+                let header_name: HeaderName = HeaderName::from_bytes(k.as_bytes())?;
+                let header_value: HeaderValue = HeaderValue::from_str(v)?;
+                header_map.insert(header_name, header_value);
+            }
+        }
+        let request: RequestBuilder = client.request(method, url).headers(header_map);
+        let response: Response = request.send().await?;
+        if !response.status().is_success() {
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Received non-200 status code: {}", response.status()),
+            )));
+        }
+        Ok(response)
     }
 }

@@ -1,10 +1,13 @@
 use crate::assets;
 use serde_json::{from_value, Value};
-use std::collections::HashMap;
-use std::fs::{create_dir_all, read_dir};
-use std::io::{self, Write};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::{thread, time::Duration};
+use std::{
+    collections::HashMap,
+    fs::{create_dir_all, read_dir},
+    io::{self, Write},
+    sync::atomic::{AtomicBool, Ordering},
+    thread::sleep,
+    time::Duration,
+};
 use tauri::{Manager, Window};
 
 static STOP_DOWNLOAD: AtomicBool = AtomicBool::new(false);
@@ -150,7 +153,7 @@ pub async fn download(
                     continue;
                 }
             }
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
         i += 1;
     }

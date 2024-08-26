@@ -1,17 +1,16 @@
-use crate::models::Module;
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
-use futures::Future;
-use reqwest::{
-    header::{HeaderName, HeaderValue},
-    Client, Error, Method, RequestBuilder, Response,
-};
+use reqwest::Response;
 use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
-use tokio::fs::File;
-use tokio::io::{self, AsyncWriteExt};
+use std::{collections::HashMap, error::Error, thread, time::Duration};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWriteExt},
+};
 use tokio_util::io::StreamReader;
+
+use crate::models::Module;
 
 pub struct Manhuascan {}
 
@@ -36,15 +35,15 @@ impl Module for Manhuascan {
         &self,
         url: &str,
         image_name: &str,
-    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let response = Self::send_request(
-            &self,
-            url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?;
+    ) -> Result<Option<String>, Box<dyn Error>> {
+        let response = self
+            .send_request(
+                url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?;
         let stream = response
             .bytes_stream()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
@@ -54,22 +53,19 @@ impl Module for Manhuascan {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
-        Ok(Self::send_request(
-            &self,
-            &url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?)
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        Ok(self
+            .send_request(
+                &url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?)
     }
-    async fn get_info(
-        &self,
-        manga: &str,
-    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
+    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
@@ -172,8 +168,8 @@ impl Module for Manhuascan {
                 );
             }
         }
-        info.insert("Extras".to_owned(), to_value(extras)?);
-        info.insert("Dates".to_owned(), to_value(dates)?);
+        info.insert("Extras".to_owned(), to_value(extras).unwrap_or_default());
+        info.insert("Dates".to_owned(), to_value(dates).unwrap_or_default());
         Ok(info)
     }
 
@@ -181,9 +177,9 @@ impl Module for Manhuascan {
         &self,
         manga: &str,
         chapter: &str,
-    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let images: Vec<String> = document
             .select(&Selector::parse("div#readerarea img")?)
@@ -195,9 +191,9 @@ impl Module for Manhuascan {
     async fn get_chapters(
         &self,
         manga: &str,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let binding: Selector = Selector::parse("div.eph-num")?;
         let divs: Select = document.select(&binding);
@@ -214,7 +210,7 @@ impl Module for Manhuascan {
                     .to_string();
                 let mut chapter_info: HashMap<String, String> = HashMap::new();
                 chapter_info.insert("url".to_owned(), chapter_url.clone());
-                chapter_info.insert("name".to_owned(), Self::rename_chapter(&self, &chapter_url));
+                chapter_info.insert("name".to_owned(), self.rename_chapter(&chapter_url));
                 chapters.push(chapter_info);
             }
         }
@@ -226,21 +222,21 @@ impl Module for Manhuascan {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         while page <= page_limit {
-            let response: Response = Self::send_request(
-                &self,
-                &format!(
-                    "https://manhuascan.us/manga-list?search={}&page={}",
-                    keyword, page
-                ),
-                "GET",
-                None,
-                Some(true),
-            )
-            .await?;
+            let response: Response = self
+                .send_request(
+                    &format!(
+                        "https://manhuascan.us/manga-list?search={}&page={}",
+                        keyword, page
+                    ),
+                    "GET",
+                    None,
+                    Some(true),
+                )
+                .await?;
             if response.status().is_success() {
                 let body: String = response.text().await?;
                 let document: Html = Html::parse_document(&body);
@@ -312,33 +308,5 @@ impl Module for Manhuascan {
 impl Manhuascan {
     pub fn new() -> Manhuascan {
         Manhuascan {}
-    }
-    pub fn send_request(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> impl Future<Output = Result<Response, Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()
-            .unwrap();
-        let request: RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
     }
 }

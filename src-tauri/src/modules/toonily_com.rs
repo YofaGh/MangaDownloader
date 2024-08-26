@@ -1,15 +1,13 @@
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
-use futures::Future;
-use reqwest::{
-    header::{HeaderName, HeaderValue},
-    Client, Error, Method, RequestBuilder, Response,
-};
+use reqwest::Response;
 use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
-use tokio::fs::File;
-use tokio::io::{self, AsyncWriteExt};
+use std::{collections::HashMap, error::Error, thread, time::Duration};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWriteExt},
+};
 use tokio_util::io::StreamReader;
 
 use crate::models::Module;
@@ -41,15 +39,15 @@ impl Module for Toonily {
         &self,
         url: &str,
         image_name: &str,
-    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let response = Self::send_request(
-            &self,
-            url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?;
+    ) -> Result<Option<String>, Box<dyn Error>> {
+        let response = self
+            .send_request(
+                url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?;
         let stream = response
             .bytes_stream()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
@@ -59,22 +57,19 @@ impl Module for Toonily {
         file.flush().await.ok().unwrap();
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn std::error::Error>> {
-        Ok(Self::send_request(
-            &self,
-            &url,
-            "GET",
-            Some(Self::get_download_image_headers(&self)),
-            Some(true),
-        )
-        .await?)
+    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        Ok(self
+            .send_request(
+                &url,
+                "GET",
+                Some(self.get_download_image_headers()),
+                Some(true),
+            )
+            .await?)
     }
-    async fn get_info(
-        &self,
-        manga: &str,
-    ) -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
+    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let response: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
@@ -200,9 +195,9 @@ impl Module for Toonily {
     async fn get_chapters(
         &self,
         manga: &str,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let resp: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let body: String = resp.text().await?;
         let document: Html = Html::parse_document(&body);
         let chapters: Vec<HashMap<String, String>> = document
@@ -222,10 +217,7 @@ impl Module for Toonily {
                     .to_string();
                 HashMap::from([
                     ("url".to_string(), chapter_url.clone()),
-                    (
-                        "name".to_string(),
-                        Self::rename_chapter(&self, &chapter_url),
-                    ),
+                    ("name".to_string(), self.rename_chapter(&chapter_url)),
                 ])
             })
             .collect::<Vec<_>>();
@@ -236,9 +228,9 @@ impl Module for Toonily {
         &self,
         manga: &str,
         chapter: &str,
-    ) -> Result<(Vec<String>, Value), Box<dyn std::error::Error>> {
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/{}//", manga, chapter);
-        let resp: Response = Self::send_request(&self, &url, "GET", None, Some(true)).await?;
+        let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let body: String = resp.text().await?;
         let document: Html = Html::parse_document(&body);
         let images: Vec<String> = document
@@ -258,15 +250,15 @@ impl Module for Toonily {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let search_headers: HashMap<&str, &str> = HashMap::from([("cookie", "toonily-mature=1")]);
         while page <= page_limit {
             let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
-            let resp: Response =
-                Self::send_request(&self, &url, "GET", Some(search_headers.clone()), Some(true))
-                    .await?;
+            let resp: Response = self
+                .send_request(&url, "GET", Some(search_headers.clone()), Some(true))
+                .await?;
             let body: String = resp.text().await?;
             let document: Html = Html::parse_document(&body);
             let manga_selector: Selector = Selector::parse("div.col-6 col-sm-3 col-lg-2")?;
@@ -323,33 +315,5 @@ impl Module for Toonily {
 impl Toonily {
     pub fn new() -> Toonily {
         Toonily {}
-    }
-    pub fn send_request(
-        &self,
-        url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
-        verify: Option<bool>,
-    ) -> impl Future<Output = Result<Response, Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()
-            .unwrap();
-        let request: RequestBuilder =
-            client.request(Method::from_bytes(method.as_bytes()).unwrap(), url);
-        let request: RequestBuilder = match headers {
-            Some(h) => request.headers(
-                h.into_iter()
-                    .map(|(k, v)| {
-                        (
-                            HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                            HeaderValue::from_str(v).unwrap(),
-                        )
-                    })
-                    .collect(),
-            ),
-            None => request,
-        };
-        request.send()
     }
 }

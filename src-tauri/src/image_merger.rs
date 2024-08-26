@@ -5,13 +5,18 @@ use image::{
 use rayon::prelude::*;
 use std::{
     cmp::max,
+    error::Error,
     fs::{copy, create_dir_all},
     path::PathBuf,
 };
 
 use crate::assets::detect_images;
 
-pub fn merge_folder(path_to_source: String, path_to_destination: String, fit_merge: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn merge_folder(
+    path_to_source: String,
+    path_to_destination: String,
+    fit_merge: bool,
+) -> Result<(), Box<dyn Error>> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
     if !images.is_empty() {
         create_dir_all(path_to_destination.clone()).unwrap();

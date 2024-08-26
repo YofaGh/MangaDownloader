@@ -4,29 +4,16 @@ use scraper::{selectable::Selectable, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
 
-use crate::models::Module;
+use crate::models::{BaseModule, Module};
 
-pub struct Hentaifox {}
+pub struct Hentaifox {
+    base: BaseModule,
+}
 
 #[async_trait]
 impl Module for Hentaifox {
-    fn get_type(&self) -> String {
-        "Doujin".to_string()
-    }
-    fn get_domain(&self) -> String {
-        "hentaifox.com".to_string()
-    }
-    fn get_logo(&self) -> String {
-        "https://hentaifox.com/images/logo.png".to_string()
-    }
-    fn is_searchable(&self) -> bool {
-        true
-    }
-    fn is_coded(&self) -> bool {
-        true
-    }
-    fn get_module_sample(&self) -> HashMap<String, String> {
-        HashMap::from([("code".to_string(), "1".to_string())])
+    fn base(&self) -> &BaseModule {
+        &self.base
     }
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
@@ -159,9 +146,6 @@ impl Module for Hentaifox {
             .collect();
         Ok((image_urls, Value::Bool(false)))
     }
-    async fn get_chapters(&self, _: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        Ok(Default::default())
-    }
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -247,7 +231,17 @@ impl Module for Hentaifox {
 }
 
 impl Hentaifox {
-    pub fn new() -> Hentaifox {
-        Hentaifox {}
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::new(
+                "Doujin",
+                "hentaifox.com",
+                "https://hentaifox.com/images/logo.png",
+                HashMap::new(),
+                HashMap::from([("code", "1")]),
+                true,
+                true,
+            ),
+        }
     }
 }

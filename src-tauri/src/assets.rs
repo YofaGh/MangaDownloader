@@ -176,7 +176,7 @@ pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, St
 }
 
 #[tauri::command]
-pub fn get_module_sample(domain: String) -> HashMap<String, String> {
+pub fn get_module_sample(domain: String) -> HashMap<&'static str, &'static str> {
     get_module(&domain).get_module_sample()
 }
 
@@ -244,6 +244,7 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
 fn get_module(domain: &str) -> Box<dyn Module> {
     match domain {
         "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
+        "luscious.net" => Box::new(luscious::Luscious::new()),
         "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
         "nhentai.net" => Box::new(nhentai_net::Nhentai::new()),
         "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
@@ -255,6 +256,7 @@ fn get_module(domain: &str) -> Box<dyn Module> {
 fn get_all_modules() -> Vec<Box<dyn Module>> {
     vec![
         Box::new(hentaifox::Hentaifox::new()),
+        Box::new(luscious::Luscious::new()),
         Box::new(manhuascan::Manhuascan::new()),
         Box::new(nhentai_net::Nhentai::new()),
         Box::new(readonepiece::Readonepiece::new()),

@@ -1,71 +1,20 @@
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime};
-use futures::stream::TryStreamExt;
 use reqwest::Response;
-use scraper::{html::Select, ElementRef, Html, Selector};
+use scraper::{Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
-use tokio::{
-    fs::File,
-    io::{self, AsyncWriteExt},
-};
-use tokio_util::io::StreamReader;
 
-use crate::models::Module;
+use crate::models::{BaseModule, Module};
 
-pub struct Luscious {}
+pub struct Luscious {
+    base: BaseModule,
+}
 
 #[async_trait]
 impl Module for Luscious {
-    fn get_type(&self) -> String {
-        "Doujin".to_string()
-    }
-    fn get_domain(&self) -> String {
-        "luscious.net".to_string()
-    }
-    fn get_logo(&self) -> String {
-        "https://www.luscious.net/assets/logo.png".to_string()
-    }
-    fn is_searchable(&self) -> bool {
-        true
-    }
-    fn get_module_sample(&self) -> HashMap<String, String> {
-        HashMap::from([
-            ("code".to_string(), "505726".to_string()),
-            ("keyword".to_string(), "solo".to_string()),
-        ])
-    }
-    async fn download_image(
-        &self,
-        url: &str,
-        image_name: &str,
-    ) -> Result<Option<String>, Box<dyn Error>> {
-        let response = self
-            .send_request(
-                url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?;
-        let stream = response
-            .bytes_stream()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-        let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(image_name).await?;
-        tokio::io::copy(&mut reader, &mut file).await?;
-        file.flush().await.ok().unwrap();
-        Ok(Some(image_name.to_string()))
-    }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
-        Ok(self
-            .send_request(
-                &url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?)
+    fn base(&self) -> &BaseModule {
+        &self.base
     }
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://www.luscious.net/albums/{}", manga);
@@ -301,7 +250,17 @@ impl Module for Luscious {
     }
 }
 impl Luscious {
-    pub fn new() -> Luscious {
-        Luscious {}
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::new(
+                "Doujin",
+                "luscious.net",
+                "https://www.luscious.net/assets/logo.png",
+                HashMap::new(),
+                HashMap::from([("code", "505726"), ("keyword", "solo")]),
+                true,
+                true,
+            ),
+        }
     }
 }

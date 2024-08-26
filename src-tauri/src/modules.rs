@@ -1,8 +1,9 @@
-pub mod manhuascan;
-pub mod toonily_com;
-pub mod readonepiece;
 pub mod hentaifox;
+pub mod luscious;
+pub mod manhuascan;
 pub mod nhentai_net;
+pub mod readonepiece;
+pub mod toonily_com;
 // TODO
 // 9hentai.to
 // allmanga.to
@@ -10,7 +11,6 @@ pub mod nhentai_net;
 // doujins.com
 // ehentai.to
 // imhentai.xxx
-// lusicous.net
 // magzino.top
 // manga18.club
 // mangapark.to

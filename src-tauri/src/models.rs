@@ -16,21 +16,61 @@ use tokio::{
 };
 use tokio_util::io::StreamReader;
 
+pub struct BaseModule {
+    type_: &'static str,
+    domain: &'static str,
+    logo: &'static str,
+    download_image_headers: HashMap<&'static str, &'static str>,
+    sample: HashMap<&'static str, &'static str>,
+    searchable: bool,
+    is_coded: bool,
+}
+
+impl BaseModule {
+    pub fn new(
+        type_: &'static str,
+        domain: &'static str,
+        logo: &'static str,
+        download_image_headers: HashMap<&'static str, &'static str>,
+        sample: HashMap<&'static str, &'static str>,
+        searchable: bool,
+        is_coded: bool,
+    ) -> Self {
+        Self {
+            type_,
+            domain,
+            logo,
+            download_image_headers,
+            sample,
+            searchable,
+            is_coded,
+        }
+    }
+}
+
 #[async_trait]
 pub trait Module: Send + Sync {
-    fn get_type(&self) -> String;
-    fn get_domain(&self) -> String;
+    fn base(&self) -> &BaseModule;
+    fn get_type(&self) -> String {
+        self.base().type_.to_string()
+    }
+    fn get_domain(&self) -> String {
+        self.base().domain.to_string()
+    }
     fn get_logo(&self) -> String {
-        String::default()
+        self.base().logo.to_string()
     }
     fn get_download_image_headers(&self) -> HashMap<&'static str, &'static str> {
-        HashMap::new()
+        self.base().download_image_headers.clone()
+    }
+    fn get_module_sample(&self) -> HashMap<&'static str, &'static str> {
+        self.base().sample.clone()
     }
     fn is_searchable(&self) -> bool {
-        false
+        self.base().searchable
     }
     fn is_coded(&self) -> bool {
-        false
+        self.base().is_coded
     }
     async fn download_image(
         &self,
@@ -64,23 +104,27 @@ pub trait Module: Send + Sync {
             )
             .await?)
     }
-    fn get_module_sample(&self) -> HashMap<String, String>;
     async fn get_images(
         &self,
         manga: &str,
         chapter: &str,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>>;
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>>;
-    async fn get_chapters(&self, _: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    async fn get_chapters(
+        &self,
+        _manga: &str,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         Ok(Default::default())
     }
     async fn search_by_keyword(
         &self,
-        keyword: String,
-        absolute: bool,
-        sleep_time: f64,
-        page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
+        _keyword: String,
+        _absolute: bool,
+        _sleep_time: f64,
+        _page_limit: u32,
+    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+        Ok(Vec::<HashMap<String, String>>::new())
+    }
     fn rename_chapter(&self, chapter: &str) -> String {
         let mut new_name: String = String::new();
         let mut reached_number: bool = false;

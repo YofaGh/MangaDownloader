@@ -1,57 +1,19 @@
 use async_trait::async_trait;
-use futures::stream::TryStreamExt;
 use reqwest::Response;
 use scraper::{Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error};
-use tokio::{
-    fs::File,
-    io::{self, AsyncWriteExt},
-};
-use tokio_util::io::StreamReader;
 
-use crate::models::Module;
+use crate::models::{BaseModule, Module};
 
-pub struct Readonepiece {}
+pub struct Readonepiece {
+    base: BaseModule,
+}
 
 #[async_trait]
 impl Module for Readonepiece {
-    fn get_type(&self) -> String {
-        "Manga".to_string()
-    }
-    fn get_domain(&self) -> String {
-        "readonepiece.com".to_string()
-    }
-    fn get_logo(&self) -> String {
-        "https://ww9.readonepiece.com/apple-touch-icon.png".to_string()
-    }
-    fn get_module_sample(&self) -> HashMap<String, String> {
-        HashMap::from([(
-            "manga".to_string(),
-            "one-piece-digital-colored-comics".to_string(),
-        )])
-    }
-    async fn download_image(
-        &self,
-        url: &str,
-        image_name: &str,
-    ) -> Result<Option<String>, Box<dyn Error>> {
-        let response = self
-            .send_request(
-                url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?;
-        let stream = response
-            .bytes_stream()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-        let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(image_name).await?;
-        tokio::io::copy(&mut reader, &mut file).await?;
-        file.flush().await.ok().unwrap();
-        Ok(Some(image_name.to_string()))
+    fn base(&self) -> &BaseModule {
+        &self.base
     }
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
@@ -130,19 +92,20 @@ impl Module for Readonepiece {
         }
         Ok(chapters)
     }
-    async fn search_by_keyword(
-        &self,
-        _: String,
-        _: bool,
-        _: f64,
-        _: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        Ok(Vec::<HashMap<String, String>>::new())
-    }
 }
 
 impl Readonepiece {
-    pub fn new() -> Readonepiece {
-        Readonepiece {}
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::new(
+                "Manga",
+                "readonepiece.com",
+                "https://ww9.readonepiece.com/apple-touch-icon.png",
+                HashMap::new(),
+                HashMap::from([("manga", "one-piece-digital-colored-comics")]),
+                false,
+                false,
+            ),
+        }
     }
 }

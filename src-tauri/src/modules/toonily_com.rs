@@ -1,61 +1,19 @@
 use async_trait::async_trait;
-use futures::stream::TryStreamExt;
 use reqwest::Response;
 use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
-use tokio::{
-    fs::File,
-    io::{self, AsyncWriteExt},
-};
-use tokio_util::io::StreamReader;
 
-use crate::models::Module;
+use crate::models::{BaseModule, Module};
 
-pub struct Toonily {}
+pub struct Toonily {
+    base: BaseModule,
+}
 
 #[async_trait]
 impl Module for Toonily {
-    fn get_type(&self) -> String {
-        "Manga".to_string()
-    }
-    fn get_domain(&self) -> String {
-        "toonily.com".to_string()
-    }
-    fn get_logo(&self) -> String {
-        "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png"
-            .to_string()
-    }
-    fn is_searchable(&self) -> bool {
-        true
-    }
-    fn get_download_image_headers(&self) -> HashMap<&'static str, &'static str> {
-        HashMap::from([("Referer", "https://toonily.com/")])
-    }
-    fn get_module_sample(&self) -> HashMap<String, String> {
-        HashMap::from([("manga".to_string(), "peerless-dad".to_string())])
-    }
-    async fn download_image(
-        &self,
-        url: &str,
-        image_name: &str,
-    ) -> Result<Option<String>, Box<dyn Error>> {
-        let response = self
-            .send_request(
-                url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?;
-        let stream = response
-            .bytes_stream()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-        let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(image_name).await?;
-        tokio::io::copy(&mut reader, &mut file).await?;
-        file.flush().await.ok().unwrap();
-        Ok(Some(image_name.to_string()))
+    fn base(&self) -> &BaseModule {
+        &self.base
     }
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
@@ -303,7 +261,17 @@ impl Module for Toonily {
     }
 }
 impl Toonily {
-    pub fn new() -> Toonily {
-        Toonily {}
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::new(
+                "Manga",
+                "toonily.com",
+                "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
+                HashMap::from([("Referer", "https://toonily.com/")]),
+                HashMap::from([("manga", "peerless-dad")]),
+                true,
+                false,
+            ),
+        }
     }
 }

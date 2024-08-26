@@ -1,56 +1,18 @@
 use async_trait::async_trait;
-use futures::stream::TryStreamExt;
 use reqwest::Response;
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error};
-use tokio::{
-    fs::File,
-    io::{self, AsyncWriteExt},
-};
-use tokio_util::io::StreamReader;
 
-use crate::models::Module;
+use crate::models::{BaseModule, Module};
 
-pub struct Nhentai {}
+pub struct Nhentai {
+    base: BaseModule,
+}
 
 #[async_trait]
 impl Module for Nhentai {
-    fn get_type(&self) -> String {
-        "Doujin".to_string()
-    }
-    fn get_domain(&self) -> String {
-        "nhentai.net".to_string()
-    }
-    fn get_logo(&self) -> String {
-        "https://static.nhentai.net/img/logo.090da3be7b51.svg".to_string()
-    }
-    fn is_coded(&self) -> bool {
-        true
-    }
-    fn get_module_sample(&self) -> HashMap<String, String> {
-        HashMap::from([("code".to_string(), "2".to_string())])
-    }
-    async fn download_image(
-        &self,
-        url: &str,
-        image_name: &str,
-    ) -> Result<Option<String>, Box<dyn Error>> {
-        let response = self
-            .send_request(
-                url,
-                "GET",
-                Some(self.get_download_image_headers()),
-                Some(true),
-            )
-            .await?;
-        let stream = response
-            .bytes_stream()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()));
-        let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(image_name).await?;
-        tokio::io::copy(&mut reader, &mut file).await?;
-        file.flush().await.ok().unwrap();
-        Ok(Some(image_name.to_string()))
+    fn base(&self) -> &BaseModule {
+        &self.base
     }
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
@@ -123,19 +85,20 @@ impl Module for Nhentai {
             Value::Bool(false),
         ))
     }
-    async fn search_by_keyword(
-        &self,
-        _: String,
-        _: bool,
-        _: f64,
-        _: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        Ok(Vec::<HashMap<String, String>>::new())
-    }
 }
 
 impl Nhentai {
-    pub fn new() -> Nhentai {
-        Nhentai {}
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::new(
+                "Doujin",
+                "nhentai.net",
+                "https://static.nhentai.net/img/logo.090da3be7b51.svg",
+                HashMap::new(),
+                HashMap::from([("code", "2")]),
+                true,
+                true,
+            ),
+        }
     }
 }

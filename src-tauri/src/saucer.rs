@@ -5,7 +5,8 @@ use reqwest::{
 };
 use scraper::{element_ref::Select, Html, Selector};
 use serde_json::Value;
-use std::{collections::HashMap, error::Error, fs::File, io::Read};
+use std::{collections::HashMap, error::Error, path::Path};
+use tokio::fs::read;
 
 async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
@@ -195,12 +196,19 @@ pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> 
 }
 
 async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
-    let mut file: File = File::open(path)?;
-    let mut bytes: Vec<u8> = Vec::new();
-    file.read_to_end(&mut bytes)?;
-    let part: Part = Part::bytes(bytes);
-    let form: Form = Form::new().part("photo", part);
     let client: Client = Client::builder().build()?;
+    let bytes: Vec<u8> = read(path).await?;
+    let form: Form = Form::new().part(
+        "photo",
+        Part::stream(bytes).file_name(
+            Path::new(path)
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
+        ),
+    );
     let response: String = client
         .post("https://imgops.com/store")
         .multipart(form)

@@ -46,7 +46,7 @@ export default function Saucer() {
       multiple: false,
     });
     setSauceStatus("Uploading");
-    const response = await invoke("upload_image", { path });
+    const response = await invoke("upload_image", { path: path.path });
     setSauceUrl(response);
     addNotification(`Uploaded ${response}`, "SUCCESS");
     setSauceStatus(null);

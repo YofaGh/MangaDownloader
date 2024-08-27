@@ -10,7 +10,7 @@ import { Manga, Doujin } from "../components";
 export default function Webtoon() {
   const { module, url } = useParams();
   const [isFavorite, setIsFavorite] = useState(false);
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const { favorites, addToFavorites, removeFromFavorites } =
     useFavoritesStore();
   const moduleType = useModulesStore((state) => state.modules).find(
@@ -25,12 +25,12 @@ export default function Webtoon() {
   const updateWebtoon = ({ title, cover }) => {
     if (isFavorite) {
       removeFromFavorites(id);
-      addNotification(`Removed ${title} from favorites`, "SUCCESS");
+      addSuccessNotification(`Removed ${title} from favorites`);
       setIsFavorite(false);
     } else {
       if (!favorites.some((wt) => wt.id === id)) {
         addToFavorites({ title, id, cover });
-        addNotification(`Added ${title} to favorites`, "SUCCESS");
+        addSuccessNotification(`Added ${title} to favorites`);
       }
       setIsFavorite(true);
     }

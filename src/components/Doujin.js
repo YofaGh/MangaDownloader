@@ -21,7 +21,7 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const [imageSrc, setImageSrc] = useState("");
   const { load_covers } = useSettingsStore((state) => state.settings);
   const { queue, addToQueue, updateItemInQueue } = useQueueStore();
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
 
   useEffect(() => {
     (async () => {
@@ -44,10 +44,10 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
     };
     if (!queue.find((item) => item.id === webt.id)) {
       addToQueue(webt);
-      addNotification(`Added ${webt.title} to queue`, "SUCCESS");
+      addSuccessNotification(`Added ${webt.title} to queue`);
     } else {
       updateItemInQueue(webt);
-      addNotification(`Updated ${webt.title} in queue`, "SUCCESS");
+      addSuccessNotification(`Updated ${webt.title} in queue`);
     }
   };
 

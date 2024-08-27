@@ -12,7 +12,7 @@ export default function Downloaded() {
   const { download_path, merge_method } = useSettingsStore(
     (state) => state.settings
   );
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
 
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => {
@@ -36,14 +36,14 @@ export default function Downloaded() {
       download_path,
       merge_method,
       true,
-      addNotification,
+      addSuccessNotification,
       invoke,
       openFolder
     );
   };
 
   const convertImages = (webtoon) => {
-    convert(webtoon, true, addNotification, invoke, openFolder);
+    convert(webtoon, true, addSuccessNotification, invoke, openFolder);
   };
 
   if (downloaded.length === 0) {

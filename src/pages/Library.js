@@ -11,7 +11,7 @@ export default function Library() {
   const { load_covers } = useSettingsStore((state) => state.settings);
   const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
 
   const updateSingle = async (webtoon) => {
     const allChapters = await invoke("get_chapters", {
@@ -49,7 +49,7 @@ export default function Library() {
         status: "Started",
       }))
     );
-    addNotification(`Added ${webtoon.title} to queue`, "SUCCESS");
+    addSuccessNotification(`Added ${webtoon.title} to queue`);
   };
 
   const chunkedWebtoons = chunkArray(library, 3);

@@ -5,7 +5,7 @@ export const fixNameForFolder = (manga) => {
 export const convert = async (
   webtoon,
   openPath,
-  addNotification,
+  addSuccessNotification,
   invoke,
   openFile
 ) => {
@@ -18,11 +18,10 @@ export const convert = async (
     pathToDestination: webtoon.path,
     pdfName,
   });
-  addNotification(
+  addSuccessNotification(
     webtoon.type === "manga"
       ? `Converted ${webtoon.title} - ${webtoon.info}`
-      : `Converted ${webtoon.title}`,
-    "SUCCESS"
+      : `Converted ${webtoon.title}`
   );
   if (openPath) {
     openFile(`${webtoon.path}\\${pdfName}`);
@@ -34,7 +33,7 @@ export const merge = async (
   download_path,
   mergeMethod,
   openPath,
-  addNotification,
+  addSuccessNotification,
   invoke,
   openFolder
 ) => {
@@ -51,11 +50,10 @@ export const merge = async (
     pathToDestination: mergePath,
     mergeMethod,
   });
-  addNotification(
+  addSuccessNotification(
     webtoon.type === "manga"
       ? `Merged ${webtoon.title} - ${webtoon.info}`
-      : `Merged ${webtoon.title}`,
-    "SUCCESS"
+      : `Merged ${webtoon.title}`
   );
   if (openPath) {
     openFolder(mergePath);

@@ -49,7 +49,7 @@ export const useDownloadingStore = create((set) => ({
   clearDownloading: () => set({ downloading: null }),
 }));
 
-export const useNotificationStore = create((set) => ({
+export const useNotificationStore = create((set, get) => ({
   notifications: [],
   addNotification: (message, type) => {
     set((state) => ({
@@ -61,6 +61,9 @@ export const useNotificationStore = create((set) => ({
       notifications: state.notifications.filter((note) => note.id !== id),
     }));
   },
+  addSuccessNotification: (message) =>
+    get().addNotification(message, "success"),
+  addErrorNotification: (message) => get().addNotification(message, "error"),
 }));
 
 export const useDownloadTabStore = create((set) => ({

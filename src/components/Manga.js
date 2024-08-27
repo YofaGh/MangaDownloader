@@ -32,7 +32,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const navigate = useNavigate();
   const { load_covers } = useSettingsStore((state) => state.settings);
   const { queue, addToQueue, updateItemInQueue } = useQueueStore();
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
   const { downloading, clearDownloading } = useDownloadingStore();
   const id = `${module}_$_${url}`;
@@ -68,15 +68,11 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
     };
     if (!queue.find((item) => item.id === webt.id)) {
       addToQueue(webt);
-      addNotification(
-        `Added ${webt.title} - ${chapter.name} to queue`,
-        "SUCCESS"
-      );
+      addSuccessNotification(`Added ${webt.title} - ${chapter.name} to queue`);
     } else {
       updateItemInQueue(webt);
-      addNotification(
-        `Updated ${webt.title} - ${chapter.name} in queue`,
-        "SUCCESS"
+      addSuccessNotification(
+        `Updated ${webt.title} - ${chapter.name} in queue`
       );
     }
   };
@@ -91,7 +87,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
     if (library.some((webtoon) => webtoon.id === id)) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
-      addNotification(`Removed ${webt.title} from Library`, "SUCCESS");
+      addSuccessNotification(`Removed ${webt.title} from Library`);
       if (downloading && webt.id === downloading.id) {
         await invoke("stop_download");
         clearDownloading();
@@ -111,7 +107,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
       cover: webtoon.Cover,
       last_downloaded_chapter: null,
     });
-    addNotification(`Added ${mangaTitleForLibrary} to library`, "SUCCESS");
+    addSuccessNotification(`Added ${mangaTitleForLibrary} to library`);
   };
 
   return webtoonLoaded ? (

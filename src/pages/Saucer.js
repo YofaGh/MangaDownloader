@@ -28,7 +28,7 @@ export default function Saucer() {
     setSaucers,
     clearSauce,
   } = useSauceStore();
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification, addErrorNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
@@ -48,14 +48,14 @@ export default function Saucer() {
     setSauceStatus("Uploading");
     const response = await invoke("upload_image", { path: path.path });
     setSauceUrl(response);
-    addNotification(`Uploaded ${response}`, "SUCCESS");
+    addSuccessNotification(`Uploaded ${response}`);
     setSauceStatus(null);
   };
 
   useEffect(() => {
     const startSaucer = async () => {
       if (!isUrlValid(sauceUrl)) {
-        addNotification("Invalid URL", "ERROR");
+        addErrorNotification("Invalid URL");
         setSauceStatus(null);
         return;
       }
@@ -70,7 +70,7 @@ export default function Saucer() {
         document.querySelector(".steps-indicator").style.width =
           (i + 1) * 120 + "px";
       }
-      addNotification("Sauced", "SUCCESS");
+      addSuccessNotification("Sauced");
       setSauceStatus("Sauced");
     };
 

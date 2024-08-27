@@ -8,7 +8,7 @@ export default function FavoriteWebtoon({
   removeFromFavorites,
   load_covers,
 }) {
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const [imageSrc, setImageSrc] = useState(
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
@@ -40,7 +40,9 @@ export default function FavoriteWebtoon({
                 onClick={(e) => {
                   e.preventDefault();
                   removeFromFavorites(webtoon.id);
-                  addNotification(`Removed ${webtoon.title} from favorites`, "SUCCESS");
+                  addSuccessNotification(
+                    `Removed ${webtoon.title} from favorites`
+                  );
                 }}
               >
                 <img

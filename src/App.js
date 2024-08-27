@@ -41,7 +41,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 export default function App() {
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const { settings, updateSettings } = useSettingsStore();
   const { queue, setQueue, removeFromQueue, updateItemInQueue } =
     useQueueStore();
@@ -189,11 +189,10 @@ export default function App() {
         id: webt.id,
         ...inf,
       });
-      addNotification(
+      addSuccessNotification(
         webt.type === "manga"
           ? `Downloaded ${webt.title} - ${webt.info}`
-          : `Downloaded ${webt.title}`,
-        "SUCCESS"
+          : `Downloaded ${webt.title}`
       );
       if (settings.auto_merge) {
         merge(
@@ -201,13 +200,13 @@ export default function App() {
           settings.download_path,
           settings.merge_method,
           false,
-          addNotification,
+          addSuccessNotification,
           invoke,
           null
         );
       }
       if (settings.auto_convert) {
-        convert(webt, false, addNotification, invoke, null);
+        convert(webt, false, addSuccessNotification, invoke, null);
       }
       removeFromQueue(event.payload.webtoon_id);
       clearDownloading();

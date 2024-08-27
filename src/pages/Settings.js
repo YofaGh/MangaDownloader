@@ -8,15 +8,12 @@ import {
 
 export default function Settings() {
   const { settings, updateSettings } = useSettingsStore();
-  const { addNotification } = useNotificationStore();
+  const { addErrorNotification } = useNotificationStore();
   const { downloading } = useDownloadingStore();
 
   const changeFilePath = async () => {
     if (downloading) {
-      addNotification(
-        "There's a download in progress. Stop it first.",
-        "ERROR"
-      );
+      addErrorNotification("There's a download in progress. Stop it first.");
       return;
     }
     const path = await open({

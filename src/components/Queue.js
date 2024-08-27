@@ -24,7 +24,7 @@ export default function Queue() {
   const settings = useSettingsStore((state) => state.settings);
   const [queueEditable, setQueueEditable] = useState(false);
   const [queu, setQueu] = useState(queue);
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const increaseInitDownload = useInitDownloadStore(
     (state) => state.increaseInitDownload
   );
@@ -67,11 +67,10 @@ export default function Queue() {
 
   const removeWebtoonFromQueue = async (webtoon) => {
     removeFromQueue(webtoon.id);
-    addNotification(
+    addSuccessNotification(
       webtoon.type === "manga"
         ? `Removed ${webtoon.title} - ${webtoon.info} from queue`
-        : `Removed ${webtoon.title} from queue`,
-      "SUCCESS"
+        : `Removed ${webtoon.title} from queue`
     );
     if (downloading && webtoon.id === downloading.id) {
       stopDownloader();
@@ -156,16 +155,44 @@ export default function Queue() {
         <div className="info-manage">Number of Items: {queu.length}</div>
         {!queueEditable ? (
           <div className="manage-btn">
-            <ActionButtonBig tooltip="Edit List" svgName="edit" onClick={() => setQueueEditable(true)} />
-            <ActionButtonBig tooltip="Stop All" svgName="stop" onClick={() => setAllWebtoonsStatus("Not Started")} />
-            <ActionButtonBig tooltip="Pause All" svgName="pause" onClick={() => setAllWebtoonsStatus("Paused")} />
-            <ActionButtonBig tooltip="Start All" svgName="start" onClick={() => setAllWebtoonsStatus("Started")} />
-            <ActionButtonBig tooltip="Delete All" svgName="trash" onClick={deleteAllWebtoons} />
+            <ActionButtonBig
+              tooltip="Edit List"
+              svgName="edit"
+              onClick={() => setQueueEditable(true)}
+            />
+            <ActionButtonBig
+              tooltip="Stop All"
+              svgName="stop"
+              onClick={() => setAllWebtoonsStatus("Not Started")}
+            />
+            <ActionButtonBig
+              tooltip="Pause All"
+              svgName="pause"
+              onClick={() => setAllWebtoonsStatus("Paused")}
+            />
+            <ActionButtonBig
+              tooltip="Start All"
+              svgName="start"
+              onClick={() => setAllWebtoonsStatus("Started")}
+            />
+            <ActionButtonBig
+              tooltip="Delete All"
+              svgName="trash"
+              onClick={deleteAllWebtoons}
+            />
           </div>
         ) : (
           <div className="manage-btn">
-            <ActionButtonBig tooltip="Discard" svgName="delete" onClick={discardChanges} />
-            <ActionButtonBig tooltip="Apply" svgName="done" onClick={confirmChanges} />
+            <ActionButtonBig
+              tooltip="Discard"
+              svgName="delete"
+              onClick={discardChanges}
+            />
+            <ActionButtonBig
+              tooltip="Apply"
+              svgName="done"
+              onClick={confirmChanges}
+            />
           </div>
         )}
       </div>

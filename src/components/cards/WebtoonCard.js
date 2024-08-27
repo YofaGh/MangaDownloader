@@ -10,7 +10,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
     load_covers ? webtoon.cover : "./assets/default-cover.svg"
   );
   const { removeFromLibrary } = useLibraryStore();
-  const { addNotification } = useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const { downloading, clearDownloading } = useDownloadingStore();
 
   const stopRotate = () => {
@@ -26,7 +26,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
       clearDownloading();
     }
     removeFromLibrary(webtoon.id);
-    addNotification(`Removed ${webtoon.title} from Library`, "SUCCESS");
+    addSuccessNotification(`Removed ${webtoon.title} from Library`);
   };
 
   return (

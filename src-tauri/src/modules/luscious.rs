@@ -255,8 +255,8 @@ impl Luscious {
         Self {
             base: BaseModule {
                 type_: "Doujin",
-                logo: "luscious.net",
-                domain: "https://www.luscious.net/assets/logo.png",
+                domain: "luscious.net",
+                logo: "https://www.luscious.net/assets/logo.png",
                 sample: HashMap::from([("code", "505726"), ("keyword", "solo")]),
                 searchable: true,
                 is_coded: true,

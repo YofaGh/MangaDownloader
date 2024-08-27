@@ -237,8 +237,8 @@ impl Hentaifox {
         Self {
             base: BaseModule {
                 type_: "Doujin",
-                logo: "hentaifox.com",
-                domain: "https://hentaifox.com/images/logo.png",
+                domain: "hentaifox.com",
+                logo: "https://hentaifox.com/images/logo.png",
                 sample: HashMap::from([("code", "1")]),
                 searchable: true,
                 is_coded: true,

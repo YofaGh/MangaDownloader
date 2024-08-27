@@ -93,10 +93,10 @@ impl Nhentai {
         Self {
             base: BaseModule {
                 type_: "Doujin",
-                logo: "nhentai.net",
-                domain: "https://static.nhentai.net/img/logo.090da3be7b51.svg",
+                domain: "nhentai.net",
+                logo: "https://static.nhentai.net/img/logo.090da3be7b51.svg",
                 sample: HashMap::from([("code", "2")]),
-                searchable: true,
+                searchable: false,
                 is_coded: true,
                 ..BaseModule::default()
             },

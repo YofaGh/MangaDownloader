@@ -267,8 +267,8 @@ impl Toonily {
         Self {
             base: BaseModule {
                 type_: "Manga",
-                logo: "toonily.com",
-                domain: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
+                domain: "toonily.com",
+                logo: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
                 download_image_headers: HashMap::from([("Referer", "https://toonily.com/")]),
                 sample: HashMap::from([("code", "2")]),
                 searchable: true,

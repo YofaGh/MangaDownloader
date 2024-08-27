@@ -101,8 +101,8 @@ impl Readonepiece {
         Self {
             base: BaseModule {
                 type_: "Manga",
-                logo: "readonepiece.com",
-                domain: "https://ww9.readonepiece.com/apple-touch-icon.png",
+                domain: "readonepiece.com",
+                logo: "https://ww9.readonepiece.com/apple-touch-icon.png",
                 sample: HashMap::from([("manga", "one-piece-digital-colored-comics")]),
                 ..BaseModule::default()
             },

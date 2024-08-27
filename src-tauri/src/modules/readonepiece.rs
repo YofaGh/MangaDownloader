@@ -15,6 +15,7 @@ impl Module for Readonepiece {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -66,6 +67,7 @@ impl Module for Readonepiece {
             .collect();
         Ok((images, Value::Bool(false)))
     }
+
     async fn get_chapters(
         &self,
         manga: &str,
@@ -97,15 +99,13 @@ impl Module for Readonepiece {
 impl Readonepiece {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Manga",
-                "readonepiece.com",
-                "https://ww9.readonepiece.com/apple-touch-icon.png",
-                HashMap::new(),
-                HashMap::from([("manga", "one-piece-digital-colored-comics")]),
-                false,
-                false,
-            ),
+            base: BaseModule {
+                type_: "Manga",
+                logo: "readonepiece.com",
+                domain: "https://ww9.readonepiece.com/apple-touch-icon.png",
+                sample: HashMap::from([("manga", "one-piece-digital-colored-comics")]),
+                ..BaseModule::default()
+            },
         }
     }
 }

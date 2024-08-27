@@ -16,6 +16,7 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://www.luscious.net/albums/{}", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -143,6 +144,7 @@ impl Module for Luscious {
         println!("{:?}", info);
         Ok(info)
     }
+
     async fn get_images(
         &self,
         manga: &str,
@@ -179,6 +181,7 @@ impl Module for Luscious {
         }
         Ok((images, to_value(false).unwrap_or_default()))
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -205,7 +208,6 @@ impl Module for Luscious {
             let doujins = response["data"]["album"]["list"]["items"]
                 .as_array()
                 .unwrap();
-
             for doujin in doujins {
                 let tags = doujin["tags"]
                     .as_array()
@@ -225,7 +227,6 @@ impl Module for Luscious {
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-
                 results.push(HashMap::from([
                     ("name".to_string(), title),
                     ("domain".to_string(), "luscious.net".to_string()),
@@ -252,15 +253,15 @@ impl Module for Luscious {
 impl Luscious {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Doujin",
-                "luscious.net",
-                "https://www.luscious.net/assets/logo.png",
-                HashMap::new(),
-                HashMap::from([("code", "505726"), ("keyword", "solo")]),
-                true,
-                true,
-            ),
+            base: BaseModule {
+                type_: "Doujin",
+                logo: "luscious.net",
+                domain: "https://www.luscious.net/assets/logo.png",
+                sample: HashMap::from([("code", "505726"), ("keyword", "solo")]),
+                searchable: true,
+                is_coded: true,
+                ..BaseModule::default()
+            },
         }
     }
 }

@@ -14,6 +14,7 @@ impl Module for Nhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -90,15 +91,15 @@ impl Module for Nhentai {
 impl Nhentai {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Doujin",
-                "nhentai.net",
-                "https://static.nhentai.net/img/logo.090da3be7b51.svg",
-                HashMap::new(),
-                HashMap::from([("code", "2")]),
-                true,
-                true,
-            ),
+            base: BaseModule {
+                type_: "Doujin",
+                logo: "nhentai.net",
+                domain: "https://static.nhentai.net/img/logo.090da3be7b51.svg",
+                sample: HashMap::from([("code", "2")]),
+                searchable: true,
+                is_coded: true,
+                ..BaseModule::default()
+            },
         }
     }
 }

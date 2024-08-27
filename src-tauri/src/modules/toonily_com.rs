@@ -15,6 +15,7 @@ impl Module for Toonily {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+
     async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -192,6 +193,7 @@ impl Module for Toonily {
             .collect::<Vec<_>>();
         Ok((images, to_value(save_names).unwrap_or_default()))
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -263,15 +265,15 @@ impl Module for Toonily {
 impl Toonily {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Manga",
-                "toonily.com",
-                "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
-                HashMap::from([("Referer", "https://toonily.com/")]),
-                HashMap::from([("manga", "peerless-dad")]),
-                true,
-                false,
-            ),
+            base: BaseModule {
+                type_: "Manga",
+                logo: "toonily.com",
+                domain: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
+                download_image_headers: HashMap::from([("Referer", "https://toonily.com/")]),
+                sample: HashMap::from([("code", "2")]),
+                searchable: true,
+                ..BaseModule::default()
+            },
         }
     }
 }

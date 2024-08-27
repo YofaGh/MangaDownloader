@@ -17,33 +17,25 @@ use tokio::{
 use tokio_util::io::StreamReader;
 
 pub struct BaseModule {
-    type_: &'static str,
-    domain: &'static str,
-    logo: &'static str,
-    download_image_headers: HashMap<&'static str, &'static str>,
-    sample: HashMap<&'static str, &'static str>,
-    searchable: bool,
-    is_coded: bool,
+    pub(crate) type_: &'static str,
+    pub(crate) domain: &'static str,
+    pub(crate) logo: &'static str,
+    pub(crate) download_image_headers: HashMap<&'static str, &'static str>,
+    pub(crate) sample: HashMap<&'static str, &'static str>,
+    pub(crate) searchable: bool,
+    pub(crate) is_coded: bool,
 }
 
-impl BaseModule {
-    pub fn new(
-        type_: &'static str,
-        domain: &'static str,
-        logo: &'static str,
-        download_image_headers: HashMap<&'static str, &'static str>,
-        sample: HashMap<&'static str, &'static str>,
-        searchable: bool,
-        is_coded: bool,
-    ) -> Self {
+impl Default for BaseModule {
+    fn default() -> Self {
         Self {
-            type_,
-            domain,
-            logo,
-            download_image_headers,
-            sample,
-            searchable,
-            is_coded,
+            type_: "",
+            domain: "",
+            logo: "",
+            download_image_headers: HashMap::new(),
+            sample: HashMap::new(),
+            searchable: false,
+            is_coded: false,
         }
     }
 }

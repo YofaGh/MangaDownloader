@@ -124,6 +124,7 @@ impl Module for Manhuascan {
         info.insert("Dates".to_owned(), to_value(dates).unwrap_or_default());
         Ok(info)
     }
+
     async fn get_images(
         &self,
         manga: &str,
@@ -139,6 +140,7 @@ impl Module for Manhuascan {
             .collect::<Vec<String>>();
         Ok((images, Value::Bool(false)))
     }
+
     async fn get_chapters(
         &self,
         manga: &str,
@@ -167,6 +169,7 @@ impl Module for Manhuascan {
         }
         Ok(chapters)
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -259,15 +262,14 @@ impl Module for Manhuascan {
 impl Manhuascan {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Manga",
-                "manhuascan.us",
-                "https://manhuascan.us/fav.png?v=1",
-                HashMap::new(),
-                HashMap::from([("manga", "secret-class")]),
-                true,
-                false,
-            ),
+            base: BaseModule {
+                type_: "Manga",
+                logo: "manhuascan.us",
+                domain: "https://manhuascan.us/fav.png?v=1",
+                sample: HashMap::from([("manga", "secret-class")]),
+                searchable: true,
+                ..BaseModule::default()
+            },
         }
     }
 }

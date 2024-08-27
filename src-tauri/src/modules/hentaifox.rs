@@ -15,6 +15,7 @@ impl Module for Hentaifox {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+
     async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -146,6 +147,7 @@ impl Module for Hentaifox {
             .collect();
         Ok((image_urls, Value::Bool(false)))
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -233,15 +235,15 @@ impl Module for Hentaifox {
 impl Hentaifox {
     pub fn new() -> Self {
         Self {
-            base: BaseModule::new(
-                "Doujin",
-                "hentaifox.com",
-                "https://hentaifox.com/images/logo.png",
-                HashMap::new(),
-                HashMap::from([("code", "1")]),
-                true,
-                true,
-            ),
+            base: BaseModule {
+                type_: "Doujin",
+                logo: "hentaifox.com",
+                domain: "https://hentaifox.com/images/logo.png",
+                sample: HashMap::from([("code", "1")]),
+                searchable: true,
+                is_coded: true,
+                ..BaseModule::default()
+            },
         }
     }
 }

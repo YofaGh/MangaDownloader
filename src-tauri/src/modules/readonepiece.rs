@@ -16,7 +16,7 @@ impl Module for Readonepiece {
         &self.base
     }
 
-    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
@@ -54,8 +54,8 @@ impl Module for Readonepiece {
 
     async fn get_images(
         &self,
-        manga: &str,
-        chapter: &str,
+        manga: String,
+        chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -70,7 +70,7 @@ impl Module for Readonepiece {
 
     async fn get_chapters(
         &self,
-        manga: &str,
+        manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -89,7 +89,7 @@ impl Module for Readonepiece {
             let chapter_url: String = v.pop().unwrap_or("").replace(&format!("{}-", manga), "");
             let mut chapter_info = HashMap::new();
             chapter_info.insert("url".to_string(), chapter_url.clone());
-            chapter_info.insert("name".to_string(), self.rename_chapter(&chapter_url));
+            chapter_info.insert("name".to_string(), self.rename_chapter(chapter_url));
             chapters.push(chapter_info);
         }
         Ok(chapters)

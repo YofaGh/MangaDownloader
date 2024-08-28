@@ -66,12 +66,12 @@ pub trait Module: Send + Sync {
     }
     async fn download_image(
         &self,
-        url: &str,
-        image_name: &str,
+        url: String,
+        image_name: String,
     ) -> Result<Option<String>, Box<dyn Error>> {
         let response: Response = self
             .send_request(
-                url,
+                &url,
                 "GET",
                 Some(self.get_download_image_headers()),
                 Some(true),
@@ -81,12 +81,12 @@ pub trait Module: Send + Sync {
             .bytes_stream()
             .map_err(|e| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(image_name).await?;
+        let mut file: File = File::create(&image_name).await?;
         io::copy(&mut reader, &mut file).await?;
         file.flush().await?;
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+    async fn retrieve_image(&self, url: String) -> Result<Response, Box<dyn Error>> {
         Ok(self
             .send_request(
                 &url,
@@ -98,13 +98,17 @@ pub trait Module: Send + Sync {
     }
     async fn get_images(
         &self,
-        manga: &str,
-        chapter: &str,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>>;
-    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>>;
+        _manga: String,
+        _chapter: String,
+    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+        Ok(Default::default())
+    }
+    async fn get_info(&self, _manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+        Ok(Default::default())
+    }
     async fn get_chapters(
         &self,
-        _manga: &str,
+        _manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         Ok(Default::default())
     }
@@ -117,7 +121,7 @@ pub trait Module: Send + Sync {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         Ok(Vec::<HashMap<String, String>>::new())
     }
-    fn rename_chapter(&self, chapter: &str) -> String {
+    fn rename_chapter(&self, chapter: String) -> String {
         let mut new_name: String = String::new();
         let mut reached_number: bool = false;
         for ch in chapter.chars() {
@@ -175,5 +179,24 @@ pub trait Module: Send + Sync {
             )));
         }
         Ok(response)
+    }
+}
+
+pub struct DefaultModule {
+    base: BaseModule,
+}
+
+#[async_trait]
+impl Module for DefaultModule {
+    fn base(&self) -> &BaseModule {
+        &self.base
+    }
+}
+
+impl DefaultModule {
+    pub fn new() -> Self {
+        Self {
+            base: BaseModule::default(),
+        }
     }
 }

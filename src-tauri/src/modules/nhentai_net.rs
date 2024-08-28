@@ -15,7 +15,7 @@ impl Module for Nhentai {
         &self.base
     }
 
-    async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let response: Value = response.json().await?;
@@ -58,8 +58,8 @@ impl Module for Nhentai {
 
     async fn get_images(
         &self,
-        code: &str,
-        _: &str,
+        code: String,
+        _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;

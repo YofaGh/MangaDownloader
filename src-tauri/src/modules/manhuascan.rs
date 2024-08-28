@@ -15,7 +15,7 @@ impl Module for Manhuascan {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
@@ -127,8 +127,8 @@ impl Module for Manhuascan {
 
     async fn get_images(
         &self,
-        manga: &str,
-        chapter: &str,
+        manga: String,
+        chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -143,7 +143,7 @@ impl Module for Manhuascan {
 
     async fn get_chapters(
         &self,
-        manga: &str,
+        manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -163,7 +163,7 @@ impl Module for Manhuascan {
                     .to_string();
                 let mut chapter_info: HashMap<String, String> = HashMap::new();
                 chapter_info.insert("url".to_owned(), chapter_url.clone());
-                chapter_info.insert("name".to_owned(), self.rename_chapter(&chapter_url));
+                chapter_info.insert("name".to_owned(), self.rename_chapter(chapter_url));
                 chapters.push(chapter_info);
             }
         }

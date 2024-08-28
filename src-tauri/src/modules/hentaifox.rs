@@ -16,7 +16,7 @@ impl Module for Hentaifox {
         &self.base
     }
 
-    async fn get_info(&self, code: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
@@ -107,8 +107,8 @@ impl Module for Hentaifox {
 
     async fn get_images(
         &self,
-        code: &str,
-        _: &str,
+        code: String,
+        _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];

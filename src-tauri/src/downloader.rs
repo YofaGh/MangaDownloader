@@ -1,9 +1,7 @@
 use crate::assets;
-use serde_json::{from_value, Value};
+use serde_json::from_value;
 use std::{
-    collections::HashMap,
     fs::{create_dir_all, read_dir},
-    io::{self, Write},
     sync::atomic::{AtomicBool, Ordering},
     thread::sleep,
     time::Duration,
@@ -38,39 +36,24 @@ pub fn stop_download() {
 
 #[tauri::command]
 pub async fn download(
-    webtoon: HashMap<String, String>,
+    webtoon_id: String,
+    module: String,
+    webtoon: String,
+    chapter: String,
     fixed_title: String,
     sleep_time: f64,
     download_path: String,
     window: Window,
 ) {
     STOP_DOWNLOAD.store(false, Ordering::Relaxed);
-    let mut folder_name: String = fixed_title.clone();
-    let images: Vec<String>;
-    let saved_n: Value;
-    if webtoon.get("type").unwrap() == "manga" {
-        (images, saved_n) = assets::get_images(
-            webtoon.get("module").unwrap().to_string(),
-            webtoon.get("manga").unwrap().to_string(),
-            webtoon.get("chapter").unwrap().to_string(),
-        )
-        .await;
-        folder_name.push_str(&("\\".to_string() + &webtoon.get("info").unwrap()));
-    } else {
-        (images, saved_n) = assets::get_images(
-            webtoon.get("module").unwrap().to_string(),
-            webtoon.get("doujin").unwrap().to_string(),
-            "".to_string(),
-        )
-        .await;
-    }
-    let d_path: String = format!("{}\\{}", download_path, folder_name);
+    let (images, saved_n) = assets::get_images(module.clone(), webtoon, chapter).await;
+    let d_path: String = format!("{}\\{}", download_path, fixed_title);
     create_dir_all(&d_path).expect("Failed to create dir");
     window
         .emit(
             "totalImages",
             TotalImages {
-                webtoon_id: webtoon.get("id").unwrap().to_string(),
+                webtoon_id: webtoon_id.clone(),
                 total_images: images.len() as i32,
             },
         )
@@ -81,7 +64,7 @@ pub async fn download(
         .enumerate()
         .map(|(_, dir)| dir.unwrap().path().to_str().unwrap().to_string())
         .collect();
-    let mut last_corrupted: String = "".to_string();
+    let mut last_corrupted: String = String::default();
     let mut has_saved_names: bool = false;
     let mut saved_names: Vec<String> = Vec::new();
     if saved_n.is_array() {
@@ -97,12 +80,12 @@ pub async fn download(
             .emit(
                 "downloading",
                 Downloading {
-                    webtoon_id: webtoon.get("id").unwrap().to_string(),
-                    image: (i + 1) as i32,
+                    webtoon_id: webtoon_id.clone(),
+                    image: i + 1,
                 },
             )
             .expect("failed to emit event");
-        let mut save_path: String = "".to_string();
+        let mut save_path: String = String::default();
         if has_saved_names {
             save_path
                 .push_str(format!("{}\\{}", d_path, saved_names.get(i as usize).unwrap()).as_str());
@@ -118,20 +101,17 @@ pub async fn download(
             save_path.push_str(format!("{}\\{}.{}", d_path, padded_string, temp_s).as_str());
         }
         if !exists_images.contains(&save_path) {
-            let d_response: String = assets::download_image(
-                webtoon.get("module").unwrap().to_string(),
-                images[i as usize].to_string(),
-                save_path,
-            )
-            .await
-            .unwrap();
+            let d_response: String =
+                assets::download_image(module.clone(), images[i as usize].to_string(), save_path)
+                    .await
+                    .unwrap();
             if d_response.is_empty() {
                 window
                     .emit(
                         "downloadFailed",
                         Downloading {
-                            webtoon_id: webtoon.get("id").unwrap().to_string(),
-                            image: (i + 1) as i32,
+                            webtoon_id: webtoon_id.clone(),
+                            image: i + 1,
                         },
                     )
                     .expect("failed to emit event");
@@ -145,8 +125,8 @@ pub async fn download(
                         .emit(
                             "corruptedImage",
                             Downloading {
-                                webtoon_id: webtoon.get("id").unwrap().to_string(),
-                                image: (i + 1) as i32,
+                                webtoon_id: webtoon_id.clone(),
+                                image: i + 1,
                             },
                         )
                         .expect("failed to emit event");
@@ -161,11 +141,10 @@ pub async fn download(
         .emit(
             "doneDownloading",
             DoneDownloading {
-                webtoon_id: webtoon.get("id").unwrap().to_string(),
+                webtoon_id,
                 download_path: d_path,
                 total: i,
             },
         )
         .expect("failed to emit event");
-    io::stdout().flush().expect("Unable to flush stdout");
 }

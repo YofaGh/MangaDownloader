@@ -16,7 +16,7 @@ impl Module for Toonily {
         &self.base
     }
 
-    async fn get_info(&self, manga: &str) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
         let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
         let document: Html = Html::parse_document(&response.text().await?);
@@ -143,7 +143,7 @@ impl Module for Toonily {
 
     async fn get_chapters(
         &self,
-        manga: &str,
+        manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
         let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;
@@ -166,7 +166,7 @@ impl Module for Toonily {
                     .to_string();
                 HashMap::from([
                     ("url".to_string(), chapter_url.clone()),
-                    ("name".to_string(), self.rename_chapter(&chapter_url)),
+                    ("name".to_string(), self.rename_chapter(chapter_url)),
                 ])
             })
             .collect::<Vec<_>>();
@@ -175,8 +175,8 @@ impl Module for Toonily {
 
     async fn get_images(
         &self,
-        manga: &str,
-        chapter: &str,
+        manga: String,
+        chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/{}//", manga, chapter);
         let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;

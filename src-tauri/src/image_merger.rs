@@ -15,12 +15,12 @@ use crate::assets::detect_images;
 pub fn merge_folder(
     path_to_source: String,
     path_to_destination: String,
-    fit_merge: bool,
+    merge_method: String,
 ) -> Result<(), Box<dyn Error>> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
     if !images.is_empty() {
         create_dir_all(path_to_destination.clone()).unwrap();
-        if fit_merge {
+        if merge_method == "Fit" {
             merge_fit(images.clone(), path_to_destination.clone());
         } else {
             merge(images, path_to_destination);

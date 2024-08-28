@@ -129,7 +129,7 @@ export default function Queue() {
         webtoon.type === "manga"
           ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
           : fixNameForFolder(webtoon.title);
-      removeDirectory(`${settings.settings.download_path}/${folderName}`, true);
+      removeDirectory(`${settings.download_path}/${folderName}`, true);
       if (webtoon.type === "manga") {
         removeDirectory(
           `${settings.download_path}/${fixNameForFolder(webtoon.title)}`,

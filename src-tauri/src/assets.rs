@@ -1,4 +1,4 @@
-use crate::{image_merger, models::Module, modules::*, pdf_converter};
+use crate::{image_merger, models::{Module, DefaultModule}, modules::*, pdf_converter};
 use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
@@ -94,11 +94,7 @@ pub fn remove_directory(path: String, recursive: bool) {
 
 #[tauri::command]
 pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) -> String {
-    match image_merger::merge_folder(
-        path_to_source,
-        path_to_destination,
-        if merge_method == "Fit" { true } else { false },
-    ) {
+    match image_merger::merge_folder(path_to_source, path_to_destination, merge_method) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
     }
@@ -106,11 +102,7 @@ pub fn merge(path_to_source: String, path_to_destination: String, merge_method: 
 
 #[tauri::command]
 pub fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) -> String {
-    match pdf_converter::convert_folder(
-        path_to_source.clone(),
-        path_to_destination.clone(),
-        pdf_name.clone(),
-    ) {
+    match pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
     }
@@ -164,34 +156,34 @@ pub fn validate_image(path: &str) -> bool {
 
 #[tauri::command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    get_module(&domain).get_info(&url).await.unwrap_or_default()
+    get_module(domain).get_info(url).await.unwrap_or_default()
 }
 
 #[tauri::command]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
-    get_module(&domain)
-        .get_chapters(&url)
+    get_module(domain)
+        .get_chapters(url)
         .await
         .unwrap_or_default()
 }
 
 #[tauri::command]
 pub fn get_module_sample(domain: String) -> HashMap<&'static str, &'static str> {
-    get_module(&domain).get_module_sample()
+    get_module(domain).get_module_sample()
 }
 
 #[tauri::command]
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
-    get_module(&domain)
-        .get_images(&manga, &chapter)
+    get_module(domain)
+        .get_images(manga, chapter)
         .await
         .unwrap_or_default()
 }
 
 #[tauri::command]
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
-    get_module(&domain)
-        .download_image(&url, &image_name)
+    get_module(domain)
+        .download_image(url, image_name)
         .await
         .unwrap_or_default()
 }
@@ -202,7 +194,7 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 }
 
 async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
-    let response: Response = get_module(&domain).retrieve_image(&url).await?;
+    let response: Response = get_module(domain).retrieve_image(url).await?;
     let image: Bytes = response.bytes().await.unwrap();
     let encoded_image: String = general_purpose::STANDARD.encode(image);
     Ok(format!("data:image/png;base64, {}", encoded_image))
@@ -215,7 +207,7 @@ pub async fn search_by_keyword(
     sleep_time: f64,
     page_limit: u32,
 ) -> Vec<HashMap<String, String>> {
-    get_module(&domain)
+    get_module(domain)
         .search_by_keyword(keyword, absolute, sleep_time, page_limit)
         .await
         .unwrap_or_default()
@@ -241,15 +233,15 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
         .collect()
 }
 
-fn get_module(domain: &str) -> Box<dyn Module> {
-    match domain {
+fn get_module(domain: String) -> Box<dyn Module> {
+    match domain.as_str() {
         "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
         "luscious.net" => Box::new(luscious::Luscious::new()),
         "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
         "nhentai.net" => Box::new(nhentai_net::Nhentai::new()),
         "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
         "toonily.com" => Box::new(toonily_com::Toonily::new()),
-        _ => Box::new(manhuascan::Manhuascan::new()),
+        _ => Box::new(DefaultModule::new()),
     }
 }
 

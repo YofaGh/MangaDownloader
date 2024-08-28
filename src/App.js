@@ -148,10 +148,14 @@ export default function App() {
     const webtoon = queue.find((item) => item.status === "Started");
     if (!webtoon) return;
     setDownloading(webtoon);
-    const { total, inLibrary, image, ...rest } = webtoon;
+    let fixedTitle = fixNameForFolder(webtoon.title);
+    if (webtoon.type === "manga") fixedTitle = `${fixedTitle}\\${webtoon.info}`;
     invoke("download", {
-      webtoon: rest,
-      fixedTitle: fixNameForFolder(webtoon.title),
+      webtoonId: webtoon.id,
+      module: webtoon.module,
+      webtoon: webtoon.manga || webtoon.doujin,
+      chapter: webtoon.chapter || "",
+      fixedTitle,
       sleepTime: settings.sleep_time,
       downloadPath: settings.download_path,
     });

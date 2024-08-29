@@ -50,7 +50,9 @@ export default function App() {
     }, [data, fileName, delay]);
   };
 
-  useEffect(() => startUp(), []);
+  useEffect(() => {
+    startUp();
+  }, []);
 
   useEffect(() => {
     if (!isFirstRender.current || !settings) return;

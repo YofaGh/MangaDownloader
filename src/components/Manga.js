@@ -37,22 +37,18 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const { downloading, clearDownloading } = useDownloadingStore();
   const id = `${module}_$_${url}`;
 
-  useEffect(
-    () =>
-      (async () => {
-        const response = await invoke("get_info", { domain: module, url });
-        setWebtoon(response);
-        setWebtoonLoaded(true);
-        setMangaTitleForLibrary(response.Title);
-        setImageSrc(
-          load_covers ? response.Cover : "./assets/default-cover.svg"
-        );
-        const chapters = await invoke("get_chapters", { domain: module, url });
-        setChapters(chapters);
-        setLoadingChapters(false);
-      })(),
-    [module, url]
-  );
+  useEffect(() => {
+    (async () => {
+      const response = await invoke("get_info", { domain: module, url });
+      setWebtoon(response);
+      setWebtoonLoaded(true);
+      setMangaTitleForLibrary(response.Title);
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+      const chapters = await invoke("get_chapters", { domain: module, url });
+      setChapters(chapters);
+      setLoadingChapters(false);
+    })();
+  }, [module, url]);
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("lib-modal");

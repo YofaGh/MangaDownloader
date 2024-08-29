@@ -23,18 +23,14 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const { queue, addToQueue, updateItemInQueue } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
 
-  useEffect(
-    () =>
-      (async () => {
-        const response = await invoke("get_info", { domain: module, url });
-        setWebtoon(response);
-        setWebtoonLoaded(true);
-        setImageSrc(
-          load_covers ? response.Cover : "./assets/default-cover.svg"
-        );
-      })(),
-    [module, url]
-  );
+  useEffect(() => {
+    (async () => {
+      const response = await invoke("get_info", { domain: module, url });
+      setWebtoon(response);
+      setWebtoonLoaded(true);
+      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
+    })();
+  }, [module, url]);
 
   const addDoujin = (status) => {
     const webt = {

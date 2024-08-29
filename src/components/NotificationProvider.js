@@ -43,7 +43,9 @@ const Notification = ({ id, message, type }) => {
     if (width === 100) handleCloseNotification();
   }, [width]);
 
-  useEffect(() => handleStartTimer(), []);
+  useEffect(() => {
+    handleStartTimer();
+  }, []);
 
   return (
     <div

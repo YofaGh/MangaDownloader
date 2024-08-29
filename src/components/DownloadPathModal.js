@@ -1,5 +1,5 @@
-import { PushButton, startDownloading } from ".";
 import { open } from "@tauri-apps/plugin-dialog";
+import { PushButton } from ".";
 import { useSettingsStore } from "../store";
 
 export default function DownloadPathModal() {
@@ -10,7 +10,6 @@ export default function DownloadPathModal() {
     if (!download_path) return;
     updateSettings({ download_path });
     document.getElementById("browse-modal").style.display = "none";
-    startDownloading();
   };
 
   return (

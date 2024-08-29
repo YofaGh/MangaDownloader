@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage, ExpandButton } from "..";
+import { ExpandButton } from "..";
+import { retrieveImage } from "../../utils";
 
 export default function MCard({ module, checkModule, load_covers }) {
   const [imageSrc, setImageSrc] = useState(

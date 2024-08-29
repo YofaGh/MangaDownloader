@@ -14,51 +14,41 @@ import {
   useDownloadingStore,
   useFavoritesStore,
   useModulesStore,
-} from "../store";
+} from "./store";
 
-export const fixNameForFolder = (manga) =>
+export const fixFolderName = (manga) =>
   manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 
 export const convert = async (webtoon, openPath) => {
-  let pdfName =
-    webtoon.type === "manga"
-      ? `${fixNameForFolder(webtoon.title)}_${webtoon.info}.pdf`
-      : `${webtoon.doujin}_${fixNameForFolder(webtoon.title)}.pdf`;
+  let pdfName = fixFolderName(webtoon.title);
+  let notifInfo = webtoon.title;
+  if (webtoon.type === "manga") {
+    pdfName += `_${webtoon.info}`;
+    notifInfo += ` - ${webtoon.info}`;
+  } else pdfName = `${webtoon.doujin}_${pdfName}.pdf`;
   await invoke("convert", { path: webtoon.path, pdfName });
   useNotificationStore
     .getState()
-    .addSuccessNotification(
-      webtoon.type === "manga"
-        ? `Converted ${webtoon.title} - ${webtoon.info}`
-        : `Converted ${webtoon.title}`
-    );
+    .addSuccessNotification(`Converted ${notifInfo} to PDF`);
   if (openPath)
     await invoke("open_folder", { path: `${webtoon.path}\\${pdfName}` });
 };
 
 export const merge = async (webtoon, openPath) => {
   const { download_path, merge_method } = useSettingsStore.getState().settings;
-  const mergePath =
-    webtoon.type === "manga"
-      ? download_path +
-        "\\Merged\\" +
-        fixNameForFolder(webtoon.title) +
-        "\\" +
-        webtoon.info
-      : download_path + "\\Merged\\" + fixNameForFolder(webtoon.title);
+  let path = `${download_path}\\Merged\\${fixFolderName(webtoon.title)}`;
+  let notifInfo = webtoon.title;
+  if (webtoon.type === "manga") {
+    path += `\\${webtoon.info}`;
+    notifInfo += ` - ${webtoon.info}`;
+  }
   await invoke("merge", {
     pathToSource: webtoon.path,
-    pathToDestination: mergePath,
+    pathToDestination: path,
     mergeMethod: merge_method,
   });
-  useNotificationStore
-    .getState()
-    .addSuccessNotification(
-      webtoon.type === "manga"
-        ? `Merged ${webtoon.title} - ${webtoon.info}`
-        : `Merged ${webtoon.title}`
-    );
-  if (openPath) await invoke("open_folder", { path: mergePath });
+  useNotificationStore.getState().addSuccessNotification(`Merged ${notifInfo}`);
+  if (openPath) await invoke("open_folder", { path });
 };
 
 export const getDate = (datetime) => {
@@ -107,8 +97,8 @@ export const startDownloading = async () => {
   const webtoon = queue.find((item) => item.status === "Started");
   if (!webtoon) return;
   setDownloading(webtoon);
-  let fixedTitle = fixNameForFolder(webtoon.title);
-  if (webtoon.type === "manga") fixedTitle = `${fixedTitle}\\${webtoon.info}`;
+  let fixedTitle = fixFolderName(webtoon.title);
+  if (webtoon.type === "manga") fixedTitle += `\\${webtoon.info}`;
   invoke("download", {
     webtoonId: webtoon.id,
     module: webtoon.module,
@@ -140,10 +130,14 @@ export const startDownloading = async () => {
           },
         });
     }
-    let inf =
-      webt.type === "manga"
-        ? { manga: webt.manga, chapter: webt.chapter }
-        : { doujin: webt.doujin };
+    let inf;
+    let notifInfo = webt.title;
+    if (webt.type === "manga") {
+      inf = { manga: webt.manga, chapter: webt.chapter };
+      notifInfo += ` - ${webt.info}`;
+    } else {
+      inf = { doujin: webt.doujin };
+    }
     useDownloadedStore.getState().addToDownloaded({
       path: event.payload.download_path,
       images: event.payload.total,
@@ -156,11 +150,7 @@ export const startDownloading = async () => {
     });
     useNotificationStore
       .getState()
-      .addSuccessNotification(
-        webt.type === "manga"
-          ? `Downloaded ${webt.title} - ${webt.info}`
-          : `Downloaded ${webt.title}`
-      );
+      .addSuccessNotification(`Downloaded ${notifInfo}`);
     if (settings.auto_merge) merge(webt, false);
     if (settings.auto_convert) convert(webt, false);
     removeFromQueue(event.payload.webtoon_id);

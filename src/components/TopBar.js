@@ -1,32 +1,24 @@
 import { useState } from "react";
-import { SideBar } from ".";
 import { useNavigate } from "react-router-dom";
 import { getCurrent } from "@tauri-apps/api/window";
+import { SideBar } from ".";
 import { useDownloadingStore, useDownloadedStore } from "../store";
 
 export default function TopBar() {
+  const navigate = useNavigate();
   const appWindow = getCurrent();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { downloading } = useDownloadingStore();
   const { downloaded } = useDownloadedStore();
-  const currentDownloadStatus = downloading
-    ? { downloading: downloading }
-    : { downloaded: downloaded[0] };
-
-  const navigate = useNavigate();
-  let currentDownloadLabel = null;
-  if (currentDownloadStatus.downloading) {
-    currentDownloadLabel = `Downlading ${currentDownloadStatus.downloading.title}`;
-    if (currentDownloadStatus.downloading.type === "manga") {
-      currentDownloadLabel += ` ${currentDownloadStatus.downloading.info}`;
-    }
+  let downloadLabel, item;
+  if (downloading) {
+    downloadLabel = `Downloading ${downloading.title}`;
+    item = downloading;
+  } else if (downloaded.length > 0) {
+    downloadLabel = `Downloaded ${downloaded[0].title}`;
+    item = downloaded[0];
   }
-  if (currentDownloadStatus.downloaded) {
-    currentDownloadLabel = `Downladed ${currentDownloadStatus.downloaded.title}`;
-    if (currentDownloadStatus.downloaded.type === "manga") {
-      currentDownloadLabel += ` ${currentDownloadStatus.downloaded.info}`;
-    }
-  }
+  if (item && item.type === "manga") downloadLabel += ` ${item.info}`;
 
   function showHideMenus() {
     document.getElementById("mySidebar").style.width = isMenuOpen
@@ -64,8 +56,8 @@ export default function TopBar() {
               className="icon-t"
               style={{ width: "20px", height: "20px", marginRight: "3px" }}
             ></img>
-            {currentDownloadLabel && (
-              <span className="d-tooltip">{currentDownloadLabel}</span>
+            {downloadLabel && (
+              <span className="d-tooltip">{downloadLabel}</span>
             )}
           </button>
           <button

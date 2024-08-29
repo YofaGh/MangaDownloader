@@ -1,4 +1,5 @@
-import { ActionButtonCustom, ActionButtonSmall, convert, merge } from "..";
+import { ActionButtonCustom, ActionButtonSmall } from "..";
+import { convert, merge } from "../../utils";
 
 export default function DCard({ webtoon, index, removeWebtoon, deleteFolder }) {
   return (

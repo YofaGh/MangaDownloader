@@ -1,19 +1,12 @@
 import { useState, useEffect } from "react";
-import {
-  Infoed,
-  FlipButton,
-  DownloadButton,
-  getDate,
-  getDateTime,
-  retrieveImage,
-  Loading,
-} from ".";
+import { invoke } from "@tauri-apps/api/core";
+import { Infoed, FlipButton, DownloadButton, Loading } from ".";
+import { getDate, getDateTime, retrieveImage } from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
   useNotificationStore,
 } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});

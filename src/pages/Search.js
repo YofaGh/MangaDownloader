@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen, once } from "@tauri-apps/api/event";
 import {
   SearchBar,
   SearchFilter,
@@ -8,8 +10,6 @@ import {
   ExpandButton,
 } from "../components";
 import { useSettingsStore, useSearchStore, useModulesStore } from "../store";
-import { invoke } from "@tauri-apps/api/core";
-import { listen, once } from "@tauri-apps/api/event";
 
 export default function Search() {
   const modules = useModulesStore((state) => state.modules);

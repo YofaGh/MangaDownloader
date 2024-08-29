@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { QCard, fixNameForFolder, ActionButtonBig, startDownloading } from ".";
+import { invoke } from "@tauri-apps/api/core";
+import { QCard, ActionButtonBig } from ".";
+import { fixFolderName, startDownloading } from "../utils";
 import {
   useQueueStore,
   useDownloadingStore,
   useSettingsStore,
   useNotificationStore,
 } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function Queue() {
   const {
@@ -56,32 +57,25 @@ export default function Queue() {
   }, [queue, queueEditable]);
 
   const removeWebtoonFromQueue = async (webtoon) => {
+    let folderName = fixFolderName(webtoon.title);
+    let notifInfo = webtoon.title;
+    if (webtoon.type === "manga") {
+      folderName += `/${webtoon.info}`;
+      notifInfo += ` - ${webtoon.info}`;
+    }
     removeFromQueue(webtoon.id);
-    addSuccessNotification(
-      webtoon.type === "manga"
-        ? `Removed ${webtoon.title} - ${webtoon.info} from queue`
-        : `Removed ${webtoon.title} from queue`
-    );
+    addSuccessNotification(`Removed ${notifInfo} from queue`);
     if (downloading && webtoon.id === downloading.id) stopDownloader();
-    let folderName =
-      webtoon.type === "manga"
-        ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
-        : fixNameForFolder(webtoon.title);
     removeDirectory(`${download_path}/${folderName}`, true);
   };
 
   const handleWebtoonStatusChange = async (webtoon) => {
-    let folderName =
-      webtoon.type === "manga"
-        ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
-        : fixNameForFolder(webtoon.title);
+    let fixedFolderName, folderName;
+    fixedFolderName = folderName = fixFolderName(webtoon.title);
+    if (webtoon.type === "manga") folderName += `/${webtoon.info}`;
     removeDirectory(`${download_path}/${folderName}`, true);
-    if (webtoon.type === "manga") {
-      removeDirectory(
-        `${download_path}/${fixNameForFolder(webtoon.title)}`,
-        false
-      );
-    }
+    if (webtoon.type === "manga")
+      removeDirectory(`${download_path}/${fixedFolderName}`, false);
   };
 
   const setAllWebtoonsStatus = async (status) => {

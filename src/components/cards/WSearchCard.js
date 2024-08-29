@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage } from "..";
+import { retrieveImage } from "../../utils";
 
 export default function WSearchCard({ webtoon, load_covers }) {
   const [imageSrc, setImageSrc] = useState(

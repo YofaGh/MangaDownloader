@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 import {
   SearchBar,
   CheckBox,
@@ -9,7 +10,6 @@ import {
   Loading,
 } from "../components";
 import { useSettingsStore } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function Module() {
   const { module } = useParams();

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
+import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
+import { startDownloading, writeFile, startUp } from "./utils";
 import {
   Modules,
   Library,
@@ -13,14 +15,6 @@ import {
   Settings,
   About,
 } from "./pages";
-import {
-  TopBar,
-  NotificationProvider,
-  DownloadPathModal,
-  startDownloading,
-  writeFile,
-  startUp,
-} from "./components";
 import {
   useSettingsStore,
   useDownloadedStore,

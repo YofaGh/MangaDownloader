@@ -1,11 +1,12 @@
-import { Wcard, HomeButton, chunkArray } from "../components";
+import { invoke } from "@tauri-apps/api/core";
+import { Wcard, HomeButton } from "../components";
+import { chunkArray } from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
   useLibraryStore,
   useNotificationStore,
 } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function Library() {
   const { load_covers } = useSettingsStore((state) => state.settings);

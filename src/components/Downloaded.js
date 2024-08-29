@@ -1,5 +1,5 @@
-import { DCard, ActionButtonBig } from ".";
 import { invoke } from "@tauri-apps/api/core";
+import { DCard, ActionButtonBig } from ".";
 import { useDownloadedStore } from "../store";
 
 export default function Downloaded() {

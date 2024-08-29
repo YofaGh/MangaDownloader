@@ -1,10 +1,12 @@
 import { useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+import { isUrlValid } from "../utils";
 import {
   SearchBar,
   ExpandButton,
   SaucerResult,
   Loading,
-  isUrlValid,
   StepsCircle,
   PushButton,
 } from "../components";
@@ -13,8 +15,6 @@ import {
   useNotificationStore,
   useSauceStore,
 } from "../store";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
 
 export default function Saucer() {
   const {

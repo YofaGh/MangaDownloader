@@ -5,7 +5,7 @@ export default function FilterToggleButton({ label, selected, onChange }) {
         type="checkbox"
         id={label}
         className="nio"
-        checked={selected ? true : false}
+        checked={selected}
         onChange={onChange}
       ></input>
       <label htmlFor={label} className="ni">

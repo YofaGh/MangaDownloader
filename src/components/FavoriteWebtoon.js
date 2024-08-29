@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { retrieveImage } from ".";
+import { retrieveImage } from "../utils";
 import { useNotificationStore } from "../store";
 
 export default function FavoriteWebtoon({

@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
+import { getDate, getDateTime, retrieveImage, chunkArray } from "../utils";
 import {
   Infoed,
   FlipButton,
   Rating,
-  getDate,
-  getDateTime,
   Loading,
   ChapterButton,
   DownloadButton,
   PushButton,
-  retrieveImage,
-  chunkArray,
 } from ".";
-import { invoke } from "@tauri-apps/api/core";
 import {
   useSettingsStore,
   useQueueStore,
@@ -20,7 +18,6 @@ import {
   useNotificationStore,
   useDownloadingStore,
 } from "../store";
-import { useNavigate } from "react-router-dom";
 
 export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { MCard, chunkArray, ModuleChecker } from "../components";
-import { useSettingsStore, useModulesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 import { remove } from "@tauri-apps/plugin-fs";
+import { MCard, ModuleChecker } from "../components";
+import { chunkArray } from "../utils";
+import { useSettingsStore, useModulesStore } from "../store";
 
 export default function Modules() {
   const { load_covers, data_dir_path } = useSettingsStore(
@@ -110,7 +111,7 @@ export default function Modules() {
         element.classList.add("ch-active");
         const results = await invoke("search_keyword_one", {
           module: module.domain,
-          keyword: sample.keyword ? sample.keyword : "a",
+          keyword: sample.keyword || "a",
           sleepTime: 0.1,
           absolute: false,
           depth: 2,

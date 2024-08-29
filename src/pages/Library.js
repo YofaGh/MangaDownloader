@@ -59,11 +59,11 @@ export default function Library() {
       <div className="container">
         <div className="top-header">
           Library
-          <HomeButton svgName="download" label="Update All"
+          <HomeButton
+            svgName="download"
+            label="Update All"
             onClick={() => {
-              if (library.length > 0) {
-                library.forEach(updateSingle);
-              }
+              if (library.length > 0) library.forEach(updateSingle);
             }}
           />
         </div>

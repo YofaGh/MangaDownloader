@@ -16,13 +16,10 @@ export default function Settings() {
       addErrorNotification("There's a download in progress. Stop it first.");
       return;
     }
-    const path = await open({
-      directory: true,
-    });
-    if (path) {
-      updateSettings({ download_path: path });
-    }
+    const download_path = await open({ directory: true });
+    if (download_path) updateSettings({ download_path });
   };
+
   return (
     <div className="container">
       <div className="f-header">Settings</div>
@@ -51,18 +48,16 @@ export default function Settings() {
             label="Normal"
             selected={settings.merge_method === "Normal"}
             onChange={() => {
-              if (settings.merge_method === "Fit") {
+              if (settings.merge_method === "Fit")
                 updateSettings({ merge_method: "Normal" });
-              }
             }}
           />
           <FilterToggleButton
             label="Fit"
             selected={settings.merge_method === "Fit"}
             onChange={() => {
-              if (settings.merge_method === "Normal") {
+              if (settings.merge_method === "Normal")
                 updateSettings({ merge_method: "Fit" });
-              }
             }}
           />
         </div>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage, ExpandButton } from "..";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function MCard({ module, checkModule, load_covers }) {
   const [imageSrc, setImageSrc] = useState(
@@ -20,15 +19,14 @@ export default function MCard({ module, checkModule, load_covers }) {
               loading="lazy"
               alt=""
               style={{ width: 70, height: 70 }}
-              onError={() => {
+              onError={() =>
                 retrieveImage(
                   imageSrc,
                   module.domain,
                   setImageSrc,
-                  invoke,
                   "./assets/module-cyan.svg"
-                );
-              }}
+                )
+              }
             />
           </div>
           <div className="m-name">{module.domain}</div>
@@ -36,7 +34,11 @@ export default function MCard({ module, checkModule, load_covers }) {
             <Link to={`/${module.domain}`} state={{ module }}>
               <ExpandButton name="search" dimension={30} />
             </Link>
-            <ExpandButton name="check" dimension={30} onClick={() => checkModule(module)} />
+            <ExpandButton
+              name="check"
+              dimension={30}
+              onClick={() => checkModule(module)}
+            />
           </div>
         </div>
       </div>

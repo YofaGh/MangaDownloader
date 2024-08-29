@@ -37,25 +37,29 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const { downloading, clearDownloading } = useDownloadingStore();
   const id = `${module}_$_${url}`;
 
-  useEffect(() => {
-    (async () => {
-      const response = await invoke("get_info", { domain: module, url });
-      setWebtoon(response);
-      setWebtoonLoaded(true);
-      setMangaTitleForLibrary(response.Title);
-      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
-      const chapters = await invoke("get_chapters", { domain: module, url });
-      setChapters(chapters);
-      setLoadingChapters(false);
-    })();
-  }, [module, url]);
+  useEffect(
+    () =>
+      (async () => {
+        const response = await invoke("get_info", { domain: module, url });
+        setWebtoon(response);
+        setWebtoonLoaded(true);
+        setMangaTitleForLibrary(response.Title);
+        setImageSrc(
+          load_covers ? response.Cover : "./assets/default-cover.svg"
+        );
+        const chapters = await invoke("get_chapters", { domain: module, url });
+        setChapters(chapters);
+        setLoadingChapters(false);
+      })(),
+    [module, url]
+  );
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("lib-modal");
     modal.style.display = isShow ? "block" : "none";
   };
 
-  const addManga = (chapter, status) => {
+  const addChapter = (chapter, status) => {
     const webt = {
       type: "manga",
       id: `${id}_$_${chapter.url}`,
@@ -77,11 +81,8 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
     }
   };
 
-  const addAllChapters = (status) => {
-    for (const chapter of chapters) {
-      addManga(chapter, status);
-    }
-  };
+  const addAllChapters = (status) =>
+    chapters.forEach((chapter) => addChapter(chapter, status));
 
   const updateLibrary = async () => {
     if (library.some((webtoon) => webtoon.id === id)) {
@@ -92,22 +93,28 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
         await invoke("stop_download");
         clearDownloading();
       }
-    } else {
-      showHideModal(true);
-    }
+    } else showHideModal(true);
   };
 
-  const addMangaToLibrary = () => {
-    addToLibrary({
-      title: mangaTitleForLibrary,
-      id,
-      status: true,
-      domain: module,
-      url,
-      cover: webtoon.Cover,
-      last_downloaded_chapter: null,
-    });
-    addSuccessNotification(`Added ${mangaTitleForLibrary} to library`);
+  const handleAddMangaToLibrary = () => {
+    if (library.some((manga) => manga.title === mangaTitleForLibrary)) {
+      const errorField = document.getElementById("pwmessage");
+      errorField.innerText =
+        "A manga with this title is already in your library.";
+      errorField.style.color = "red";
+    } else {
+      addToLibrary({
+        title: mangaTitleForLibrary,
+        id,
+        status: true,
+        domain: module,
+        url,
+        cover: webtoon.Cover,
+        last_downloaded_chapter: null,
+      });
+      addSuccessNotification(`Added ${mangaTitleForLibrary} to library`);
+      showHideModal(false);
+    }
   };
 
   return webtoonLoaded ? (
@@ -130,15 +137,14 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
             className="webtoon-i"
             alt=""
             src={imageSrc}
-            onError={() => {
+            onError={() =>
               retrieveImage(
                 imageSrc,
                 module,
                 setImageSrc,
-                invoke,
                 "./assets/default-cover.svg"
-              );
-            }}
+              )
+            }
           ></img>
           {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
           <Infoed title="Status:" info={webtoon.Status} />
@@ -149,12 +155,12 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
               {webtoon.Title}
               <button
                 className="buttonht"
-                onClick={() => {
+                onClick={() =>
                   updateWebtoon({
                     title: webtoon.Title,
                     cover: webtoon.Cover,
-                  });
-                }}
+                  })
+                }
               >
                 <img
                   alt=""
@@ -230,7 +236,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
               <div key={index} className="card-row">
                 {chunk.map((chapter) => (
                   <div key={chapter.url} className="card-wrapper">
-                    <ChapterButton chapter={chapter} addManga={addManga} />
+                    <ChapterButton chapter={chapter} addChapter={addChapter} />
                   </div>
                 ))}
               </div>
@@ -263,22 +269,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
             value={mangaTitleForLibrary}
             onChange={(e) => setMangaTitleForLibrary(e.target.value)}
           ></input>
-          <PushButton
-            label="Ok"
-            onClick={() => {
-              if (
-                library.some((manga) => manga.title === mangaTitleForLibrary)
-              ) {
-                const errorField = document.getElementById("pwmessage");
-                errorField.innerText =
-                  "A manga with this title is already in your library.";
-                errorField.style.color = "red";
-              } else {
-                addMangaToLibrary();
-                showHideModal(false);
-              }
-            }}
-          />
+          <PushButton label="Ok" onClick={handleAddMangaToLibrary} />
           <PushButton label="Cancel" onClick={() => showHideModal(false)} />
           <br />
           <span id="pwmessage"></span>

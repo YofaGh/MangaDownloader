@@ -5,6 +5,9 @@ export default function QCard({
   removeWebtoonFromQueue,
   setWebtoonStatus,
 }) {
+  let image = webtoon.image || 0;
+  let total = webtoon.total || 0;
+
   return (
     <div className="queue-card">
       <div className="infog">
@@ -12,31 +15,38 @@ export default function QCard({
         <div className="card-info">{webtoon.info}</div>
         <div className="card-domain">{webtoon.module}</div>
       </div>
-      {webtoon.status !== "Not Started" ? (
+      {webtoon.status !== "Not Started" && (
         <div className="statusg">
-          {webtoon.status === "Started" ? (
-            <div className="d-status">
-              Downlading Image
-              <br />
-              {(webtoon.image || 0) + ""}/{(webtoon.total || 0) + ""}
-            </div>
-          ) : (
-            <div className="d-status">
-              Downladed {(webtoon.image || 0) + ""}/{(webtoon.total || 0) + ""}{" "}
-              Images
-            </div>
-          )}
+          <div className="d-status">
+            {webtoon.status === "Started"
+              ? `Downloading Image ${image}/${total}`
+              : `Downloaded ${image}/${total} Images`}
+          </div>
         </div>
-      ) : (
-        <></>
       )}
       <div className="button-containerrr">
-        <ActionButtonSmall svgName="trash" tooltip="Delete" onClick={() => removeWebtoonFromQueue(webtoon)}  />
-        <ActionButtonSmall svgName="stop" tooltip="Stop" onClick={() => setWebtoonStatus(webtoon, "Not Started")} />
-        {webtoon.status === "Not Started" || webtoon.status === "Paused" ? (
-          <ActionButtonSmall svgName="start" tooltip="Start" onClick={() => setWebtoonStatus(webtoon, "Started")} />
+        <ActionButtonSmall
+          svgName="trash"
+          tooltip="Delete"
+          onClick={() => removeWebtoonFromQueue(webtoon)}
+        />
+        <ActionButtonSmall
+          svgName="stop"
+          tooltip="Stop"
+          onClick={() => setWebtoonStatus(webtoon, "Not Started")}
+        />
+        {webtoon.status === "Started" ? (
+          <ActionButtonSmall
+            svgName="pause"
+            tooltip="Pause"
+            onClick={() => setWebtoonStatus(webtoon, "Paused")}
+          />
         ) : (
-          <ActionButtonSmall svgName="pause" tooltip="Pause" onClick={() => setWebtoonStatus(webtoon, "Paused")} />
+          <ActionButtonSmall
+            svgName="start"
+            tooltip="Start"
+            onClick={() => setWebtoonStatus(webtoon, "Started")}
+          />
         )}
       </div>
     </div>

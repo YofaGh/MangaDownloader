@@ -7,9 +7,9 @@ export default function Downloaded() {
     useDownloadedStore();
 
   const deleteAllWebtoons = () => {
-    downloaded.forEach((webtoon) => {
-      invoke("remove_directory", { path: webtoon.path, recursive: true });
-    });
+    downloaded.forEach((webtoon) =>
+      invoke("remove_directory", { path: webtoon.path, recursive: true })
+    );
     deleteAllDownloaded();
   };
 
@@ -46,18 +46,16 @@ export default function Downloaded() {
       </div>
       <div className="queue-list">
         <ul className="ul-queue">
-          {downloaded.map((webtoon, index) => {
-            return (
-              <li key={webtoon.id}>
-                <DCard
-                  webtoon={webtoon}
-                  index={index}
-                  removeWebtoon={deleteDownloadedByIndex}
-                  deleteFolder={deleteFolder}
-                />
-              </li>
-            );
-          })}
+          {downloaded.map((webtoon, index) => (
+            <li key={webtoon.id}>
+              <DCard
+                webtoon={webtoon}
+                index={index}
+                removeWebtoon={deleteDownloadedByIndex}
+                deleteFolder={deleteFolder}
+              />
+            </li>
+          ))}
         </ul>
       </div>
     </div>

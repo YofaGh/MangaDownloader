@@ -46,4 +46,7 @@ export {
   retrieveImage,
   chunkArray,
   isUrlValid,
+  startDownloading,
+  writeFile,
+  startUp,
 } from "./utils";

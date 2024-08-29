@@ -11,7 +11,6 @@ export {
   useDownloadingStore,
   useNotificationStore,
   useDownloadTabStore,
-  useInitDownloadStore,
   useModulesStore,
   useSauceStore,
 } from "./store";

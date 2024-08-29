@@ -1,4 +1,4 @@
-export default function ChapterButton({ chapter, addManga }) {
+export default function ChapterButton({ chapter, addChapter }) {
   return (
     <button className="btn-cssbuttons">
       <div className="chapter">{chapter.name}</div>
@@ -6,7 +6,7 @@ export default function ChapterButton({ chapter, addManga }) {
         <li>
           <span
             className="mg-button download-btn"
-            onClick={() => addManga(chapter, "Started")}
+            onClick={() => addChapter(chapter, "Started")}
           >
             <img alt="" src="./assets/download.svg" className="btng-icon"></img>
           </span>
@@ -14,7 +14,7 @@ export default function ChapterButton({ chapter, addManga }) {
         <li>
           <span
             className="mg-button queue-btn"
-            onClick={() => addManga(chapter, "Not Started")}
+            onClick={() => addChapter(chapter, "Not Started")}
           >
             <img alt="" src="./assets/queue.svg" className="btng-icon"></img>
           </span>

@@ -5,7 +5,7 @@ import {
   FilterButton,
   WSearchCard,
   PushButton,
-  ExpandButton
+  ExpandButton,
 } from "../components";
 import { useSettingsStore, useSearchStore, useModulesStore } from "../store";
 import { invoke } from "@tauri-apps/api/core";
@@ -77,15 +77,13 @@ export default function Search() {
       depth: searchDepth,
       absolute: searchAbsolute,
     });
-    await once("doneSearching", () => {
-      doneSearching();
-    });
-    await listen("searchingModule", (event) => {
-      setSearching(event.payload.module);
-    });
-    await listen("searchedModule", (event) => {
-      addSearchResult(event.payload.result);
-    });
+    await once("doneSearching", () => doneSearching());
+    await listen("searchingModule", (event) =>
+      setSearching(event.payload.module)
+    );
+    await listen("searchedModule", (event) =>
+      addSearchResult(event.payload.result)
+    );
   };
 
   const showHideModal = (isShow) => {
@@ -105,7 +103,11 @@ export default function Search() {
     return (
       <div className="container">
         <div style={{ display: "flex" }}>
-          <ExpandButton name="filter" dimension={20} onClick={() => showHideModal(true)} />
+          <ExpandButton
+            name="filter"
+            dimension={20}
+            onClick={() => showHideModal(true)}
+          />
           <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
           <ExpandButton name="search" dimension={20} onClick={startSearching} />
         </div>
@@ -156,19 +158,16 @@ export default function Search() {
           </ul>
         </div>
         <div className="s-cont">
-          {selectedSearchModules.map((item) => {
-            return (
-              <FilterButton
-                key={item}
-                label={`${item} ${
-                  searchResults.filter((result) => result.domain === item)
-                    .length
-                }`}
-                selected={true}
-                loading={false}
-              />
-            );
-          })}
+          {selectedSearchModules.map((item) => (
+            <FilterButton
+              key={item}
+              label={`${item} ${
+                searchResults.filter((result) => result.domain === item).length
+              }`}
+              selected={true}
+              loading={false}
+            />
+          ))}
         </div>
         <br />
         <div className="s-cont">

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from "..";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function WSearchCard({ webtoon, load_covers }) {
   const [imageSrc, setImageSrc] = useState(
@@ -22,15 +21,14 @@ export default function WSearchCard({ webtoon, load_covers }) {
           className="search-i"
           alt=""
           src={imageSrc}
-          onError={() => {
+          onError={() =>
             retrieveImage(
               imageSrc,
               webtoon.domain,
               setImageSrc,
-              invoke,
               "./assets/default-cover.svg"
-            );
-          }}
+            )
+          }
         ></img>
         <div className="info-searched-w">
           <h3>

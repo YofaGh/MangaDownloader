@@ -1,24 +1,16 @@
-import { PushButton } from ".";
+import { PushButton, startDownloading } from ".";
 import { open } from "@tauri-apps/plugin-dialog";
-import {
-  useSettingsStore,
-  useInitDownloadStore,
-} from "../store";
+import { useSettingsStore } from "../store";
 
 export default function DownloadPathModal() {
   const updateSettings = useSettingsStore((state) => state.updateSettings);
-  const increaseInitDownload = useInitDownloadStore((state) => state.increaseInitDownload);
 
   const setDownloadPath = async () => {
-    let selectedPath = await open({
-      directory: true,
-    });
-    if (!selectedPath) {
-      return;
-    }
-    updateSettings({ download_path: selectedPath });
+    let download_path = await open({ directory: true });
+    if (!download_path) return;
+    updateSettings({ download_path });
     document.getElementById("browse-modal").style.display = "none";
-    increaseInitDownload();
+    startDownloading();
   };
 
   return (

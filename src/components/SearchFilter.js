@@ -40,9 +40,7 @@ export default function SearchFilter({ showHideModal }) {
             <input
               type="number"
               value={searchDepth}
-              onChange={(e) => {
-                setSearchDepth(Number(e.target.value));
-              }}
+              onChange={(e) => setSearchDepth(Number(e.target.value))}
               name="text"
               className="input-depth"
             ></input>

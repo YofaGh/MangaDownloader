@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { retrieveImage } from ".";
 import { useNotificationStore } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export default function FavoriteWebtoon({
   webtoon,
@@ -23,15 +22,14 @@ export default function FavoriteWebtoon({
                 src={imageSrc}
                 alt=""
                 className="f-img-back"
-                onError={() => {
+                onError={() =>
                   retrieveImage(
                     webtoon.cover,
                     webtoon.id.split("_$_")[1],
                     setImageSrc,
-                    invoke,
                     "./assets/default-cover.svg"
-                  );
-                }}
+                  )
+                }
               />
             </div>
             <div className="f-infoo">

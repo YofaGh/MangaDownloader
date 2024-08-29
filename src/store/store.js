@@ -51,16 +51,14 @@ export const useDownloadingStore = create((set) => ({
 
 export const useNotificationStore = create((set, get) => ({
   notifications: [],
-  addNotification: (message, type) => {
+  addNotification: (message, type) =>
     set((state) => ({
       notifications: [...state.notifications, { id: uuidv4(), type, message }],
-    }));
-  },
-  removeNotification: (id) => {
+    })),
+  removeNotification: (id) =>
     set((state) => ({
       notifications: state.notifications.filter((note) => note.id !== id),
-    }));
-  },
+    })),
   addSuccessNotification: (message) =>
     get().addNotification(message, "success"),
   addErrorNotification: (message) => get().addNotification(message, "error"),
@@ -69,12 +67,6 @@ export const useNotificationStore = create((set, get) => ({
 export const useDownloadTabStore = create((set) => ({
   downloadTab: "queue",
   setDownloadTab: (newVal) => set({ downloadTab: newVal }),
-}));
-
-export const useInitDownloadStore = create((set) => ({
-  initDownload: 0,
-  increaseInitDownload: () =>
-    set((state) => ({ initDownload: state.initDownload + 1 })),
 }));
 
 export const useModulesStore = create((set) => ({

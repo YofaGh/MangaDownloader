@@ -109,9 +109,7 @@ export default function Module() {
                 <input
                   type="number"
                   value={depth}
-                  onChange={(e) => {
-                    setDepth(e.target.value);
-                  }}
+                  onChange={(e) => setDepth(e.target.value)}
                   name="text"
                   className="input-depth"
                 ></input>

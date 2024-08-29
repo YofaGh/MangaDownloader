@@ -28,7 +28,8 @@ export default function Saucer() {
     setSaucers,
     clearSauce,
   } = useSauceStore();
-  const { addSuccessNotification, addErrorNotification } = useNotificationStore();
+  const { addSuccessNotification, addErrorNotification } =
+    useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
 
   useEffect(() => {
@@ -73,10 +74,7 @@ export default function Saucer() {
       addSuccessNotification("Sauced");
       setSauceStatus("Sauced");
     };
-
-    if (sauceStatus === "Saucing") {
-      startSaucer();
-    }
+    if (sauceStatus === "Saucing") startSaucer();
   }, [sauceStatus]);
 
   if (sauceStatus === "Sauced") {

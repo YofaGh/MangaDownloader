@@ -39,9 +39,7 @@ export const useQueueStore = create((set) => ({
         item.id === id
           ? (() => {
               const newItem = { ...item };
-              keys.forEach((key) => {
-                delete newItem[key];
-              });
+              keys.forEach((key) => delete newItem[key]);
               return newItem;
             })()
           : item
@@ -51,9 +49,7 @@ export const useQueueStore = create((set) => ({
     set((state) => ({
       queue: state.queue.map((item) => {
         const newItem = { ...item };
-        keys.forEach((key) => {
-          delete newItem[key];
-        });
+        keys.forEach((key) => delete newItem[key]);
         return newItem;
       }),
     })),
@@ -73,7 +69,7 @@ export const useQueueStore = create((set) => ({
   reOrderQueue: (newQueue) =>
     set((state) => ({
       queue: newQueue.map((nItem) =>
-        state.queue.find((item) => item.id === nItem)
+        state.queue.find((item) => item.id === nItem.id)
       ),
     })),
   removeFromQueue: (id) =>

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { QCard, fixNameForFolder, ActionButtonBig } from ".";
+import { QCard, fixNameForFolder, ActionButtonBig, startDownloading } from ".";
 import {
   useQueueStore,
   useDownloadingStore,
   useSettingsStore,
   useNotificationStore,
-  useInitDownloadStore,
 } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -21,21 +20,16 @@ export default function Queue() {
     deleteKeysFromAllItemsInQueue,
   } = useQueueStore();
   const { downloading, clearDownloading } = useDownloadingStore();
-  const settings = useSettingsStore((state) => state.settings);
+  const { download_path } = useSettingsStore((state) => state.settings);
   const [queueEditable, setQueueEditable] = useState(false);
   const [queu, setQueu] = useState(queue);
   const { addSuccessNotification } = useNotificationStore();
-  const increaseInitDownload = useInitDownloadStore(
-    (state) => state.increaseInitDownload
-  );
 
   function handleOnDragEnd(result) {
     if (!result.destination) return;
-
     const items = Array.from(queu);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-
     setQueu(items);
   }
 
@@ -44,9 +38,8 @@ export default function Queue() {
     setQueu(queue);
   };
 
-  const removeDirectory = async (path, recursive) => {
+  const removeDirectory = async (path, recursive) =>
     await invoke("remove_directory", { path, recursive });
-  };
 
   const stopDownloader = async () => {
     await invoke("stop_download");
@@ -54,15 +47,12 @@ export default function Queue() {
   };
 
   const confirmChanges = () => {
-    const order = queu.map((item) => item.id);
-    reOrderQueue(order);
+    reOrderQueue(queu);
     setQueueEditable(false);
   };
 
   useEffect(() => {
-    if (!queueEditable) {
-      setQueu(queue);
-    }
+    if (!queueEditable) setQueu(queue);
   }, [queue, queueEditable]);
 
   const removeWebtoonFromQueue = async (webtoon) => {
@@ -72,75 +62,49 @@ export default function Queue() {
         ? `Removed ${webtoon.title} - ${webtoon.info} from queue`
         : `Removed ${webtoon.title} from queue`
     );
-    if (downloading && webtoon.id === downloading.id) {
-      stopDownloader();
-    }
+    if (downloading && webtoon.id === downloading.id) stopDownloader();
     let folderName =
       webtoon.type === "manga"
         ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
         : fixNameForFolder(webtoon.title);
-    removeDirectory(`${settings.download_path}/${folderName}`, true);
+    removeDirectory(`${download_path}/${folderName}`, true);
+  };
+
+  const handleWebtoonStatusChange = async (webtoon) => {
+    let folderName =
+      webtoon.type === "manga"
+        ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
+        : fixNameForFolder(webtoon.title);
+    removeDirectory(`${download_path}/${folderName}`, true);
+    if (webtoon.type === "manga") {
+      removeDirectory(
+        `${download_path}/${fixNameForFolder(webtoon.title)}`,
+        false
+      );
+    }
   };
 
   const setAllWebtoonsStatus = async (status) => {
     updateAllItemsInQueue({ status });
-    if ((status === "Paused" || status === "Not Started") && downloading) {
-      stopDownloader();
-    }
+    if (status !== "Started" && downloading) stopDownloader();
     if (status === "Not Started") {
       deleteKeysFromAllItemsInQueue(["image", "total"]);
-      for (const webtoon of queue) {
-        let folderName =
-          webtoon.type === "manga"
-            ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
-            : fixNameForFolder(webtoon.title);
-        removeDirectory(`${settings.download_path}/${folderName}`, true);
-        if (webtoon.type === "manga") {
-          removeDirectory(
-            `${settings.download_path}/${fixNameForFolder(webtoon.title)}`,
-            false
-          );
-        }
-      }
+      queue.forEach((webtoon) => handleWebtoonStatusChange(webtoon));
     }
-    if (status === "Started" && !downloading) {
-      increaseInitDownload();
-    }
-  };
-
-  const deleteAllWebtoons = () => {
-    for (const webtoon of queue) {
-      removeWebtoonFromQueue(webtoon);
-    }
+    if (status === "Started" && !downloading) startDownloading();
   };
 
   const setWebtoonStatus = async (webtoon, status) => {
     updateItemInQueue(webtoon.id, { status });
-    if (
-      downloading &&
-      webtoon.id === downloading.id &&
-      (status === "Paused" || status === "Not Started")
-    ) {
+    if (status !== "Started" && downloading && webtoon.id === downloading.id)
       stopDownloader();
-    }
     if (status === "Not Started") {
       deleteItemKeysInQueue(webtoon.id, ["image", "total"]);
-      let folderName =
-        webtoon.type === "manga"
-          ? `${fixNameForFolder(webtoon.title)}/${webtoon.info}`
-          : fixNameForFolder(webtoon.title);
-      removeDirectory(`${settings.download_path}/${folderName}`, true);
-      if (webtoon.type === "manga") {
-        removeDirectory(
-          `${settings.download_path}/${fixNameForFolder(webtoon.title)}`,
-          false
-        );
-      }
+      handleWebtoonStatusChange(webtoon);
     }
-    if (status === "Started" && !downloading) {
-      increaseInitDownload();
-    }
+    if (status === "Started" && !downloading) startDownloading();
   };
+
   if (queue.length === 0)
     return (
       <div className="queue-div">
@@ -178,7 +142,9 @@ export default function Queue() {
             <ActionButtonBig
               tooltip="Delete All"
               svgName="trash"
-              onClick={deleteAllWebtoons}
+              onClick={() =>
+                queue.forEach((webtoon) => removeWebtoonFromQueue(webtoon))
+              }
             />
           </div>
         ) : (
@@ -205,30 +171,28 @@ export default function Queue() {
                 {...provided.droppableProps}
                 ref={provided.innerRef}
               >
-                {queu.map((webtoon, index) => {
-                  return (
-                    <Draggable
-                      key={webtoon.id}
-                      draggableId={webtoon.id}
-                      index={index}
-                      isDragDisabled={!queueEditable}
-                    >
-                      {(provided) => (
-                        <li
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <QCard
-                            webtoon={webtoon}
-                            removeWebtoonFromQueue={removeWebtoonFromQueue}
-                            setWebtoonStatus={setWebtoonStatus}
-                          />
-                        </li>
-                      )}
-                    </Draggable>
-                  );
-                })}
+                {queu.map((webtoon, index) => (
+                  <Draggable
+                    key={webtoon.id}
+                    draggableId={webtoon.id}
+                    index={index}
+                    isDragDisabled={!queueEditable}
+                  >
+                    {(provided) => (
+                      <li
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <QCard
+                          webtoon={webtoon}
+                          removeWebtoonFromQueue={removeWebtoonFromQueue}
+                          setWebtoonStatus={setWebtoonStatus}
+                        />
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
                 {provided.placeholder}
               </ul>
             )}

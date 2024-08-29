@@ -23,14 +23,18 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
   const { queue, addToQueue, updateItemInQueue } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
 
-  useEffect(() => {
-    (async () => {
-      const response = await invoke("get_info", { domain: module, url });
-      setWebtoon(response);
-      setWebtoonLoaded(true);
-      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
-    })();
-  }, [module, url]);
+  useEffect(
+    () =>
+      (async () => {
+        const response = await invoke("get_info", { domain: module, url });
+        setWebtoon(response);
+        setWebtoonLoaded(true);
+        setImageSrc(
+          load_covers ? response.Cover : "./assets/default-cover.svg"
+        );
+      })(),
+    [module, url]
+  );
 
   const addDoujin = (status) => {
     const webt = {
@@ -59,15 +63,14 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
             className="webtoon-i"
             alt=""
             src={imageSrc}
-            onError={() => {
+            onError={() =>
               retrieveImage(
                 imageSrc,
                 module,
                 setImageSrc,
-                invoke,
                 "./assets/default-cover.svg"
-              );
-            }}
+              )
+            }
           ></img>
         </div>
         <div className="flex-item">
@@ -76,12 +79,12 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
               {webtoon.Title}
               <button
                 className="buttonht"
-                onClick={() => {
+                onClick={() =>
                   updateWebtoon({
                     title: webtoon.Title,
                     cover: webtoon.Cover,
-                  });
-                }}
+                  })
+                }
               >
                 <img
                   alt=""
@@ -118,8 +121,14 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
         </div>
       </div>
       <div>
-        <DownloadButton label="Download Doujin" onClick={() => addDoujin("Started")} />
-        <DownloadButton label="Add Doujin to Queue" onClick={() => addDoujin("Not Started")} />
+        <DownloadButton
+          label="Download Doujin"
+          onClick={() => addDoujin("Started")}
+        />
+        <DownloadButton
+          label="Add Doujin to Queue"
+          onClick={() => addDoujin("Not Started")}
+        />
       </div>
     </div>
   ) : (

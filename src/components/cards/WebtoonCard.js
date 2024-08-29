@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from "..";
 import { invoke } from "@tauri-apps/api/core";
-import { useLibraryStore, useNotificationStore, useDownloadingStore } from "../../store";
+import {
+  useLibraryStore,
+  useNotificationStore,
+  useDownloadingStore,
+} from "../../store";
 
 export default function Wcard({ webtoon, update, load_covers }) {
   const [loaded, setLoaded] = useState(false);
@@ -41,15 +45,14 @@ export default function Wcard({ webtoon, update, load_covers }) {
                   alt=""
                   className="img-back"
                   onLoad={stopRotate}
-                  onError={() => {
+                  onError={() =>
                     retrieveImage(
                       imageSrc,
                       module.domain,
                       setImageSrc,
-                      invoke,
                       "./assets/default-cover.svg"
-                    );
-                  }}
+                    )
+                  }
                 />
               </div>
               <div className="info">

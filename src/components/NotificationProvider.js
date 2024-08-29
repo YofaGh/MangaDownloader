@@ -5,9 +5,9 @@ export default function NotificationProvider() {
   const { notifications } = useNotificationStore();
   return (
     <div className="notification-wrapper">
-      {notifications.map((notification) => {
-        return <Notification key={notification.id} {...notification} />;
-      })}
+      {notifications.map((notification) => (
+        <Notification key={notification.id} {...notification} />
+      ))}
     </div>
   );
 }
@@ -19,41 +19,31 @@ const Notification = ({ id, message, type }) => {
   const { removeNotification } = useNotificationStore();
 
   const handleStartTimer = () => {
-    const id = setInterval(() => {
-      setWidth((prev) => {
-        if (prev < 100) {
-          return prev + 0.5;
-        }
-
-        clearInterval(id);
-        return prev;
-      });
-    }, 20);
-
+    const id = setInterval(
+      () =>
+        setWidth((prev) => {
+          if (prev < 100) return prev + 0.5;
+          clearInterval(id);
+          return prev;
+        }),
+      20
+    );
     setIntervalID(id);
   };
 
-  const handlePauseTimer = () => {
-    clearInterval(intervalID);
-  };
+  const handlePauseTimer = () => clearInterval(intervalID);
 
   const handleCloseNotification = () => {
     handlePauseTimer();
     setExit(true);
-    setTimeout(() => {
-      removeNotification(id);
-    }, 400);
+    setTimeout(() => removeNotification(id), 400);
   };
 
   useEffect(() => {
-    if (width === 100) {
-      handleCloseNotification();
-    }
+    if (width === 100) handleCloseNotification();
   }, [width]);
 
-  useEffect(() => {
-    handleStartTimer();
-  }, []);
+  useEffect(() => handleStartTimer(), []);
 
   return (
     <div

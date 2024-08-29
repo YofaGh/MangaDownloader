@@ -57,12 +57,7 @@ export default function TopBar() {
           </div>
         </div>
         <div className="titleBarBtns">
-          <button
-            className="d-buttonh"
-            onClick={() => {
-              navigate("download");
-            }}
-          >
+          <button className="d-buttonh" onClick={() => navigate("download")}>
             <img
               alt=""
               src="./assets/download-st.svg"
@@ -85,8 +80,8 @@ export default function TopBar() {
         </div>
       </div>
       <div data-tauri-drag-region className="contentArea">
-        <div id="mySidebar" className="leftMenu">
-          {isMenuOpen && <SideBar showHideMenus={showHideMenus} />}
+        <div id="mySidebar" className="leftMenu" onClick={showHideMenus}>
+          {isMenuOpen && <SideBar />}
         </div>
       </div>
     </div>

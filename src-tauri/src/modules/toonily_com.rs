@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use reqwest::Response;
+use reqwest::{
+    header::{HeaderMap, HeaderValue, COOKIE, REFERER},
+    Method, Response,
+};
 use scraper::{html::Select, ElementRef, Html, Selector};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
@@ -18,7 +21,7 @@ impl Module for Toonily {
 
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
@@ -146,7 +149,7 @@ impl Module for Toonily {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let resp: Response = self.send_simple_request(&url).await?;
         let body: String = resp.text().await?;
         let document: Html = Html::parse_document(&body);
         let chapters: Vec<HashMap<String, String>> = document
@@ -178,8 +181,8 @@ impl Module for Toonily {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/{}//", manga, chapter);
-        let resp: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let url: String = format!("https://toonily.com/webtoon/{}/{}/", manga, chapter);
+        let resp: Response = self.send_simple_request(&url).await?;
         let body: String = resp.text().await?;
         let document: Html = Html::parse_document(&body);
         let images: Vec<String> = document
@@ -203,11 +206,12 @@ impl Module for Toonily {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
-        let search_headers: HashMap<&str, &str> = HashMap::from([("cookie", "toonily-mature=1")]);
+        let mut search_headers: HeaderMap = HeaderMap::new();
+        search_headers.insert(COOKIE, HeaderValue::from_static("toonily-mature=1"));
         while page <= page_limit {
             let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
             let resp: Response = self
-                .send_request(&url, "GET", Some(search_headers.clone()), Some(true))
+                .send_request(&url, Method::GET, search_headers.clone(), Some(true))
                 .await?;
             let body: String = resp.text().await?;
             let document: Html = Html::parse_document(&body);
@@ -264,12 +268,14 @@ impl Module for Toonily {
 }
 impl Toonily {
     pub fn new() -> Self {
+        let mut download_image_headers: HeaderMap = HeaderMap::new();
+        download_image_headers.insert(REFERER, HeaderValue::from_static("https://toonily.com/"));
         Self {
             base: BaseModule {
                 type_: "Manga",
                 domain: "toonily.com",
                 logo: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
-                download_image_headers: HashMap::from([("Referer", "https://toonily.com/")]),
+                download_image_headers,
                 sample: HashMap::from([("code", "2")]),
                 searchable: true,
                 ..BaseModule::default()

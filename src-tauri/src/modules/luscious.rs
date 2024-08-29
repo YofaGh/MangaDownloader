@@ -19,7 +19,7 @@ impl Module for Luscious {
 
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url = format!("https://www.luscious.net/albums/{}", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let cover_selector = Selector::parse("div.picture-card-outer img")?;
         let title_selector = Selector::parse("h1.o-h1.album-heading")?;
@@ -154,7 +154,7 @@ impl Module for Luscious {
         let url = data
             .replace("__album__id__", &manga)
             .replace("__page__number__", "1");
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let response: Value = Value::from(response.json().await?);
         let total_pages = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
@@ -169,7 +169,7 @@ impl Module for Luscious {
             let url = data
                 .replace("__album__id__", &manga)
                 .replace("__page__number__", &page.to_string());
-            let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+            let response: Response = self.send_simple_request(&url).await?;
             let response: Value = Value::from(response.json().await?);
             let new_images = response["data"]["picture"]["list"]["items"]
                 .as_array()
@@ -200,7 +200,7 @@ impl Module for Luscious {
             let url = data
                 .replace("__keyword__", &keyword)
                 .replace("__page__number__", &page.to_string());
-            let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+            let response: Response = self.send_simple_request(&url).await?;
             let response: Value = Value::from(response.json().await?);
             total_pages = response["data"]["album"]["list"]["info"]["total_pages"]
                 .as_i64()

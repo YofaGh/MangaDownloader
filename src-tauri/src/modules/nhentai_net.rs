@@ -16,8 +16,8 @@ impl Module for Nhentai {
     }
 
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let url: String = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
+        let response: Response = self.send_simple_request(&url).await?;
         let response: Value = response.json().await?;
         let mut info: HashMap<String, Value> = HashMap::new();
         let images: Vec<Value> = response["chapters"]
@@ -61,8 +61,8 @@ impl Module for Nhentai {
         code: String,
         _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let url: String = format!("https://cubari.moe/read/api/nhentai/series/{}/", code);
+        let response: Response = self.send_simple_request(&url).await?;
         let response: Value = response.json().await?;
         let images: Vec<Value> = response["chapters"]
             .as_object()

@@ -1,18 +1,10 @@
-import { DCard, ActionButtonBig, merge, convert } from ".";
+import { DCard, ActionButtonBig } from ".";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  useDownloadedStore,
-  useSettingsStore,
-  useNotificationStore,
-} from "../store";
+import { useDownloadedStore } from "../store";
 
 export default function Downloaded() {
   const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } =
     useDownloadedStore();
-  const { download_path, merge_method } = useSettingsStore(
-    (state) => state.settings
-  );
-  const { addSuccessNotification } = useNotificationStore();
 
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => {
@@ -24,26 +16,6 @@ export default function Downloaded() {
   const deleteFolder = (path, index) => {
     invoke("remove_directory", { path, recursive: true });
     deleteDownloadedByIndex(index);
-  };
-
-  const openFolder = (path) => {
-    invoke("open_folder", { path });
-  };
-
-  const mergeImages = (webtoon) => {
-    merge(
-      webtoon,
-      download_path,
-      merge_method,
-      true,
-      addSuccessNotification,
-      invoke,
-      openFolder
-    );
-  };
-
-  const convertImages = (webtoon) => {
-    convert(webtoon, true, addSuccessNotification, invoke, openFolder);
   };
 
   if (downloaded.length === 0) {
@@ -80,8 +52,6 @@ export default function Downloaded() {
                 <DCard
                   webtoon={webtoon}
                   index={index}
-                  mergeImages={mergeImages}
-                  convertImages={convertImages}
                   removeWebtoon={deleteDownloadedByIndex}
                   deleteFolder={deleteFolder}
                 />

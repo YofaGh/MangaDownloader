@@ -18,7 +18,7 @@ impl Module for Readonepiece {
 
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let cover_selector: Selector = Selector::parse("div.py-4.px-6.mb-3 img")?;
         let title_selector: Selector = Selector::parse("h1.my-3.font-bold.text-2xl.md\\:text-3xl")?;
@@ -58,7 +58,7 @@ impl Module for Readonepiece {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let image_selector: Selector = Selector::parse("img.mb-3.mx-auto.js-page")?;
         let images: Vec<String> = document
@@ -73,7 +73,7 @@ impl Module for Readonepiece {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let chapter_selector: Selector =
             Selector::parse("div.bg-bg-secondary.p-3.rounded.mb-3.shadow a")?;

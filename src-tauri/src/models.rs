@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue},
+    header::HeaderMap,
     Client, Method, RequestBuilder, Response,
 };
 use serde_json::Value;
@@ -20,7 +20,7 @@ pub struct BaseModule {
     pub(crate) type_: &'static str,
     pub(crate) domain: &'static str,
     pub(crate) logo: &'static str,
-    pub(crate) download_image_headers: HashMap<&'static str, &'static str>,
+    pub(crate) download_image_headers: HeaderMap,
     pub(crate) sample: HashMap<&'static str, &'static str>,
     pub(crate) searchable: bool,
     pub(crate) is_coded: bool,
@@ -32,7 +32,7 @@ impl Default for BaseModule {
             type_: "",
             domain: "",
             logo: "",
-            download_image_headers: HashMap::new(),
+            download_image_headers: HeaderMap::default(),
             sample: HashMap::new(),
             searchable: false,
             is_coded: false,
@@ -52,7 +52,7 @@ pub trait Module: Send + Sync {
     fn get_logo(&self) -> String {
         self.base().logo.to_string()
     }
-    fn get_download_image_headers(&self) -> HashMap<&'static str, &'static str> {
+    fn get_download_image_headers(&self) -> HeaderMap {
         self.base().download_image_headers.clone()
     }
     fn get_module_sample(&self) -> HashMap<&'static str, &'static str> {
@@ -72,8 +72,8 @@ pub trait Module: Send + Sync {
         let response: Response = self
             .send_request(
                 &url,
-                "GET",
-                Some(self.get_download_image_headers()),
+                Method::GET,
+                self.get_download_image_headers(),
                 Some(true),
             )
             .await?;
@@ -90,8 +90,8 @@ pub trait Module: Send + Sync {
         Ok(self
             .send_request(
                 &url,
-                "GET",
-                Some(self.get_download_image_headers()),
+                Method::GET,
+                self.get_download_image_headers(),
                 Some(true),
             )
             .await?)
@@ -154,23 +154,14 @@ pub trait Module: Send + Sync {
     async fn send_request(
         &self,
         url: &str,
-        method: &str,
-        headers: Option<HashMap<&str, &str>>,
+        method: Method,
+        headers: HeaderMap,
         verify: Option<bool>,
     ) -> Result<Response, Box<dyn Error>> {
         let client: Client = Client::builder()
             .danger_accept_invalid_certs(verify.unwrap_or(true))
             .build()?;
-        let method: Method = Method::from_bytes(method.as_bytes())?;
-        let mut header_map: HeaderMap = HeaderMap::new();
-        if let Some(hdrs) = headers {
-            for (k, v) in hdrs {
-                let header_name: HeaderName = HeaderName::from_bytes(k.as_bytes())?;
-                let header_value: HeaderValue = HeaderValue::from_str(v)?;
-                header_map.insert(header_name, header_value);
-            }
-        }
-        let request: RequestBuilder = client.request(method, url).headers(header_map);
+        let request: RequestBuilder = client.request(method, url).headers(headers);
         let response: Response = request.send().await?;
         if !response.status().is_success() {
             return Err(Box::new(IoError::new(
@@ -179,6 +170,9 @@ pub trait Module: Send + Sync {
             )));
         }
         Ok(response)
+    }
+    async fn send_simple_request(&self, url: &str) -> Result<Response, Box<dyn Error>> {
+        self.send_request(url, Method::GET, HeaderMap::new(), Some(true)).await
     }
 }
 

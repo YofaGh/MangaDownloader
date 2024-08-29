@@ -41,7 +41,9 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 export default function App() {
-  const { addSuccessNotification } = useNotificationStore();
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
   const { settings, updateSettings } = useSettingsStore();
   const { queue, setQueue, removeFromQueue, updateItemInQueue } =
     useQueueStore();
@@ -199,18 +201,10 @@ export default function App() {
           : `Downloaded ${webt.title}`
       );
       if (settings.auto_merge) {
-        merge(
-          webt,
-          settings.download_path,
-          settings.merge_method,
-          false,
-          addSuccessNotification,
-          invoke,
-          null
-        );
+        merge(webt, false);
       }
       if (settings.auto_convert) {
-        convert(webt, false, addSuccessNotification, invoke, null);
+        convert(webt, false);
       }
       removeFromQueue(event.payload.webtoon_id);
       clearDownloading();

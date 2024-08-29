@@ -1,4 +1,9 @@
-use crate::{image_merger, models::{Module, DefaultModule}, modules::*, pdf_converter};
+use crate::{
+    image_merger,
+    models::{DefaultModule, Module},
+    modules::*,
+    pdf_converter,
+};
 use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
@@ -101,8 +106,8 @@ pub fn merge(path_to_source: String, path_to_destination: String, merge_method: 
 }
 
 #[tauri::command]
-pub fn convert(path_to_source: String, path_to_destination: String, pdf_name: String) -> String {
-    match pdf_converter::convert_folder(path_to_source, path_to_destination, pdf_name) {
+pub fn convert(path: String, pdf_name: String) -> String {
+    match pdf_converter::convert_folder(path, pdf_name) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
     }

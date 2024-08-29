@@ -17,7 +17,7 @@ impl Module for Manhuascan {
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
@@ -131,7 +131,7 @@ impl Module for Manhuascan {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let images: Vec<String> = document
             .select(&Selector::parse("div#readerarea img")?)
@@ -146,7 +146,7 @@ impl Module for Manhuascan {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let binding: Selector = Selector::parse("div.eph-num")?;
         let divs: Select = document.select(&binding);
@@ -181,14 +181,11 @@ impl Module for Manhuascan {
         let mut page: u32 = 1;
         while page <= page_limit {
             let response: Response = self
-                .send_request(
+                .send_simple_request(
                     &format!(
                         "https://manhuascan.us/manga-list?search={}&page={}",
                         keyword, page
-                    ),
-                    "GET",
-                    None,
-                    Some(true),
+                    )
                 )
                 .await?;
             if response.status().is_success() {

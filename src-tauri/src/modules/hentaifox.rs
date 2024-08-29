@@ -18,7 +18,7 @@ impl Module for Hentaifox {
 
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
@@ -113,7 +113,7 @@ impl Module for Hentaifox {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = self.send_request(&url, "GET", None, Some(true)).await?;
+        let response: Response = self.send_simple_request(&url).await?;
         let document: Html = Html::parse_document(&response.text().await?);
         let thumb_selector: Selector = Selector::parse("div.gallery_thumb img")?;
         let script_selector: Selector = Selector::parse("script")?;
@@ -159,12 +159,10 @@ impl Module for Hentaifox {
         let mut page: u32 = 1;
         while page <= page_limit {
             let response: Response = self
-                .send_request(
-                    &format!("https://hentaifox.com/search/?q={}&page={}", keyword, page),
-                    "GET",
-                    None,
-                    Some(true),
-                )
+                .send_simple_request(&format!(
+                    "https://hentaifox.com/search/?q={}&page={}",
+                    keyword, page
+                ))
                 .await?;
             if response.status().is_success() {
                 let body: String = response.text().await?;

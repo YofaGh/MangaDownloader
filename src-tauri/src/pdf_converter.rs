@@ -1,13 +1,13 @@
 use scannedpdf::{create, PageConfig, PageSize, PDF};
-use std::{fs::File, error::Error};
+use std::{error::Error, fs::File};
 
 use crate::assets::detect_images;
 
-pub fn convert_folder(path_to_source: String, path_to_destination: String, pdf_name: String) -> Result<(), Box<dyn Error>> {
-    let images: Vec<(image::DynamicImage, std::path::PathBuf)> = detect_images(path_to_source);
+pub fn convert_folder(path: String, pdf_name: String) -> Result<(), Box<dyn Error>> {
+    let images: Vec<(image::DynamicImage, std::path::PathBuf)> = detect_images(path.clone());
     let default_config: PageConfig = PageConfig::new();
     let mut file: PDF<File> = create(
-        format!("{}/{}", path_to_destination, pdf_name),
+        format!("{}/{}", path, pdf_name),
         default_config,
         images.len(),
     )

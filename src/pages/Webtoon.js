@@ -17,6 +17,9 @@ export default function Webtoon() {
     (m) => m.domain === module
   ).type;
   const id = `${moduleType}_$_${module}_$_${url}`;
+  const favoritesSvg = isFavorite
+    ? "./assets/favorites.svg"
+    : "./assets/favorites-outlined.svg";
 
   useEffect(() => {
     setIsFavorite(favorites.some((webtoon) => webtoon.id === id));
@@ -40,14 +43,14 @@ export default function Webtoon() {
     <Manga
       module={module}
       url={url}
-      isFavorite={isFavorite}
+      favoritesSvg={favoritesSvg}
       updateWebtoon={updateWebtoon}
     />
   ) : (
     <Doujin
       module={module}
       url={url}
-      isFavorite={isFavorite}
+      favoritesSvg={favoritesSvg}
       updateWebtoon={updateWebtoon}
     />
   );

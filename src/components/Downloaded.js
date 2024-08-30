@@ -3,19 +3,19 @@ import { DCard, ActionButtonBig } from ".";
 import { useDownloadedStore } from "../store";
 
 export default function Downloaded() {
-  const { downloaded, deleteDownloadedByIndex, deleteAllDownloaded } =
+  const { downloaded, removeFromDownloaded, removeAllDownloaded } =
     useDownloadedStore();
 
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) =>
       invoke("remove_directory", { path: webtoon.path, recursive: true })
     );
-    deleteAllDownloaded();
+    removeAllDownloaded();
   };
 
-  const deleteFolder = (path, index) => {
-    invoke("remove_directory", { path, recursive: true });
-    deleteDownloadedByIndex(index);
+  const deleteFolder = (webtoon) => {
+    invoke("remove_directory", { path: webtoon.path, recursive: true });
+    removeFromDownloaded(webtoon.id);
   };
 
   if (downloaded.length === 0) {
@@ -35,7 +35,7 @@ export default function Downloaded() {
           <ActionButtonBig
             tooltip="Remove All from List"
             svgName="delete"
-            onClick={deleteAllDownloaded}
+            onClick={removeAllDownloaded}
           />
           <ActionButtonBig
             tooltip="Delete All"
@@ -51,7 +51,7 @@ export default function Downloaded() {
               <DCard
                 webtoon={webtoon}
                 index={index}
-                removeWebtoon={deleteDownloadedByIndex}
+                removeWebtoon={removeFromDownloaded}
                 deleteFolder={deleteFolder}
               />
             </li>

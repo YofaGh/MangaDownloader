@@ -1,4 +1,6 @@
 export default function StepsCircle({ circles, preClassName, hasProgressBar }) {
+  preClassName = preClassName || "";
+
   return (
     <div className={`${preClassName}steps-container`}>
       <div className={`${preClassName}steps`}>

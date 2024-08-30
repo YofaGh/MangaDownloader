@@ -68,7 +68,7 @@ export const retrieveImage = async (url, domain, setImageSrc, defImage) => {
     const response = await invoke("retrieve_image", { domain, url });
     setImageSrc(response);
   } catch (_) {
-    setImageSrc(defImage);
+    setImageSrc(defImage || "./assets/default-cover.svg");
   }
 };
 
@@ -160,23 +160,10 @@ export const startDownloading = async () => {
 
 export const writeFile = async (fileName, data) => {
   if (fileName === "library.json") {
-    data = data.reduce(
-      (
-        acc,
-        { id, title, status, domain, url, cover, last_downloaded_chapter }
-      ) => {
-        acc[title] = {
-          include: status,
-          id,
-          domain,
-          url,
-          cover,
-          last_downloaded_chapter,
-        };
-        return acc;
-      },
-      {}
-    );
+    data = data.reduce((acc, { title, ...details }) => {
+      acc[title] = details;
+      return acc;
+    }, {});
   }
   await writeTextFile(
     fileName,
@@ -194,32 +181,28 @@ export const startUp = async () => {
     "favorites.json": useFavoritesStore.getState().setFavorites,
     "library.json": useLibraryStore.getState().setLibrary,
   };
-  Object.entries(datas).forEach(async ([file, setter]) => {
-    const contents = await readTextFile(
-      file,
-      { baseDir: BaseDirectory.AppData },
-      "utf8"
-    );
-    const data = JSON.parse(contents);
-    const transformedData =
-      file === "queue.json"
-        ? data.map((item) => ({
-            ...item,
-            status: item.status === "Started" ? "Paused" : item.status,
-          }))
-        : file === "library.json"
-        ? Object.entries(data).map(([title, details]) => ({
-            title,
-            id: details.id,
-            status: details.include,
-            domain: details.domain,
-            url: details.url,
-            cover: details.cover,
-            last_downloaded_chapter: details.last_downloaded_chapter,
-          }))
-        : data;
-    setter(transformedData);
-  });
+  await Promise.all(
+    Object.entries(datas).map(async ([file, setter]) => {
+      const contents = await readTextFile(
+        file,
+        { baseDir: BaseDirectory.AppData },
+        "utf8"
+      );
+      let data = JSON.parse(contents);
+      if (file === "queue.json") {
+        data = data.map((item) => ({
+          ...item,
+          status: item.status === "Started" ? "Paused" : item.status,
+        }));
+      } else if (file === "library.json") {
+        data = Object.entries(data).map(([title, details]) => ({
+          title,
+          ...details,
+        }));
+      }
+      setter(data);
+    })
+  );
   (async () => {
     const response = await invoke("get_modules");
     useModulesStore

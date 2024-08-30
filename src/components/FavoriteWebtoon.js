@@ -26,8 +26,7 @@ export default function FavoriteWebtoon({
                   retrieveImage(
                     webtoon.cover,
                     webtoon.id.split("_$_")[1],
-                    setImageSrc,
-                    "./assets/default-cover.svg"
+                    setImageSrc
                   )
                 }
               />

@@ -15,11 +15,11 @@ export const useDownloadedStore = create((set) => ({
     set((state) => ({
       downloaded: [newItem, ...state.downloaded],
     })),
-  deleteDownloadedByIndex: (index) =>
+  removeFromDownloaded: (id) =>
     set((state) => ({
-      downloaded: state.downloaded.filter((_, i) => i !== index),
+      downloaded: state.downloaded.filter((entry) => entry.id !== id),
     })),
-  deleteAllDownloaded: () => set({ downloaded: [] }),
+  removeAllDownloaded: () => set({ downloaded: [] }),
 }));
 
 export const useQueueStore = create((set) => ({
@@ -94,10 +94,6 @@ export const useFavoritesStore = create((set) => ({
 export const useLibraryStore = create((set) => ({
   library: [],
   setLibrary: (newLibrary) => set({ library: newLibrary }),
-  updateLibrary: (newData) =>
-    set((state) => ({
-      library: { ...state.library, ...newData },
-    })),
   addToLibrary: (newData) =>
     set((state) => ({
       library: [...state.library, newData],

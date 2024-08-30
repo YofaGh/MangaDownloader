@@ -46,12 +46,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
                   className="img-back"
                   onLoad={stopRotate}
                   onError={() =>
-                    retrieveImage(
-                      imageSrc,
-                      module.domain,
-                      setImageSrc,
-                      "./assets/default-cover.svg"
-                    )
+                    retrieveImage(imageSrc, module.domain, setImageSrc)
                   }
                 />
               </div>

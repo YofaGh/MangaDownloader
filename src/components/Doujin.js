@@ -8,7 +8,7 @@ import {
   useNotificationStore,
 } from "../store";
 
-export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
+export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
@@ -23,7 +23,7 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
       setWebtoonLoaded(true);
       setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
     })();
-  }, [module, url]);
+  }, [load_covers, module, url]);
 
   const addDoujin = (status) => {
     const webt = {
@@ -52,14 +52,7 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
             className="webtoon-i"
             alt=""
             src={imageSrc}
-            onError={() =>
-              retrieveImage(
-                imageSrc,
-                module,
-                setImageSrc,
-                "./assets/default-cover.svg"
-              )
-            }
+            onError={() => retrieveImage(imageSrc, module, setImageSrc)}
           ></img>
         </div>
         <div className="flex-item">
@@ -75,15 +68,7 @@ export default function Doujin({ module, url, isFavorite, updateWebtoon }) {
                   })
                 }
               >
-                <img
-                  alt=""
-                  src={
-                    isFavorite
-                      ? "./assets/favorites.svg"
-                      : "./assets/favorites-outlined.svg"
-                  }
-                  className="icongt"
-                ></img>
+                <img alt="" src={favoritesSvg} className="icongt"></img>
               </button>
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>

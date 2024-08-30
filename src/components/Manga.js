@@ -19,10 +19,10 @@ import {
   useDownloadingStore,
 } from "../store";
 
-export default function Manga({ module, url, isFavorite, updateWebtoon }) {
+export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const [loadingChapters, setLoadingChapters] = useState(true);
+  const [chaptersLoaded, setChaptersLoaded] = useState(false);
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
   const [imageSrc, setImageSrc] = useState("");
@@ -33,6 +33,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
   const { downloading, clearDownloading } = useDownloadingStore();
   const id = `${module}_$_${url}`;
+  const isInLibrary = library.some((webtoon) => webtoon.id === id);
 
   useEffect(() => {
     (async () => {
@@ -43,9 +44,9 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
       setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
       const chapters = await invoke("get_chapters", { domain: module, url });
       setChapters(chapters);
-      setLoadingChapters(false);
+      setChaptersLoaded(true);
     })();
-  }, [module, url]);
+  }, [load_covers, module, url]);
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("lib-modal");
@@ -78,7 +79,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
     chapters.forEach((chapter) => addChapter(chapter, status));
 
   const updateLibrary = async () => {
-    if (library.some((webtoon) => webtoon.id === id)) {
+    if (isInLibrary) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
       addSuccessNotification(`Removed ${webt.title} from Library`);
@@ -99,7 +100,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
       addToLibrary({
         title: mangaTitleForLibrary,
         id,
-        status: true,
+        enabled: true,
         domain: module,
         url,
         cover: webtoon.Cover,
@@ -130,14 +131,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
             className="webtoon-i"
             alt=""
             src={imageSrc}
-            onError={() =>
-              retrieveImage(
-                imageSrc,
-                module,
-                setImageSrc,
-                "./assets/default-cover.svg"
-              )
-            }
+            onError={() => retrieveImage(imageSrc, module, setImageSrc)}
           ></img>
           {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
           <Infoed title="Status:" info={webtoon.Status} />
@@ -155,21 +149,13 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
                   })
                 }
               >
-                <img
-                  alt=""
-                  src={
-                    isFavorite
-                      ? "./assets/favorites.svg"
-                      : "./assets/favorites-outlined.svg"
-                  }
-                  className="icongt"
-                ></img>
+                <img alt="" src={favoritesSvg} className="icongt"></img>
               </button>
               <button className="buttonht" onClick={updateLibrary}>
                 <img
                   alt=""
                   src={
-                    library.some((webtoon) => webtoon.id === id)
+                    isInLibrary
                       ? "./assets/library.svg"
                       : "./assets/add_to_library.svg"
                   }
@@ -207,12 +193,7 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
           </div>
         </div>
       </div>
-      {loadingChapters ? (
-        <div>
-          Loading Chapters
-          <Loading />
-        </div>
-      ) : (
+      {chaptersLoaded ? (
         <div>
           <DownloadButton
             label="Download All Chapters"
@@ -235,6 +216,11 @@ export default function Manga({ module, url, isFavorite, updateWebtoon }) {
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        <div>
+          <p>Loading Chapters</p>
+          <Loading />
         </div>
       )}
       <div id="lib-modal" className="modal">

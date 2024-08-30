@@ -122,22 +122,17 @@ export default function Search() {
           <PushButton label="Terminate" onClick={resetSearch} />
         </div>
         <div className="s-cont">
-          {selectedSearchModules.map((item) => {
-            let num = searchResults.filter(
-              (result) => result.domain === item
-            ).length;
-            num = num === 0 ? "" : num;
-            return (
-              <FilterButton
-                key={item}
-                label={`${item}  ${num}`}
-                selected={searchResults.some(
-                  (result) => result.domain === item
-                )}
-                loading={searchStatus.searching === item}
-              />
-            );
-          })}
+          {selectedSearchModules.map((item) => (
+            <FilterButton
+              key={item}
+              label={`${item}  ${
+                searchResults.filter((result) => result.domain === item)
+                  .length || ""
+              }`}
+              selected={searchResults.some(({ domain }) => domain === item)}
+              loading={searchStatus.searching === item}
+            />
+          ))}
         </div>
       </div>
     );
@@ -162,7 +157,7 @@ export default function Search() {
             <FilterButton
               key={item}
               label={`${item} ${
-                searchResults.filter((result) => result.domain === item).length
+                searchResults.filter(({ domain }) => domain === item).length
               }`}
               selected={true}
               loading={false}

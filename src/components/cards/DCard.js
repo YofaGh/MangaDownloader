@@ -24,12 +24,12 @@ export default function DCard({ webtoon, index, removeWebtoon, deleteFolder }) {
           tooltip="Convert to PDF"
         />
         <ActionButtonSmall
-          onClick={() => removeWebtoon(index)}
+          onClick={() => removeWebtoon(webtoon.id)}
           svgName="delete"
           tooltip="Remove"
         />
         <ActionButtonSmall
-          onClick={() => deleteFolder(webtoon.path, index)}
+          onClick={() => deleteFolder(webtoon)}
           svgName="trash"
           tooltip="Delete Folder"
         />

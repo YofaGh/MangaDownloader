@@ -31,6 +31,10 @@ export default function Saucer() {
   const { addSuccessNotification, addErrorNotification } =
     useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
+  const circles = saucers.map((site) => ({
+    id: site,
+    name: site[0].toUpperCase() + site.slice(1),
+  }));
 
   useEffect(() => {
     if (saucers.length === 0) {
@@ -99,14 +103,7 @@ export default function Saucer() {
     return (
       <div className="container">
         <div className="f-header">Saucing...</div>
-        <StepsCircle
-          circles={saucers.map((site) => ({
-            id: site,
-            name: site[0].toUpperCase() + site.slice(1),
-          }))}
-          preClassName=""
-          hasProgressBar={true}
-        />
+        <StepsCircle circles={circles} hasProgressBar={true} />
       </div>
     );
   } else if (sauceStatus === "Uploading") {

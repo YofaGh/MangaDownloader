@@ -27,11 +27,7 @@ export default function ModuleChecker({ module, showHideModal, checkModule }) {
         <div className="ch-steps-header">
           <h3>Checking Module: {module.domain}</h3>
         </div>
-        <StepsCircle
-          circles={circles}
-          preClassName="ch-"
-          hasProgressBar={false}
-        />
+        <StepsCircle circles={circles} preClassName="ch-" />
         <PushButton label="Try Again" onClick={() => checkModule(module)} />
         <PushButton label="Ok" onClick={() => showHideModal(false)} />
       </div>

@@ -21,14 +21,7 @@ export default function WSearchCard({ webtoon, load_covers }) {
           className="search-i"
           alt=""
           src={imageSrc}
-          onError={() =>
-            retrieveImage(
-              imageSrc,
-              webtoon.domain,
-              setImageSrc,
-              "./assets/default-cover.svg"
-            )
-          }
+          onError={() => retrieveImage(imageSrc, webtoon.domain, setImageSrc)}
         ></img>
         <div className="info-searched-w">
           <h3>

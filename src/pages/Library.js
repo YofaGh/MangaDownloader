@@ -1,6 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
 import { Wcard, HomeButton } from "../components";
-import { chunkArray } from "../utils";
+import { chunkArray, getChapters } from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
@@ -15,10 +14,7 @@ export default function Library() {
   const { addSuccessNotification } = useNotificationStore();
 
   const updateSingle = async (webtoon) => {
-    const allChapters = await invoke("get_chapters", {
-      domain: webtoon.domain,
-      url: webtoon.url,
-    });
+    const allChapters = await getChapters(webtoon.domain, webtoon.url);
     let chaptersToDownload = [];
     if (webtoon.last_downloaded_chapter) {
       let reached_last_downloaded_chapter = false;

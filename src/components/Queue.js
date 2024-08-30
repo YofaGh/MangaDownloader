@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { invoke } from "@tauri-apps/api/core";
 import { QCard, ActionButtonBig } from ".";
-import { fixFolderName, startDownloading } from "../utils";
+import {
+  fixFolderName,
+  startDownloading,
+  removeDirectory,
+  stopDownlod,
+} from "../utils";
 import {
   useQueueStore,
   useDownloadingStore,
@@ -39,11 +43,8 @@ export default function Queue() {
     setQueu(queue);
   };
 
-  const removeDirectory = async (path, recursive) =>
-    await invoke("remove_directory", { path, recursive });
-
   const stopDownloader = async () => {
-    await invoke("stop_download");
+    await stopDownlod();
     clearDownloading();
   };
 

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
-import { retrieveImage } from "../../utils";
+import { retrieveImage, stopDownlod } from "../../utils";
 import {
   useLibraryStore,
   useNotificationStore,
@@ -26,7 +25,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
 
   const remove = async () => {
     if (downloading && webtoon.id === downloading.id) {
-      await invoke("stop_download");
+      await stopDownlod();
       clearDownloading();
     }
     removeFromLibrary(webtoon.id);

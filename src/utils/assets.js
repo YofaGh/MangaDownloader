@@ -1,10 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
 import { listen, once } from "@tauri-apps/api/event";
-import {
-  readTextFile,
-  writeTextFile,
-  BaseDirectory,
-} from "@tauri-apps/plugin-fs";
 import {
   useNotificationStore,
   useSettingsStore,
@@ -14,7 +8,21 @@ import {
   useDownloadingStore,
   useFavoritesStore,
   useModulesStore,
-} from "./store";
+  useSearchStore,
+  useSauceStore,
+} from "../store";
+import {
+  _retrieveImage,
+  _convert,
+  _merge,
+  openFolder,
+  download,
+  getModules,
+  searchKeyword as searchKeywordInvoker,
+  sauce,
+  _readFile,
+  _writeFile,
+} from ".";
 
 export const fixFolderName = (manga) =>
   manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
@@ -26,12 +34,11 @@ export const convert = async (webtoon, openPath) => {
     pdfName += `_${webtoon.info}`;
     notifInfo += ` - ${webtoon.info}`;
   } else pdfName = `${webtoon.doujin}_${pdfName}.pdf`;
-  await invoke("convert", { path: webtoon.path, pdfName });
+  await _convert(webtoon.path, pdfName);
   useNotificationStore
     .getState()
     .addSuccessNotification(`Converted ${notifInfo} to PDF`);
-  if (openPath)
-    await invoke("open_folder", { path: `${webtoon.path}\\${pdfName}` });
+  if (openPath) await openFolder(`${webtoon.path}\\${pdfName}`);
 };
 
 export const merge = async (webtoon, openPath) => {
@@ -42,13 +49,9 @@ export const merge = async (webtoon, openPath) => {
     path += `\\${webtoon.info}`;
     notifInfo += ` - ${webtoon.info}`;
   }
-  await invoke("merge", {
-    pathToSource: webtoon.path,
-    pathToDestination: path,
-    mergeMethod: merge_method,
-  });
+  await _merge(webtoon.path, path, merge_method);
   useNotificationStore.getState().addSuccessNotification(`Merged ${notifInfo}`);
-  if (openPath) await invoke("open_folder", { path });
+  if (openPath) await openFolder(path);
 };
 
 export const getDate = (datetime) => {
@@ -65,7 +68,7 @@ export const getDateTime = (datetime) => {
 
 export const retrieveImage = async (url, domain, setImageSrc, defImage) => {
   try {
-    const response = await invoke("retrieve_image", { domain, url });
+    const response = await _retrieveImage(domain, url);
     setImageSrc(response);
   } catch (_) {
     setImageSrc(defImage || "./assets/default-cover.svg");
@@ -99,15 +102,15 @@ export const startDownloading = async () => {
   setDownloading(webtoon);
   let fixedTitle = fixFolderName(webtoon.title);
   if (webtoon.type === "manga") fixedTitle += `\\${webtoon.info}`;
-  invoke("download", {
-    webtoonId: webtoon.id,
-    module: webtoon.module,
-    webtoon: webtoon.manga || webtoon.doujin,
-    chapter: webtoon.chapter || "",
+  download(
+    webtoon.id,
+    webtoon.module,
+    webtoon.manga || webtoon.doujin,
+    webtoon.chapter || "",
     fixedTitle,
-    sleepTime: settings.sleep_time,
-    downloadPath: settings.download_path,
-  });
+    settings.sleep_time,
+    settings.download_path
+  );
   await once("totalImages", (event) =>
     updateItemInQueue(event.payload.webtoon_id, {
       total: event.payload.total_images,
@@ -158,6 +161,75 @@ export const startDownloading = async () => {
   });
 };
 
+export const startSearching = async () => {
+  const {
+    searchKeyword,
+    searchDepth,
+    searchAbsolute,
+    setSearching,
+    doneSearching,
+    setSearchKeyword,
+    addSearchResult,
+    setSelectedSearchModules,
+    clearSearch,
+    searchModuleTypes,
+  } = useSearchStore.getState();
+  clearSearch();
+  const selectedSearchModulesr = useModulesStore
+    .getState()
+    .modules.filter(
+      (module) =>
+        searchModuleTypes.some(
+          (type) => type.name === module.type && type.selected
+        ) &&
+        module.searchable &&
+        module.selected
+    )
+    .map((item) => item.domain);
+  setSearchKeyword(searchKeyword);
+  setSelectedSearchModules(selectedSearchModulesr);
+  setSearching(selectedSearchModulesr[0]);
+  searchKeywordInvoker(
+    selectedSearchModulesr,
+    searchKeyword,
+    useSettingsStore.getState().settings.sleep_time,
+    searchDepth,
+    searchAbsolute
+  );
+  await once("doneSearching", () => doneSearching());
+  await listen("searchingModule", (event) =>
+    setSearching(event.payload.module)
+  );
+  await listen("searchedModule", (event) =>
+    addSearchResult(event.payload.result)
+  );
+};
+
+export const startSaucer = async () => {
+  const { sauceUrl, saucers, setSauceStatus, addSauceResult } =
+    useSauceStore.getState();
+  const { addErrorNotification, addSuccessNotification } =
+    useNotificationStore.getState();
+  if (!isUrlValid(sauceUrl)) {
+    addErrorNotification("Invalid URL");
+    setSauceStatus(null);
+    return;
+  }
+  for (let i = 0; i < saucers.length; i++) {
+    const site = saucers[i];
+    let element = document.getElementById(site);
+    element.classList.add("active");
+    const res = await sauce(site, sauceUrl);
+    addSauceResult(res.map((item) => ({ site, ...item })));
+    element.classList.remove("active");
+    element.classList.remove("done");
+    document.querySelector(".steps-indicator").style.width =
+      (i + 1) * 120 + "px";
+  }
+  addSuccessNotification("Sauced");
+  setSauceStatus("Sauced");
+};
+
 export const writeFile = async (fileName, data) => {
   if (fileName === "library.json") {
     data = data.reduce((acc, { title, ...details }) => {
@@ -165,12 +237,7 @@ export const writeFile = async (fileName, data) => {
       return acc;
     }, {});
   }
-  await writeTextFile(
-    fileName,
-    JSON.stringify(data, null, 2),
-    { baseDir: BaseDirectory.AppData },
-    "utf8"
-  );
+  await _writeFile(fileName, JSON.stringify(data, null, 2));
 };
 
 export const startUp = async () => {
@@ -183,11 +250,7 @@ export const startUp = async () => {
   };
   await Promise.all(
     Object.entries(datas).map(async ([file, setter]) => {
-      const contents = await readTextFile(
-        file,
-        { baseDir: BaseDirectory.AppData },
-        "utf8"
-      );
+      const contents = await _readFile(file);
       let data = JSON.parse(contents);
       if (file === "queue.json") {
         data = data.map((item) => ({
@@ -204,7 +267,7 @@ export const startUp = async () => {
     })
   );
   (async () => {
-    const response = await invoke("get_modules");
+    const response = await getModules();
     useModulesStore
       .getState()
       .setModules(response.map((module) => ({ ...module, selected: true })));

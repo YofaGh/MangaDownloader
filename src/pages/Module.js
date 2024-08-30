@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
 import {
   SearchBar,
   CheckBox,
@@ -9,6 +8,7 @@ import {
   WSearchCard,
   Loading,
 } from "../components";
+import { searchKeywordOne } from "../utils";
 import { useSettingsStore } from "../store";
 
 export default function Module() {
@@ -32,13 +32,13 @@ export default function Module() {
 
   const startSearching = async () => {
     setSearchingStatus("searching");
-    const response = await invoke("search_keyword_one", {
+    const response = await searchKeywordOne(
       module,
-      keyword: input,
-      sleepTime: sleep_time,
+      input,
+      sleep_time,
       depth,
-      absolute,
-    });
+      absolute
+    );
     setResults(response);
     setSearchingStatus("searched");
   };

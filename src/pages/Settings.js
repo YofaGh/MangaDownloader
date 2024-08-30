@@ -1,10 +1,10 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { FilterToggleButton, CheckBox } from "../components";
 import {
   useSettingsStore,
   useNotificationStore,
   useDownloadingStore,
 } from "../store";
+import { chooseFolder } from "../utils";
 
 export default function Settings() {
   const { settings, updateSettings } = useSettingsStore();
@@ -16,7 +16,7 @@ export default function Settings() {
       addErrorNotification("There's a download in progress. Stop it first.");
       return;
     }
-    const download_path = await open({ directory: true });
+    const download_path = await chooseFolder();
     if (download_path) updateSettings({ download_path });
   };
 

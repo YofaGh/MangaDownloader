@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
 import { DCard, ActionButtonBig } from ".";
+import { removeDirectory } from "../utils";
 import { useDownloadedStore } from "../store";
 
 export default function Downloaded() {
@@ -7,14 +7,12 @@ export default function Downloaded() {
     useDownloadedStore();
 
   const deleteAllWebtoons = () => {
-    downloaded.forEach((webtoon) =>
-      invoke("remove_directory", { path: webtoon.path, recursive: true })
-    );
+    downloaded.forEach((webtoon) => removeDirectory(webtoon.path, true));
     removeAllDownloaded();
   };
 
   const deleteFolder = (webtoon) => {
-    invoke("remove_directory", { path: webtoon.path, recursive: true });
+    removeDirectory(webtoon.path, true);
     removeFromDownloaded(webtoon.id);
   };
 

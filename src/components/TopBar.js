@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrent } from "@tauri-apps/api/window";
 import { SideBar } from ".";
+import { getAppWindow } from "../utils";
 import { useDownloadingStore, useDownloadedStore } from "../store";
 
 export default function TopBar() {
   const navigate = useNavigate();
-  const appWindow = getCurrent();
+  const appWindow = getAppWindow();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { downloading } = useDownloadingStore();
   const { downloaded } = useDownloadedStore();

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Infoed, FlipButton, DownloadButton, Loading } from ".";
-import { getDate, getDateTime, retrieveImage } from "../utils";
+import { getDate, getDateTime, retrieveImage, getInfo } from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
@@ -18,7 +17,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
 
   useEffect(() => {
     (async () => {
-      const response = await invoke("get_info", { domain: module, url });
+      const response = await getInfo(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
       setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");

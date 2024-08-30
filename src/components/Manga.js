@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
-import { getDate, getDateTime, retrieveImage, chunkArray } from "../utils";
+import {
+  getDate,
+  getDateTime,
+  retrieveImage,
+  chunkArray,
+  getInfo,
+  getChapters,
+  stopDownlod
+} from "../utils";
 import {
   Infoed,
   FlipButton,
@@ -37,12 +44,12 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
 
   useEffect(() => {
     (async () => {
-      const response = await invoke("get_info", { domain: module, url });
+      const response = await getInfo(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
       setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
-      const chapters = await invoke("get_chapters", { domain: module, url });
+      const chapters = await getChapters(module, url);
       setChapters(chapters);
       setChaptersLoaded(true);
     })();
@@ -84,7 +91,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
       removeFromLibrary(id);
       addSuccessNotification(`Removed ${webt.title} from Library`);
       if (downloading && webt.id === downloading.id) {
-        await invoke("stop_download");
+        await stopDownlod();
         clearDownloading();
       }
     } else showHideModal(true);

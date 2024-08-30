@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
-import { isUrlValid } from "../utils";
+import { getSaucersList, uploadImage, startSaucer, chooseFile } from "../utils";
 import {
   SearchBar,
   ExpandButton,
@@ -24,12 +22,10 @@ export default function Saucer() {
     saucers,
     setSauceStatus,
     setSauceUrl,
-    addSauceResult,
     setSaucers,
     clearSauce,
   } = useSauceStore();
-  const { addSuccessNotification, addErrorNotification } =
-    useNotificationStore();
+  const { addSuccessNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
   const circles = saucers.map((site) => ({
     id: site,
@@ -37,47 +33,20 @@ export default function Saucer() {
   }));
 
   useEffect(() => {
-    if (saucers.length === 0) {
-      (async () => {
-        const response = await invoke("get_saucers_list");
-        setSaucers(response);
-      })();
-    }
+    if (saucers.length === 0)
+      (async () => setSaucers(await getSaucersList()))();
   }, [saucers.length, setSaucers]);
 
-  const uploadImage = async () => {
-    const path = await open({
-      directory: false,
-      multiple: false,
-    });
+  const upload = async () => {
+    const path = await chooseFile();
     setSauceStatus("Uploading");
-    const response = await invoke("upload_image", { path: path.path });
+    const response = await uploadImage(path);
     setSauceUrl(response);
     addSuccessNotification(`Uploaded ${response}`);
     setSauceStatus(null);
   };
 
   useEffect(() => {
-    const startSaucer = async () => {
-      if (!isUrlValid(sauceUrl)) {
-        addErrorNotification("Invalid URL");
-        setSauceStatus(null);
-        return;
-      }
-      for (let i = 0; i < saucers.length; i++) {
-        const site = saucers[i];
-        let element = document.getElementById(site);
-        element.classList.add("active");
-        const res = await invoke("sauce", { saucer: site, url: sauceUrl });
-        addSauceResult(res.map((item) => ({ site, ...item })));
-        element.classList.remove("active");
-        element.classList.remove("done");
-        document.querySelector(".steps-indicator").style.width =
-          (i + 1) * 120 + "px";
-      }
-      addSuccessNotification("Sauced");
-      setSauceStatus("Sauced");
-    };
     if (sauceStatus === "Saucing") startSaucer();
   }, [sauceStatus]);
 
@@ -131,7 +100,7 @@ export default function Saucer() {
         <p>Or</p>
         <div className="locate-container">
           <div className="locate-header">
-            <label htmlFor="file" onClick={uploadImage}>
+            <label htmlFor="file" onClick={upload}>
               <img
                 alt=""
                 src="./assets/upload.svg"

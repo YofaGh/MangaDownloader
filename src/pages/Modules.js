@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { remove } from "@tauri-apps/plugin-fs";
 import { MCard, ModuleChecker } from "../components";
-import { chunkArray } from "../utils";
+import {
+  chunkArray,
+  getModuleSample,
+  getChapters,
+  getImages,
+  downloadImage,
+  searchKeywordOne,
+  removeFile,
+} from "../utils";
 import { useSettingsStore, useModulesStore } from "../store";
 
 export default function Modules() {
@@ -43,16 +49,13 @@ export default function Modules() {
       } catch (e) {}
     }
     setModuleToCheck(module);
-    const sample = await invoke("get_module_sample", { domain: module.domain });
+    const sample = await getModuleSample(module.domain);
     if (module.type === "Manga") {
       let element = document.getElementById("checkChapter");
       element.classList.add("ch-active");
       let chapters = [];
       try {
-        chapters = await invoke("get_chapters", {
-          domain: module.domain,
-          url: sample.manga,
-        });
+        chapters = await getChapters(module.domain, sample.manga);
       } catch (e) {}
       element.classList.remove("ch-active");
       if (chapters) {
@@ -61,11 +64,11 @@ export default function Modules() {
         element.classList.add("ch-active");
         let images = [];
         let save_names = [];
-        const response = await invoke("get_images", {
-          domain: module.domain,
-          manga: sample.manga,
-          chapter: chapters[0].url,
-        });
+        const response = await getImages(
+          module.domain,
+          sample.manga,
+          chapters[0].url
+        );
         images = response[0];
         save_names = response[1];
         if (images) {
@@ -75,23 +78,23 @@ export default function Modules() {
           element.classList.add("ch-active");
           let saved_path;
           if (save_names) {
-            saved_path = await invoke("download_image", {
-              domain: module.domain,
-              url: images[0],
-              imageName: `${data_dir_path}/${save_names[0]}`,
-            });
+            saved_path = await downloadImage(
+              module.domain,
+              images[0],
+              `${data_dir_path}/${save_names[0]}`
+            );
           } else {
-            saved_path = await invoke("download_image", {
-              domain: module.domain,
-              url: images[0],
-              imageName: `${data_dir_path}/${module.domain}_test.${
+            saved_path = await downloadImage(
+              module.domain,
+              images[0],
+              `${data_dir_path}/${module.domain}_test.${
                 images[0].split(".").slice(-1)[0]
-              }`,
-            });
+              }`
+            );
           }
           element.classList.remove("ch-active");
           element.classList.add("ch-done");
-          await remove(saved_path);
+          await removeFile(saved_path);
         } else {
           element.classList.remove("ch-active");
           element.classList.add("ch-dead");
@@ -109,13 +112,13 @@ export default function Modules() {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await invoke("search_keyword_one", {
-          module: module.domain,
-          keyword: sample.keyword || "a",
-          sleepTime: 0.1,
-          absolute: false,
-          depth: 2,
-        });
+        const results = await searchKeywordOne(
+          module.domain,
+          sample.keyword || "a",
+          0.1,
+          false,
+          2
+        );
         element.classList.remove("ch-active");
         if (results) {
           element.classList.add("ch-done");
@@ -128,11 +131,7 @@ export default function Modules() {
       element.classList.add("ch-active");
       let images = [];
       let save_names = [];
-      const response = await invoke("get_images", {
-        domain: module.domain,
-        manga: sample.code,
-        chapter: "",
-      });
+      const response = await getImages(module.domain, sample.code, "");
       images = response[0];
       save_names = response[1];
       if (images) {
@@ -142,23 +141,23 @@ export default function Modules() {
         element.classList.add("ch-active");
         let saved_path;
         if (save_names) {
-          saved_path = await invoke("download_image", {
-            domain: module.domain,
-            url: images[0],
-            imageName: `${data_dir_path}/${save_names[0]}`,
-          });
+          saved_path = await downloadImage(
+            module.domain,
+            images[0],
+            `${data_dir_path}/${save_names[0]}`
+          );
         } else {
-          saved_path = await invoke("download_image", {
-            domain: module.domain,
-            url: images[0],
-            imageName: `${data_dir_path}/${module.domain}_test.${
+          saved_path = await downloadImage(
+            module.domain,
+            images[0],
+            `${data_dir_path}/${module.domain}_test.${
               images[0].split(".").slice(-1)[0]
-            }`,
-          });
+            }`
+          );
         }
         element.classList.remove("ch-active");
         element.classList.add("ch-done");
-        await remove(saved_path);
+        await removeFile(saved_path);
       } else {
         element.classList.remove("ch-active");
         element.classList.add("ch-dead");
@@ -168,13 +167,13 @@ export default function Modules() {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await invoke("search_keyword_one", {
-          module: module.domain,
-          keyword: sample.keyword ? sample.keyword : "a",
-          sleepTime: 0.1,
-          absolute: false,
-          depth: 2,
-        });
+        const results = await searchKeywordOne(
+          module.domain,
+          sample.keyword || "a",
+          0.1,
+          false,
+          2
+        );
         element.classList.remove("ch-active");
         if (results) {
           element.classList.add("ch-done");

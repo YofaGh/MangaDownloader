@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen, once } from "@tauri-apps/api/event";
 import {
   SearchBar,
   SearchFilter,
@@ -9,11 +7,11 @@ import {
   PushButton,
   ExpandButton,
 } from "../components";
-import { useSettingsStore, useSearchStore, useModulesStore } from "../store";
+import { stopSearch, startSearching } from "../utils";
+import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
-  const modules = useModulesStore((state) => state.modules);
-  const { default_search_depth, load_covers, sleep_time } = useSettingsStore(
+  const { default_search_depth, load_covers } = useSettingsStore(
     (state) => state.settings
   );
   const [sortBy, setSortBy] = useState("");
@@ -23,17 +21,11 @@ export default function Search() {
     searchKeyword,
     searchDepth,
     setSearchDepth,
-    searchAbsolute,
     selectedSearchModules,
-    setSearching,
-    doneSearching,
     setSearchKeyword,
-    addSearchResult,
-    setSelectedSearchModules,
     clearSearch,
-    searchModuleTypes,
   } = useSearchStore();
-  if (searchDepth === 0) setSearchDepth(default_search_depth);
+  setSearchDepth(searchDepth || default_search_depth);
 
   const updateSortBy = (newSortBy) => {
     setSortBy(newSortBy);
@@ -51,39 +43,8 @@ export default function Search() {
   };
 
   const resetSearch = async () => {
-    await invoke("stop_search");
+    await stopSearch();
     clearSearch();
-  };
-
-  const startSearching = async () => {
-    clearSearch();
-    const selectedSearchModulesr = modules
-      .filter(
-        (module) =>
-          searchModuleTypes.some(
-            (type) => type.name === module.type && type.selected
-          ) &&
-          module.searchable &&
-          module.selected
-      )
-      .map((item) => item.domain);
-    setSearchKeyword(searchKeyword);
-    setSelectedSearchModules(selectedSearchModulesr);
-    setSearching(selectedSearchModulesr[0]);
-    invoke("search_keyword", {
-      modules: selectedSearchModulesr,
-      keyword: searchKeyword,
-      sleepTime: sleep_time,
-      depth: searchDepth,
-      absolute: searchAbsolute,
-    });
-    await once("doneSearching", () => doneSearching());
-    await listen("searchingModule", (event) =>
-      setSearching(event.payload.module)
-    );
-    await listen("searchedModule", (event) =>
-      addSearchResult(event.payload.result)
-    );
   };
 
   const showHideModal = (isShow) => {

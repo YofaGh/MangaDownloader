@@ -7,7 +7,6 @@ import {
   chunkArray,
   getInfo,
   getChapters,
-  stopDownlod
 } from "../utils";
 import {
   Infoed,
@@ -38,7 +37,8 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const { queue, addToQueue, updateItemInQueue } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
-  const { downloading, clearDownloading } = useDownloadingStore();
+  const { downloading, clearDownloading, setStopRequested } =
+    useDownloadingStore();
   const id = `${module}_$_${url}`;
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
 
@@ -91,7 +91,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
       removeFromLibrary(id);
       addSuccessNotification(`Removed ${webt.title} from Library`);
       if (downloading && webt.id === downloading.id) {
-        await stopDownlod();
+        setStopRequested(true);
         clearDownloading();
       }
     } else showHideModal(true);

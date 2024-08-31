@@ -7,7 +7,7 @@ import {
   PushButton,
   ExpandButton,
 } from "../components";
-import { stopSearch, startSearching } from "../utils";
+import { startSearching } from "../utils";
 import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
@@ -24,8 +24,9 @@ export default function Search() {
     selectedSearchModules,
     setSearchKeyword,
     clearSearch,
+    setStopRequested,
   } = useSearchStore();
-  setSearchDepth(searchDepth || default_search_depth);
+  if (searchDepth === 0) setSearchDepth(default_search_depth);
 
   const updateSortBy = (newSortBy) => {
     setSortBy(newSortBy);
@@ -40,11 +41,6 @@ export default function Search() {
   const toggleSortMenu = async () => {
     const sortMenu = document.getElementById("sort-menu");
     sortMenu.style.opacity = sortMenu.style.opacity === "1" ? "0" : "1";
-  };
-
-  const resetSearch = async () => {
-    await stopSearch();
-    clearSearch();
   };
 
   const showHideModal = (isShow) => {
@@ -70,7 +66,14 @@ export default function Search() {
             onClick={() => showHideModal(true)}
           />
           <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
-          <ExpandButton name="search" dimension={20} onClick={startSearching} />
+          <ExpandButton
+            name="search"
+            dimension={20}
+            onClick={() => {
+              setStopRequested(false);
+              startSearching();
+            }}
+          />
         </div>
         <SearchFilter showHideModal={showHideModal} />
       </div>
@@ -80,7 +83,13 @@ export default function Search() {
       <div className="container">
         <div className="header-r">
           <h2>Searching For : {searchKeyword}</h2>
-          <PushButton label="Terminate" onClick={resetSearch} />
+          <PushButton
+            label="Terminate"
+            onClick={() => {
+              setStopRequested(true);
+              clearSearch();
+            }}
+          />
         </div>
         <div className="s-cont">
           {selectedSearchModules.map((item) => (
@@ -102,7 +111,7 @@ export default function Search() {
       <div className="container">
         <div className="header-r">
           <h2>Keyword : {searchKeyword}</h2>
-          <PushButton label="Reset" onClick={resetSearch} />
+          <PushButton label="Reset" onClick={clearSearch} />
           <ExpandButton name="sort" dimension={20} onClick={toggleSortMenu} />
           <ul id="sort-menu" className="f-menu">
             <li className={titleSortClass}>

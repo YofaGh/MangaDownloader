@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
-import { startDownloading, writeFile, startUp } from "./utils";
+import { attemptToDownload, writeFile, startUp } from "./utils";
 import {
   Modules,
   Library,
@@ -56,7 +56,7 @@ export default function App() {
   }, [settings]);
 
   useEffect(() => {
-    if (!downloading) startDownloading();
+    if (!downloading) attemptToDownload();
   }, [downloading, queue]);
 
   useDebouncedWriteFile("queue.json", queue, debouncerDelay);

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage, stopDownlod } from "../../utils";
+import { retrieveImage } from "../../utils";
 import {
+  useDownloadingStore,
   useLibraryStore,
   useNotificationStore,
-  useDownloadingStore,
 } from "../../store";
 
 export default function Wcard({ webtoon, update, load_covers }) {
@@ -14,7 +14,8 @@ export default function Wcard({ webtoon, update, load_covers }) {
   );
   const { removeFromLibrary } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
-  const { downloading, clearDownloading } = useDownloadingStore();
+  const { downloading, clearDownloading, setStopRequested } =
+    useDownloadingStore();
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
@@ -25,7 +26,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
 
   const remove = async () => {
     if (downloading && webtoon.id === downloading.id) {
-      await stopDownlod();
+      setStopRequested(true);
       clearDownloading();
     }
     removeFromLibrary(webtoon.id);

@@ -1,18 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use assets::*;
-use downloader::{download, stop_download};
 use saucer::{get_saucers_list, sauce, upload_image};
-use searcher::{search_keyword, stop_search};
 use tauri::Manager;
 mod assets;
-mod downloader;
 mod image_merger;
 mod models;
 mod modules;
 mod pdf_converter;
 mod saucer;
-mod searcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,14 +28,13 @@ pub fn run() {
             merge,
             convert,
             retrieve_image,
-            search_keyword_one,
+            search_by_keyword,
             get_saucers_list,
             upload_image,
             sauce,
-            search_keyword,
-            stop_search,
-            download,
-            stop_download,
+            validate_image,
+            create_directory,
+            read_directory,
         ])
         .setup(|app: &mut tauri::App| {
             let data_dir_path: String = app

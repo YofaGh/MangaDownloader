@@ -1,27 +1,30 @@
-import { listen, once } from "@tauri-apps/api/event";
 import {
-  useNotificationStore,
-  useSettingsStore,
   useDownloadedStore,
-  useLibraryStore,
-  useQueueStore,
   useDownloadingStore,
   useFavoritesStore,
+  useLibraryStore,
   useModulesStore,
-  useSearchStore,
+  useNotificationStore,
+  useQueueStore,
   useSauceStore,
+  useSearchStore,
+  useSettingsStore,
 } from "../store";
 import {
-  _retrieveImage,
   _convert,
   _merge,
-  openFolder,
-  download,
-  getModules,
-  searchKeyword as searchKeywordInvoker,
-  sauce,
+  _retrieveImage,
   _readFile,
   _writeFile,
+  createDirectory,
+  downloadImage,
+  getImages,
+  getModules,
+  openFolder,
+  readDirectory,
+  searchByKeyword,
+  sauce,
+  validateImage,
 } from ".";
 
 export const fixFolderName = (manga) =>
@@ -89,76 +92,96 @@ export const isUrlValid = (url) => {
   }
 };
 
-export const startDownloading = async () => {
+export const attemptToDownload = async () => {
+  const webtoon = useQueueStore
+    .getState()
+    .queue.find((item) => item.status === "Started");
+  if (
+    !useSettingsStore.getState().settings ||
+    useDownloadingStore.getState().downloading ||
+    !webtoon
+  )
+    return;
+  useDownloadingStore.getState().setDownloading(webtoon);
+  useDownloadingStore.getState().setStopRequested(false);
+  startDownloading(webtoon);
+};
+
+const startDownloading = async (webtoon) => {
   const settings = useSettingsStore.getState().settings;
-  if (!settings) return;
-  const { downloading, setDownloading, clearDownloading } =
-    useDownloadingStore.getState();
-  const { queue, removeFromQueue, updateItemInQueue } =
-    useQueueStore.getState();
-  if (downloading) return;
-  const webtoon = queue.find((item) => item.status === "Started");
-  if (!webtoon) return;
-  setDownloading(webtoon);
-  let fixedTitle = fixFolderName(webtoon.title);
-  if (webtoon.type === "manga") fixedTitle += `\\${webtoon.info}`;
-  download(
-    webtoon.id,
+  const { updateItemInQueue } = useQueueStore.getState();
+  const [images, saved_n] = await getImages(
     webtoon.module,
     webtoon.manga || webtoon.doujin,
-    webtoon.chapter || "",
-    fixedTitle,
-    settings.sleep_time,
-    settings.download_path
+    webtoon.chapter || ""
   );
-  await once("totalImages", (event) =>
-    updateItemInQueue(event.payload.webtoon_id, {
-      total: event.payload.total_images,
-    })
-  );
-  await listen("downloading", (event) =>
-    updateItemInQueue(event.payload.webtoon_id, {
-      image: event.payload.image,
-    })
-  );
-  await once("doneDownloading", (event) => {
-    let webt = queue.find((item) => item.id === event.payload.webtoon_id);
-    if (webt.inLibrary) {
-      useLibraryStore
-        .getState()
-        .updateItemInLibrary(`${webt.module}_$_${webt.manga}`, {
-          last_downloaded_chapter: {
-            name: webt.info,
-            url: webt.chapter,
-          },
-        });
+  let lastCorrupted = "";
+  let downloadPath = `${settings.download_path}\\${fixFolderName(
+    webtoon.title
+  )}`;
+  if (webtoon.type === "manga") downloadPath += `\\${webtoon.info}`;
+  await createDirectory(downloadPath);
+  updateItemInQueue(webtoon.id, { total: images.length });
+  const existsImages = await readDirectory(downloadPath);
+  let i = 0;
+  while (i < images.length) {
+    if (useDownloadingStore.getState().stopRequested) return;
+    updateItemInQueue(webtoon.id, { image: i + 1 });
+    let savePath = Array.isArray(saved_n)
+      ? `${downloadPath}\\${saved_n[i]}`
+      : `${downloadPath}\\${String(i + 1).padStart(3, "0")}.${images[i]
+          .split(".")
+          .pop()}`;
+    if (!existsImages.includes(savePath)) {
+      const response = await downloadImage(webtoon.module, images[i], savePath);
+      if (response && response !== "") {
+        const isImageValid = await validateImage(
+          response.trim().replace(/"/g, "").replace(/\\\\/g, "\\")
+        );
+        if (!isImageValid && lastCorrupted !== response) {
+          lastCorrupted = response;
+          continue;
+        }
+      }
+      await new Promise((resolve) =>
+        setTimeout(resolve, settings.sleep_time * 1000)
+      );
     }
-    let inf;
-    let notifInfo = webt.title;
-    if (webt.type === "manga") {
-      inf = { manga: webt.manga, chapter: webt.chapter };
-      notifInfo += ` - ${webt.info}`;
-    } else {
-      inf = { doujin: webt.doujin };
-    }
-    useDownloadedStore.getState().addToDownloaded({
-      path: event.payload.download_path,
-      images: event.payload.total,
-      title: webt.title,
-      info: webt.info,
-      module: webt.module,
-      type: webt.type,
-      id: webt.id,
-      ...inf,
-    });
-    useNotificationStore
+    i++;
+  }
+  if (webtoon.inLibrary) {
+    useLibraryStore
       .getState()
-      .addSuccessNotification(`Downloaded ${notifInfo}`);
-    if (settings.auto_merge) merge(webt, false);
-    if (settings.auto_convert) convert(webt, false);
-    removeFromQueue(event.payload.webtoon_id);
-    clearDownloading();
+      .updateItemInLibrary(`${webtoon.module}_$_${webtoon.manga}`, {
+        last_downloaded_chapter: {
+          name: webtoon.info,
+          url: webtoon.chapter,
+        },
+      });
+  }
+  let inf = { doujin: webtoon.doujin };
+  let notifInfo = webtoon.title;
+  if (webtoon.type === "manga") {
+    inf = { manga: webtoon.manga, chapter: webtoon.chapter };
+    notifInfo += ` - ${webtoon.info}`;
+  }
+  useDownloadedStore.getState().addToDownloaded({
+    path: downloadPath,
+    images: images.length,
+    title: webtoon.title,
+    info: webtoon.info,
+    module: webtoon.module,
+    type: webtoon.type,
+    id: webtoon.id,
+    ...inf,
   });
+  useNotificationStore
+    .getState()
+    .addSuccessNotification(`Downloaded ${notifInfo}`);
+  if (settings.auto_merge) merge(webtoon, false);
+  if (settings.auto_convert) convert(webtoon, false);
+  useQueueStore.getState().removeFromQueue(webtoon.id);
+  useDownloadingStore.getState().clearDownloading();
 };
 
 export const startSearching = async () => {
@@ -175,7 +198,7 @@ export const startSearching = async () => {
     searchModuleTypes,
   } = useSearchStore.getState();
   clearSearch();
-  const selectedSearchModulesr = useModulesStore
+  const selectedSearchModules = useModulesStore
     .getState()
     .modules.filter(
       (module) =>
@@ -187,22 +210,22 @@ export const startSearching = async () => {
     )
     .map((item) => item.domain);
   setSearchKeyword(searchKeyword);
-  setSelectedSearchModules(selectedSearchModulesr);
-  setSearching(selectedSearchModulesr[0]);
-  searchKeywordInvoker(
-    selectedSearchModulesr,
-    searchKeyword,
-    useSettingsStore.getState().settings.sleep_time,
-    searchDepth,
-    searchAbsolute
-  );
-  await once("doneSearching", () => doneSearching());
-  await listen("searchingModule", (event) =>
-    setSearching(event.payload.module)
-  );
-  await listen("searchedModule", (event) =>
-    addSearchResult(event.payload.result)
-  );
+  setSelectedSearchModules(selectedSearchModules);
+  const sleepTime = useSettingsStore.getState().settings.sleep_time;
+  for (const module of selectedSearchModules) {
+    if (useSearchStore.getState().stopRequested) return;
+    setSearching(module);
+    addSearchResult(
+      await searchByKeyword(
+        module,
+        searchKeyword,
+        sleepTime,
+        searchDepth,
+        searchAbsolute
+      )
+    );
+  }
+  doneSearching();
 };
 
 export const startSaucer = async () => {

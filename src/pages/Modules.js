@@ -6,7 +6,7 @@ import {
   getChapters,
   getImages,
   downloadImage,
-  searchKeywordOne,
+  searchByKeyword,
   removeFile,
 } from "../utils";
 import { useSettingsStore, useModulesStore } from "../store";
@@ -112,7 +112,7 @@ export default function Modules() {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await searchKeywordOne(
+        const results = await searchByKeyword(
           module.domain,
           sample.keyword || "a",
           0.1,
@@ -167,7 +167,7 @@ export default function Modules() {
       if (module.searchable) {
         element = document.getElementById("checkSearch");
         element.classList.add("ch-active");
-        const results = await searchKeywordOne(
+        const results = await searchByKeyword(
           module.domain,
           sample.keyword || "a",
           0.1,

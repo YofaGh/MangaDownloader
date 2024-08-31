@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 export const useSearchStore = create((set) => ({
   searchStatus: { init: true },
   searchAbsolute: false,
+  stopRequested: false,
   searchDepth: 0,
   searchKeyword: "",
   searchResults: [],
@@ -14,7 +15,8 @@ export const useSearchStore = create((set) => ({
   ],
 
   setSearching: (module) => set({ searchStatus: { searching: module } }),
-  doneSearching: () => set({ searchStatus: { searched: true } }),
+  doneSearching: () =>
+    set({ searchStatus: { searched: true }, stopRequested: false }),
 
   setSearchKeyword: (newSearchKeyword) =>
     set({ searchKeyword: newSearchKeyword }),
@@ -41,12 +43,15 @@ export const useSearchStore = create((set) => ({
     })),
   setSearchAbsolute: (newAbsolute) => set({ searchAbsolute: newAbsolute }),
   setSearchDepth: (newDepth) => set({ searchDepth: newDepth }),
+  setStopRequested: (value) => set({ stopRequested: value }),
 }));
 
 export const useDownloadingStore = create((set) => ({
   downloading: null,
+  stopRequested: false,
   setDownloading: (newVal) => set({ downloading: newVal }),
   clearDownloading: () => set({ downloading: null }),
+  setStopRequested: (newVal) => set({ stopRequested: newVal }),
 }));
 
 export const useNotificationStore = create((set, get) => ({

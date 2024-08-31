@@ -8,7 +8,7 @@ import {
   WSearchCard,
   Loading,
 } from "../components";
-import { searchKeywordOne } from "../utils";
+import { searchByKeyword } from "../utils";
 import { useSettingsStore } from "../store";
 
 export default function Module() {
@@ -32,7 +32,7 @@ export default function Module() {
 
   const startSearching = async () => {
     setSearchingStatus("searching");
-    const response = await searchKeywordOne(
+    const response = await searchByKeyword(
       module,
       input,
       sleep_time,

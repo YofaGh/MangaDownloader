@@ -98,6 +98,20 @@ pub fn remove_directory(path: String, recursive: bool) {
 }
 
 #[tauri::command]
+pub async fn create_directory(path: String) -> Result<(), String> {
+    create_dir_all(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn read_directory(path: String) -> Result<Vec<String>, String> {
+    read_dir(&path)
+        .map_err(|e| e.to_string())?
+        .map(|entry| entry.map(|e| e.path().to_str().unwrap().to_string()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) -> String {
     match image_merger::merge_folder(path_to_source, path_to_destination, merge_method) {
         Ok(_) => "".to_string(),
@@ -111,17 +125,6 @@ pub fn convert(path: String, pdf_name: String) -> String {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
     }
-}
-
-#[tauri::command]
-pub async fn search_keyword_one(
-    module: String,
-    keyword: String,
-    sleep_time: f64,
-    depth: u32,
-    absolute: bool,
-) -> Vec<HashMap<String, String>> {
-    search_by_keyword(module, keyword, absolute, sleep_time, depth).await
 }
 
 pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
@@ -152,7 +155,8 @@ pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
         .collect()
 }
 
-pub fn validate_image(path: &str) -> bool {
+#[tauri::command]
+pub fn validate_image(path: String) -> bool {
     match open(path) {
         Ok(_) => true,
         Err(_) => false,
@@ -198,6 +202,7 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
     retrieve(domain, url).await.unwrap_or_default()
 }
 
+#[tauri::command]
 async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
     let response: Response = get_module(domain).retrieve_image(url).await?;
     let image: Bytes = response.bytes().await.unwrap();
@@ -205,12 +210,13 @@ async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdErro
     Ok(format!("data:image/png;base64, {}", encoded_image))
 }
 
+#[tauri::command]
 pub async fn search_by_keyword(
     domain: String,
     keyword: String,
-    absolute: bool,
     sleep_time: f64,
     page_limit: u32,
+    absolute: bool,
 ) -> Vec<HashMap<String, String>> {
     get_module(domain)
         .search_by_keyword(keyword, absolute, sleep_time, page_limit)

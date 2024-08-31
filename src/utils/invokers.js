@@ -20,58 +20,23 @@ export const downloadImage = async (domain, url, imageName) =>
 export const retrieveImage = async (domain, url) =>
   await invoke("retrieve_image", { domain, url });
 
-export const download = async (
-  webtoonId,
-  module,
-  webtoon,
-  chapter,
-  fixedTitle,
-  sleepTime,
-  downloadPath
-) =>
-  await invoke("download", {
-    webtoonId,
-    module,
-    webtoon,
-    chapter,
-    fixedTitle,
-    sleepTime,
-    downloadPath,
-  });
+export const validateImage = async (path) =>
+  await invoke("validate_image", { path });
 
-export const stopDownlod = async () => await invoke("stop_download");
-
-export const searchKeyword = async (
-  modules,
+export const searchByKeyword = async (
+  domain,
   keyword,
   sleepTime,
-  depth,
+  pageLimit,
   absolute
 ) =>
-  await invoke("search_keyword", {
-    modules,
+  await invoke("search_by_keyword", {
+    domain,
     keyword,
     sleepTime,
-    depth,
+    pageLimit,
     absolute,
   });
-
-export const searchKeywordOne = async (
-  module,
-  keyword,
-  sleepTime,
-  depth,
-  absolute
-) =>
-  await invoke("search_keyword_one", {
-    module,
-    keyword,
-    sleepTime,
-    depth,
-    absolute,
-  });
-
-export const stopSearch = async () => await invoke("stop_search");
 
 export const getSaucersList = async () => await invoke("get_saucers_list");
 
@@ -87,7 +52,13 @@ export const convert = async (path, pdfName) =>
 export const merge = async (pathToSource, pathToDestination, mergeMethod) =>
   await invoke("merge", { pathToSource, pathToDestination, mergeMethod });
 
+export const createDirectory = async (path) =>
+  await invoke("create_directory", { path });
+
 export const removeDirectory = async (path, recursive) =>
   await invoke("remove_directory", { path, recursive });
+
+export const readDirectory = async (path) =>
+  await invoke("read_directory", { path });
 
 export const openFolder = async (path) => await invoke("open_folder", { path });

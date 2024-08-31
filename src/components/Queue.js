@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { QCard, ActionButtonBig } from ".";
-import {
-  fixFolderName,
-  startDownloading,
-  removeDirectory,
-  stopDownlod,
-} from "../utils";
+import { fixFolderName, attemptToDownload, removeDirectory } from "../utils";
 import {
   useQueueStore,
   useDownloadingStore,
@@ -24,7 +19,8 @@ export default function Queue() {
     deleteItemKeysInQueue,
     deleteKeysFromAllItemsInQueue,
   } = useQueueStore();
-  const { downloading, clearDownloading } = useDownloadingStore();
+  const { downloading, clearDownloading, setStopRequested } =
+    useDownloadingStore();
   const { download_path } = useSettingsStore((state) => state.settings);
   const [queueEditable, setQueueEditable] = useState(false);
   const [queu, setQueu] = useState(queue);
@@ -44,7 +40,7 @@ export default function Queue() {
   };
 
   const stopDownloader = async () => {
-    await stopDownlod();
+    setStopRequested(true);
     clearDownloading();
   };
 
@@ -86,7 +82,7 @@ export default function Queue() {
       deleteKeysFromAllItemsInQueue(["image", "total"]);
       queue.forEach((webtoon) => handleWebtoonStatusChange(webtoon));
     }
-    if (status === "Started" && !downloading) startDownloading();
+    if (status === "Started" && !downloading) attemptToDownload();
   };
 
   const setWebtoonStatus = async (webtoon, status) => {
@@ -97,7 +93,7 @@ export default function Queue() {
       deleteItemKeysInQueue(webtoon.id, ["image", "total"]);
       handleWebtoonStatusChange(webtoon);
     }
-    if (status === "Started" && !downloading) startDownloading();
+    if (status === "Started" && !downloading) attemptToDownload();
   };
 
   if (queue.length === 0)

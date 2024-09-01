@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { Infoed, FlipButton, DownloadButton, Loading } from ".";
-import { getDate, getDateTime, retrieveImage, getInfo } from "../utils";
+import {
+  getDate,
+  getDateTime,
+  retrieveImage,
+  getInfo,
+  DownloadStatus,
+  WebtoonType,
+} from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
@@ -26,13 +33,13 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
 
   const addDoujin = (status) => {
     const webt = {
-      type: "doujin",
+      type: WebtoonType.DOUJIN,
       id: `${module}_$_${url}`,
       title: webtoon.Title,
       info: url,
       module: module,
       doujin: url,
-      status: status,
+      status,
     };
     if (!queue.find((item) => item.id === webt.id)) {
       addToQueue(webt);
@@ -96,11 +103,11 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
       <div>
         <DownloadButton
           label="Download Doujin"
-          onClick={() => addDoujin("Started")}
+          onClick={() => addDoujin(DownloadStatus.STARTED)}
         />
         <DownloadButton
           label="Add Doujin to Queue"
-          onClick={() => addDoujin("Not Started")}
+          onClick={() => addDoujin(DownloadStatus.STOPPED)}
         />
       </div>
     </div>

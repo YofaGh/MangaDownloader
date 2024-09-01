@@ -6,6 +6,7 @@ import {
   useModulesStore,
 } from "../store";
 import { Manga, Doujin } from "../components";
+import { WebtoonType } from "../utils";
 
 export default function Webtoon() {
   const { module, url } = useParams();
@@ -39,7 +40,7 @@ export default function Webtoon() {
     }
   };
 
-  return moduleType === "Manga" ? (
+  return moduleType === WebtoonType.MANGA ? (
     <Manga
       module={module}
       url={url}

@@ -26,3 +26,14 @@ export const writeFile = async (path, content) =>
 
 export const readFile = async (path) =>
   await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8");
+
+export const DownloadStatus = Object.freeze({
+  STARTED: "Started",
+  PAUSED: "Paused",
+  STOPPED: "Stopped",
+});
+
+export const WebtoonType = Object.freeze({
+  MANGA: "Manga",
+  DOUJIN: "Doujin",
+});

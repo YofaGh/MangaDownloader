@@ -1,4 +1,5 @@
 import { PushButton, StepsCircle } from ".";
+import { WebtoonType } from "../utils";
 
 export default function ModuleChecker({ module, showHideModal, checkModule }) {
   const circles = [
@@ -11,7 +12,7 @@ export default function ModuleChecker({ module, showHideModal, checkModule }) {
       name: "Downloading an Image",
     },
   ];
-  if (module.type === "Manga")
+  if (module.type === WebtoonType.MANGA)
     circles.unshift({ id: "checkChapter", name: "Getting Chapters" });
   if (module.searchable)
     circles.push({ id: "checkSearch", name: "Searching In Module" });

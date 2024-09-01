@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SideBar } from ".";
-import { getAppWindow } from "../utils";
+import { getAppWindow, WebtoonType } from "../utils";
 import { useDownloadingStore, useDownloadedStore } from "../store";
 
 export default function TopBar() {
@@ -18,7 +18,7 @@ export default function TopBar() {
     downloadLabel = `Downloaded ${downloaded[0].title}`;
     item = downloaded[0];
   }
-  if (item && item.type === "manga") downloadLabel += ` ${item.info}`;
+  if (item && item.type === WebtoonType.MANGA) downloadLabel += ` ${item.info}`;
 
   function showHideMenus() {
     document.getElementById("mySidebar").style.width = isMenuOpen

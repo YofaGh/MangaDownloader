@@ -1,5 +1,5 @@
 import { Wcard, HomeButton } from "../components";
-import { chunkArray, getChapters } from "../utils";
+import { chunkArray, getChapters, DownloadStatus, WebtoonType } from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
@@ -35,7 +35,7 @@ export default function Library() {
     }
     addToQueueBulk(
       chaptersToDownload.map((chapter) => ({
-        type: "manga",
+        type: WebtoonType.MANGA,
         id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
         title: webtoon.title,
         info: chapter.name,
@@ -43,7 +43,7 @@ export default function Library() {
         manga: webtoon.url,
         chapter: chapter.url,
         inLibrary: true,
-        status: "Started",
+        status: DownloadStatus.STARTED,
       }))
     );
     addSuccessNotification(`Added ${webtoon.title} to queue`);

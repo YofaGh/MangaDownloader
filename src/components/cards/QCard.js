@@ -1,4 +1,5 @@
 import { ActionButtonSmall } from "..";
+import { DownloadStatus } from "../../utils";
 
 export default function QCard({
   webtoon,
@@ -15,10 +16,10 @@ export default function QCard({
         <div className="card-info">{webtoon.info}</div>
         <div className="card-domain">{webtoon.module}</div>
       </div>
-      {webtoon.status !== "Not Started" && (
+      {webtoon.status !== DownloadStatus.STOPPED && (
         <div className="statusg">
           <div className="d-status">
-            {webtoon.status === "Started"
+            {webtoon.status === DownloadStatus.STARTED
               ? `Downloading Image ${image}/${total}`
               : `Downloaded ${image}/${total} Images`}
           </div>
@@ -33,19 +34,19 @@ export default function QCard({
         <ActionButtonSmall
           svgName="stop"
           tooltip="Stop"
-          onClick={() => setWebtoonStatus(webtoon, "Not Started")}
+          onClick={() => setWebtoonStatus(webtoon, DownloadStatus.STOPPED)}
         />
-        {webtoon.status === "Started" ? (
+        {webtoon.status === DownloadStatus.STARTED ? (
           <ActionButtonSmall
             svgName="pause"
             tooltip="Pause"
-            onClick={() => setWebtoonStatus(webtoon, "Paused")}
+            onClick={() => setWebtoonStatus(webtoon, DownloadStatus.PAUSED)}
           />
         ) : (
           <ActionButtonSmall
             svgName="start"
             tooltip="Start"
-            onClick={() => setWebtoonStatus(webtoon, "Started")}
+            onClick={() => setWebtoonStatus(webtoon, DownloadStatus.STARTED)}
           />
         )}
       </div>

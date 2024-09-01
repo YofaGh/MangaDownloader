@@ -25,6 +25,8 @@ import {
   searchByKeyword,
   sauce,
   validateImage,
+  DownloadStatus,
+  WebtoonType,
 } from ".";
 
 export const fixFolderName = (manga) =>
@@ -33,7 +35,7 @@ export const fixFolderName = (manga) =>
 export const convert = async (webtoon, openPath) => {
   let pdfName = fixFolderName(webtoon.title);
   let notifInfo = webtoon.title;
-  if (webtoon.type === "manga") {
+  if (webtoon.type === WebtoonType.MANGA) {
     pdfName += `_${webtoon.info}`;
     notifInfo += ` - ${webtoon.info}`;
   } else pdfName = `${webtoon.doujin}_${pdfName}.pdf`;
@@ -48,7 +50,7 @@ export const merge = async (webtoon, openPath) => {
   const { download_path, merge_method } = useSettingsStore.getState().settings;
   let path = `${download_path}\\Merged\\${fixFolderName(webtoon.title)}`;
   let notifInfo = webtoon.title;
-  if (webtoon.type === "manga") {
+  if (webtoon.type === WebtoonType.MANGA) {
     path += `\\${webtoon.info}`;
     notifInfo += ` - ${webtoon.info}`;
   }
@@ -95,13 +97,8 @@ export const isUrlValid = (url) => {
 export const attemptToDownload = async () => {
   const webtoon = useQueueStore
     .getState()
-    .queue.find((item) => item.status === "Started");
-  if (
-    !useSettingsStore.getState().settings ||
-    useDownloadingStore.getState().downloading ||
-    !webtoon
-  )
-    return;
+    .queue.find((item) => item.status === DownloadStatus.STARTED);
+  if (useDownloadingStore.getState().downloading || !webtoon) return;
   useDownloadingStore.getState().setDownloading(webtoon);
   useDownloadingStore.getState().setStopRequested(false);
   startDownloading(webtoon);
@@ -119,7 +116,7 @@ const startDownloading = async (webtoon) => {
   let downloadPath = `${settings.download_path}\\${fixFolderName(
     webtoon.title
   )}`;
-  if (webtoon.type === "manga") downloadPath += `\\${webtoon.info}`;
+  if (webtoon.type === WebtoonType.MANGA) downloadPath += `\\${webtoon.info}`;
   await createDirectory(downloadPath);
   updateItemInQueue(webtoon.id, { total: images.length });
   const existsImages = await readDirectory(downloadPath);
@@ -161,7 +158,7 @@ const startDownloading = async (webtoon) => {
   }
   let inf = { doujin: webtoon.doujin };
   let notifInfo = webtoon.title;
-  if (webtoon.type === "manga") {
+  if (webtoon.type === WebtoonType.MANGA) {
     inf = { manga: webtoon.manga, chapter: webtoon.chapter };
     notifInfo += ` - ${webtoon.info}`;
   }
@@ -264,6 +261,7 @@ export const writeFile = async (fileName, data) => {
 };
 
 export const startUp = async () => {
+  console.log("Dfsf")
   const datas = {
     "settings.json": useSettingsStore.getState().updateSettings,
     "queue.json": useQueueStore.getState().setQueue,
@@ -278,7 +276,10 @@ export const startUp = async () => {
       if (file === "queue.json") {
         data = data.map((item) => ({
           ...item,
-          status: item.status === "Started" ? "Paused" : item.status,
+          status:
+            item.status === DownloadStatus.STARTED
+              ? DownloadStatus.PAUSED
+              : item.status,
         }));
       } else if (file === "library.json") {
         data = Object.entries(data).map(([title, details]) => ({

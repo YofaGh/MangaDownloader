@@ -1,7 +1,7 @@
 import { ActionButtonCustom, ActionButtonSmall } from "..";
 import { convert, merge } from "../../utils";
 
-export default function DCard({ webtoon, index, removeWebtoon, deleteFolder }) {
+export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
   return (
     <div className="queue-card">
       <div className="infog">

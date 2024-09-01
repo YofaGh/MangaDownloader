@@ -7,6 +7,8 @@ import {
   chunkArray,
   getInfo,
   getChapters,
+  DownloadStatus,
+  WebtoonType,
 } from "../utils";
 import {
   Infoed,
@@ -62,14 +64,14 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
 
   const addChapter = (chapter, status) => {
     const webt = {
-      type: "manga",
+      type: WebtoonType.MANGA,
       id: `${id}_$_${chapter.url}`,
       title: webtoon.Title,
       info: chapter.name,
-      module: module,
+      module,
       manga: url,
       chapter: chapter.url,
-      status: status,
+      status,
     };
     if (!queue.find((item) => item.id === webt.id)) {
       addToQueue(webt);
@@ -204,11 +206,11 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
         <div>
           <DownloadButton
             label="Download All Chapters"
-            onClick={() => addAllChapters("Started")}
+            onClick={() => addAllChapters(DownloadStatus.STARTED)}
           />
           <DownloadButton
             label="Add All Chapters to Queue"
-            onClick={() => addAllChapters("Not Started")}
+            onClick={() => addAllChapters(DownloadStatus.STOPPED)}
           />
           <br />
           <br />

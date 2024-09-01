@@ -23,7 +23,7 @@ export default function Module() {
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
-  const moduleDetm = useLocation().state.module;
+  const { is_coded, searchable } = useLocation().state.module;
 
   const showHideModal = (isShow) => {
     const modal = document.getElementById("mod-Modal");
@@ -81,13 +81,13 @@ export default function Module() {
             input={input}
             setInput={setInput}
             placeHolder={`Search anything or Enter Webtoon URL ${
-              moduleDetm.is_coded ? "or Enter Doujin Code" : ""
+              is_coded ? "or Enter Doujin Code" : ""
             }`}
           />
           <Link to={`/${module}/webtoon/${input}`}>
             <ExpandButton name="goto" dimension={20} />
           </Link>
-          {moduleDetm.searchable && (
+          {searchable && (
             <ExpandButton
               name="search"
               dimension={20}

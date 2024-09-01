@@ -8,6 +8,7 @@ import {
   downloadImage,
   searchByKeyword,
   removeFile,
+  WebtoonType,
 } from "../utils";
 import { useSettingsStore, useModulesStore } from "../store";
 
@@ -50,7 +51,7 @@ export default function Modules() {
     }
     setModuleToCheck(module);
     const sample = await getModuleSample(module.domain);
-    if (module.type === "Manga") {
+    if (module.type === WebtoonType.MANGA) {
       let element = document.getElementById("checkChapter");
       element.classList.add("ch-active");
       let chapters = [];
@@ -126,7 +127,7 @@ export default function Modules() {
           element.classList.add("ch-dead");
         }
       }
-    } else if (module.type === "Doujin") {
+    } else if (module.type === WebtoonType.DOUJIN) {
       let element = document.getElementById("checkImage");
       element.classList.add("ch-active");
       let images = [];

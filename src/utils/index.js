@@ -42,4 +42,6 @@ export {
   getAppWindow,
   readFile as _readFile,
   writeFile as _writeFile,
+  DownloadStatus,
+  WebtoonType,
 } from "./etc";

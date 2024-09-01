@@ -1,3 +1,5 @@
+import { DownloadStatus } from "../../utils";
+
 export default function ChapterButton({ chapter, addChapter }) {
   return (
     <button className="btn-cssbuttons">
@@ -6,7 +8,7 @@ export default function ChapterButton({ chapter, addChapter }) {
         <li>
           <span
             className="mg-button download-btn"
-            onClick={() => addChapter(chapter, "Started")}
+            onClick={() => addChapter(chapter, DownloadStatus.STARTED)}
           >
             <img alt="" src="./assets/download.svg" className="btng-icon"></img>
           </span>
@@ -14,7 +16,7 @@ export default function ChapterButton({ chapter, addChapter }) {
         <li>
           <span
             className="mg-button queue-btn"
-            onClick={() => addChapter(chapter, "Not Started")}
+            onClick={() => addChapter(chapter, DownloadStatus.STOPPED)}
           >
             <img alt="" src="./assets/queue.svg" className="btng-icon"></img>
           </span>

@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ExpandButton } from "..";
-import { retrieveImage } from "../../utils";
+import { retrieveImage, checkModule } from "../../utils";
 
-export default function MCard({ module, checkModule, load_covers }) {
+export default function MCard({
+  module,
+  load_covers,
+  setStepStatuses,
+  setModuleToCheck,
+}) {
   const [imageSrc, setImageSrc] = useState(
     load_covers && module.logo ? module.logo : "./assets/module-cyan.svg"
   );
@@ -38,7 +43,10 @@ export default function MCard({ module, checkModule, load_covers }) {
             <ExpandButton
               name="check"
               dimension={30}
-              onClick={() => checkModule(module)}
+              onClick={() => {
+                setModuleToCheck(module);
+                checkModule(module, setStepStatuses);
+              }}
             />
           </div>
         </div>

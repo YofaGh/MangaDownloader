@@ -34,6 +34,7 @@ export {
   startSearching,
   startSaucer,
   showHideModal,
+  checkModule,
 } from "./assets";
 
 export {

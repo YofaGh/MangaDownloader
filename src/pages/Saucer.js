@@ -28,15 +28,11 @@ export default function Saucer() {
   const { addSuccessNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
   const [stepStatuses, setStepStatuses] = useState([]);
-  const circles = saucers.map((site) => ({
-    id: site,
-    name: site[0].toUpperCase() + site.slice(1),
-  }));
 
   useEffect(() => {
     if (saucers.length === 0) {
       (async () => setSaucers(await getSaucersList()))();
-      setStepStatuses(new Array(saucers.length).fill(''));
+      setStepStatuses(new Array(saucers.length).fill(""));
     }
   }, [saucers.length, setSaucers]);
 
@@ -84,7 +80,7 @@ export default function Saucer() {
       <div className="container">
         <div className="f-header">Saucing...</div>
         <StepsCircle
-          circles={circles}
+          circles={saucers.map((site) => site[0].toUpperCase() + site.slice(1))}
           stepStatuses={stepStatuses}
           hasProgressBar={true}
         />

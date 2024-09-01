@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   SearchBar,
   SearchFilterModal,
@@ -43,10 +43,14 @@ export default function Search() {
     sortMenu.style.opacity = sortMenu.style.opacity === "1" ? "0" : "1";
   };
 
-  window.addEventListener("click", (event) => {
-    event.target === document.getElementById("myModal") &&
-      showHideModal("myModal", false);
-  });
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (event.target === document.getElementById("myModal"))
+        showHideModal("myModal", false);
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
   let titleSortClass = `f-menu-item ${sortBy === "name" ? "selected" : ""}`;
   let pageSortClass = `f-menu-item ${sortBy === "page" ? "selected" : ""}`;

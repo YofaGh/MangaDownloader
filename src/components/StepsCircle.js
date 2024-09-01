@@ -12,11 +12,10 @@ export default function StepsCircle({
   return (
     <div className={`${preClassName}steps-container`}>
       <div className={`${preClassName}steps`}>
-        {circles.map(({ id, name }, index) => (
+        {circles.map((name, index) => (
           <span
             className={`${preClassName}steps-circle ${stepStatuses[index]}`}
-            key={id}
-            id={id}
+            key={name}
           >
             {name}
           </span>

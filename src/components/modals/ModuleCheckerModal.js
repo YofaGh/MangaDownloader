@@ -1,25 +1,15 @@
 import { PushButton, StepsCircle } from "..";
-import { WebtoonType, showHideModal } from "../../utils";
+import { WebtoonType, showHideModal, checkModule } from "../../utils";
 
 export default function ModuleCheckerModal({
-  module,
-  checkModule,
+  moduleToCheck,
   stepStatuses,
+  setStepStatuses,
 }) {
-  const circles = [
-    {
-      id: "checkImage",
-      name: "Getting Images",
-    },
-    {
-      id: "checkDownloadImage",
-      name: "Downloading an Image",
-    },
-  ];
-  if (module.type === WebtoonType.MANGA)
-    circles.unshift({ id: "checkChapter", name: "Getting Chapters" });
-  if (module.searchable)
-    circles.push({ id: "checkSearch", name: "Searching In Module" });
+  const circles = ["Getting Images", "Downloading an Image"];
+  if (moduleToCheck.type === WebtoonType.MANGA)
+    circles.unshift("Getting Chapters");
+  if (moduleToCheck.searchable) circles.push("Searching In Module");
   return (
     <div id="checkModal" className="modal">
       <div className="modal-content">
@@ -30,14 +20,17 @@ export default function ModuleCheckerModal({
           <img alt="" src="./assets/delete.svg" className="icon"></img>
         </button>
         <div className="ch-steps-header">
-          <h3>Checking Module: {module.domain}</h3>
+          <h3>Checking Module: {moduleToCheck.domain}</h3>
         </div>
         <StepsCircle
           circles={circles}
           preClassName="ch-"
           stepStatuses={stepStatuses}
         />
-        <PushButton label="Try Again" onClick={() => checkModule(module)} />
+        <PushButton
+          label="Try Again"
+          onClick={() => checkModule(moduleToCheck, setStepStatuses)}
+        />
         <PushButton
           label="Ok"
           onClick={() => showHideModal("checkModal", false)}

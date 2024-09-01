@@ -1,7 +1,8 @@
-import { FilterToggleButton, PushButton, CheckBox } from ".";
-import { useSearchStore, useModulesStore } from "../store";
+import { FilterToggleButton, PushButton, CheckBox } from "..";
+import { useSearchStore, useModulesStore } from "../../store";
+import { showHideModal } from "../../utils";
 
-export default function SearchFilter({ showHideModal }) {
+export default function SearchFilterModal() {
   const {
     searchModuleTypes,
     updateSearchModuleTypeByIndex,
@@ -18,7 +19,7 @@ export default function SearchFilter({ showHideModal }) {
       <div className="modal-content">
         <button
           className="buttonh closeBtn"
-          onClick={() => showHideModal(false)}
+          onClick={() => showHideModal("myModal", false)}
         >
           <img alt="" src="./assets/delete.svg" className="icon"></img>
         </button>

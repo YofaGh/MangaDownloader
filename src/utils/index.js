@@ -33,6 +33,7 @@ export {
   isUrlValid,
   startSearching,
   startSaucer,
+  showHideModal,
 } from "./assets";
 
 export {

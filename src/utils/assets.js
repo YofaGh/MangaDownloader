@@ -261,7 +261,6 @@ export const writeFile = async (fileName, data) => {
 };
 
 export const startUp = async () => {
-  console.log("Dfsf")
   const datas = {
     "settings.json": useSettingsStore.getState().updateSettings,
     "queue.json": useQueueStore.getState().setQueue,
@@ -297,3 +296,6 @@ export const startUp = async () => {
       .setModules(response.map((module) => ({ ...module, selected: true })));
   })();
 };
+
+export const showHideModal = (id, show) =>
+  (document.getElementById(id).style.display = show ? "block" : "none");

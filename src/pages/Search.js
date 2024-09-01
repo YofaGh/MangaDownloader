@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
   SearchBar,
-  SearchFilter,
+  SearchFilterModal,
   FilterButton,
   WSearchCard,
   PushButton,
   ExpandButton,
 } from "../components";
-import { startSearching } from "../utils";
+import { startSearching, showHideModal } from "../utils";
 import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
@@ -43,14 +43,9 @@ export default function Search() {
     sortMenu.style.opacity = sortMenu.style.opacity === "1" ? "0" : "1";
   };
 
-  const showHideModal = (isShow) => {
-    document.getElementById("myModal").style.display = isShow
-      ? "block"
-      : "none";
-  };
-
   window.addEventListener("click", (event) => {
-    event.target === document.getElementById("myModal") && showHideModal(false);
+    event.target === document.getElementById("myModal") &&
+      showHideModal("myModal", false);
   });
 
   let titleSortClass = `f-menu-item ${sortBy === "name" ? "selected" : ""}`;
@@ -63,7 +58,7 @@ export default function Search() {
           <ExpandButton
             name="filter"
             dimension={20}
-            onClick={() => showHideModal(true)}
+            onClick={() => showHideModal("myModal", true)}
           />
           <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
           <ExpandButton
@@ -75,7 +70,7 @@ export default function Search() {
             }}
           />
         </div>
-        <SearchFilter showHideModal={showHideModal} />
+        <SearchFilterModal />
       </div>
     );
   } else if (searchStatus.searching) {

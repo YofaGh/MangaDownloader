@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MCard, ModuleChecker } from "../components";
+import { MCard, ModuleCheckerModal } from "../components";
 import {
   chunkArray,
   getModuleSample,
@@ -9,6 +9,7 @@ import {
   searchByKeyword,
   removeFile,
   WebtoonType,
+  showHideModal,
 } from "../utils";
 import { useSettingsStore, useModulesStore } from "../store";
 
@@ -22,19 +23,13 @@ export default function Modules() {
     3
   );
 
-  const showHideModal = (isShow) => {
-    document.getElementById("checkModal").style.display = isShow
-      ? "block"
-      : "none";
-  };
-
   window.addEventListener("click", (event) => {
     event.target === document.getElementById("checkModal") &&
-      showHideModal(false);
+      showHideModal("checkModal", false);
   });
 
   const checkModule = async (module) => {
-    showHideModal(true);
+    showHideModal("checkModal", true);
     const funcs = [
       "checkChapter",
       "checkImage",
@@ -207,11 +202,7 @@ export default function Modules() {
           </div>
         ))}
       </div>
-      <ModuleChecker
-        module={moduleToCheck}
-        showHideModal={showHideModal}
-        checkModule={checkModule}
-      />
+      <ModuleCheckerModal module={moduleToCheck} checkModule={checkModule} />
     </div>
   );
 }

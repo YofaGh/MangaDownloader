@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
-import { attemptToDownload, writeFile, startUp } from "./utils";
+import { attemptToDownload, writeFile, startUp, showHideModal } from "./utils";
 import {
   Modules,
   Library,
@@ -52,7 +52,7 @@ export default function App() {
     if (!isFirstRender.current || !settings) return;
     isFirstRender.current = false;
     if (settings && !settings.download_path)
-      document.getElementById("browse-modal").style.display = "block";
+      showHideModal("browse-modal", true);
   }, [settings]);
 
   useEffect(() => {

@@ -4,16 +4,13 @@ export { default as FavoriteWebtoon } from "./FavoriteWebtoon";
 export { default as Infoed } from "./Infoed";
 export { default as Loading } from "./Loading";
 export { default as Manga } from "./Manga";
-export { default as ModuleChecker } from "./ModuleChecker";
 export { default as NotificationProvider } from "./NotificationProvider";
 export { default as Queue } from "./Queue";
 export { default as Rating } from "./Rating";
 export { default as CheckBox } from "./CheckBox";
 export { default as SearchBar } from "./SearchBar";
-export { default as SearchFilter } from "./SearchFilter";
 export { default as SideBar } from "./SideBar";
 export { default as TopBar } from "./TopBar";
-export { default as DownloadPathModal } from "./DownloadPathModal";
 export { default as StepsCircle } from "./StepsCircle";
 
 export { default as DCard } from "./cards/DCard";
@@ -22,6 +19,12 @@ export { default as QCard } from "./cards/QCard";
 export { default as SaucerResult } from "./cards/SaucerResultCard";
 export { default as Wcard } from "./cards/WebtoonCard";
 export { default as WSearchCard } from "./cards/WSearchCard";
+
+export { default as ModuleCheckerModal } from "./modals/ModuleCheckerModal";
+export { default as SearchFilterModal } from "./modals/SearchFilterModal";
+export { default as DownloadPathModal } from "./modals/DownloadPathModal";
+export { default as AddToLibraryModal } from "./modals/AddToLibraryModal";
+export { default as ModuleSearchModal } from "./modals/ModuleSearchModal";
 
 export { default as ChapterButton } from "./buttons/ChapterButton";
 export { default as FilterButton } from "./buttons/FilterButton";

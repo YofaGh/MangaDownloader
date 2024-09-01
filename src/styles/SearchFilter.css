@@ -35,6 +35,7 @@
  
 
 .modal {
+  text-align: center;
   display: none;
   position: fixed;
   z-index: 3000;

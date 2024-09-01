@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import {
   SearchBar,
-  CheckBox,
   PushButton,
   ExpandButton,
   WSearchCard,
   Loading,
+  ModuleSearchModal,
 } from "../components";
-import { searchByKeyword } from "../utils";
+import { searchByKeyword, showHideModal } from "../utils";
 import { useSettingsStore } from "../store";
 
 export default function Module() {
@@ -24,11 +24,6 @@ export default function Module() {
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
   const { is_coded, searchable } = useLocation().state.module;
-
-  const showHideModal = (isShow) => {
-    const modal = document.getElementById("mod-Modal");
-    modal.style.display = isShow ? "block" : "none";
-  };
 
   const startSearching = async () => {
     setSearchingStatus("searching");
@@ -75,7 +70,7 @@ export default function Module() {
           <ExpandButton
             name="filter"
             dimension={20}
-            onClick={() => showHideModal(true)}
+            onClick={() => showHideModal("mod-Modal", true)}
           />
           <SearchBar
             input={input}
@@ -95,36 +90,12 @@ export default function Module() {
             />
           )}
         </div>
-        <div id="mod-Modal" className="modal">
-          <div className="modal-content">
-            <button
-              className="buttonh closeBtn"
-              onClick={() => showHideModal(false)}
-            >
-              <img alt="" src="./assets/delete.svg" className="icon"></img>
-            </button>
-            <div className="filter-types">
-              <div className="in-depth">
-                <h2>Depth:&nbsp;&nbsp;</h2>
-                <input
-                  type="number"
-                  value={depth}
-                  onChange={(e) => setDepth(e.target.value)}
-                  name="text"
-                  className="input-depth"
-                ></input>
-                &nbsp;&nbsp;
-              </div>
-              <div className="in-depth">
-                <CheckBox
-                  label=<h2>Only in Title:</h2>
-                  checked={absolute}
-                  onChange={(e) => setAbsolute(e.target.checked)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ModuleSearchModal
+          depth={depth}
+          absolute={absolute}
+          setDepth={setDepth}
+          setAbsolute={setAbsolute}
+        />
       </div>
     );
   } else if (searchingStatus === "searching") {

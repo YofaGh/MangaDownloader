@@ -1,7 +1,7 @@
-export default function Rating({ webtoon }) {
+export default function Rating({ rating }) {
   return (
     <div>
-      {webtoon.Rating}
+      {rating}
       <span
         className="fa fa-star checked rate"
         style={{ marginTop: "3px" }}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Infoed, FlipButton, DownloadButton, Loading } from ".";
+import { Infoed, FlipButton, DownloadButton, Loading, Rating } from ".";
 import {
   getDate,
   getDateTime,
@@ -75,6 +75,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
                 }
               >
                 <img alt="" src={favoritesSvg} className="icongt"></img>
+                {webtoon.Rating && <Rating rating={webtoon.Rating} />}
               </button>
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>

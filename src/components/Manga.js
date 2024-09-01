@@ -9,6 +9,7 @@ import {
   getChapters,
   DownloadStatus,
   WebtoonType,
+  showHideModal,
 } from "../utils";
 import {
   Infoed,
@@ -17,7 +18,7 @@ import {
   Loading,
   ChapterButton,
   DownloadButton,
-  PushButton,
+  AddToLibraryModal,
 } from ".";
 import {
   useSettingsStore,
@@ -57,11 +58,6 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
     })();
   }, [load_covers, module, url]);
 
-  const showHideModal = (isShow) => {
-    const modal = document.getElementById("lib-modal");
-    modal.style.display = isShow ? "block" : "none";
-  };
-
   const addChapter = (chapter, status) => {
     const webt = {
       type: WebtoonType.MANGA,
@@ -96,7 +92,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
         setStopRequested(true);
         clearDownloading();
       }
-    } else showHideModal(true);
+    } else showHideModal("lib-modal", true);
   };
 
   const handleAddMangaToLibrary = () => {
@@ -116,7 +112,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
         last_downloaded_chapter: null,
       });
       addSuccessNotification(`Added ${mangaTitleForLibrary} to library`);
-      showHideModal(false);
+      showHideModal("lib-modal", false);
     }
   };
 
@@ -142,7 +138,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
             src={imageSrc}
             onError={() => retrieveImage(imageSrc, module, setImageSrc)}
           ></img>
-          {webtoon.Rating ? <Rating webtoon={webtoon} /> : <></>}
+          {webtoon.Rating && <Rating rating={webtoon.Rating} />}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>
         <div className="flex-item">
@@ -232,37 +228,11 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
           <Loading />
         </div>
       )}
-      <div id="lib-modal" className="modal">
-        <div className="modal-content">
-          <button
-            className="buttonh closeBtn"
-            onClick={() => showHideModal(false)}
-          >
-            <img alt="" src="./assets/delete.svg" className="icon"></img>
-          </button>
-          <div className="title">Add manga to library</div>
-          <br />
-          <div>
-            Please enter a title for the manga you want to add to your library.
-            <br />
-            You can use the original title of the manga if there isn't any manga
-            with the same title in your library.
-          </div>
-          <br />
-          <input
-            placeholder="Enter a title"
-            className="input"
-            name="text"
-            type="text"
-            value={mangaTitleForLibrary}
-            onChange={(e) => setMangaTitleForLibrary(e.target.value)}
-          ></input>
-          <PushButton label="Ok" onClick={handleAddMangaToLibrary} />
-          <PushButton label="Cancel" onClick={() => showHideModal(false)} />
-          <br />
-          <span id="pwmessage"></span>
-        </div>
-      </div>
+      <AddToLibraryModal
+        mangaTitleForLibrary={mangaTitleForLibrary}
+        setMangaTitleForLibrary={setMangaTitleForLibrary}
+        handleAddMangaToLibrary={handleAddMangaToLibrary}
+      />
     </div>
   ) : (
     <div className="container">

@@ -225,7 +225,7 @@ export const startSearching = async () => {
   doneSearching();
 };
 
-export const startSaucer = async () => {
+export const startSaucer = async (updateStepStatus) => {
   const { sauceUrl, saucers, setSauceStatus, addSauceResult } =
     useSauceStore.getState();
   const { addErrorNotification, addSuccessNotification } =
@@ -236,15 +236,12 @@ export const startSaucer = async () => {
     return;
   }
   for (let i = 0; i < saucers.length; i++) {
+    updateStepStatus(i, "active");
     const site = saucers[i];
-    let element = document.getElementById(site);
-    element.classList.add("active");
     const res = await sauce(site, sauceUrl);
+    if (res && res.length > 0) updateStepStatus(i, "done");
+    else updateStepStatus(i, "dead");
     addSauceResult(res.map((item) => ({ site, ...item })));
-    element.classList.remove("active");
-    element.classList.remove("done");
-    document.querySelector(".steps-indicator").style.width =
-      (i + 1) * 120 + "px";
   }
   addSuccessNotification("Sauced");
   setSauceStatus("Sauced");

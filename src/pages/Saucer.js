@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getSaucersList, uploadImage, startSaucer, chooseFile } from "../utils";
 import {
   SearchBar,
@@ -27,15 +27,26 @@ export default function Saucer() {
   } = useSauceStore();
   const { addSuccessNotification } = useNotificationStore();
   const { load_covers } = useSettingsStore((state) => state.settings);
+  const [stepStatuses, setStepStatuses] = useState([]);
   const circles = saucers.map((site) => ({
     id: site,
     name: site[0].toUpperCase() + site.slice(1),
   }));
 
   useEffect(() => {
-    if (saucers.length === 0)
+    if (saucers.length === 0) {
       (async () => setSaucers(await getSaucersList()))();
+      setStepStatuses(new Array(saucers.length).fill(''));
+    }
   }, [saucers.length, setSaucers]);
+
+  const updateStepStatus = (stepIndex, status) => {
+    setStepStatuses((prev) => {
+      const newStatuses = [...prev];
+      newStatuses[stepIndex] = status;
+      return newStatuses;
+    });
+  };
 
   const upload = async () => {
     const path = await chooseFile();
@@ -47,7 +58,7 @@ export default function Saucer() {
   };
 
   useEffect(() => {
-    if (sauceStatus === "Saucing") startSaucer();
+    if (sauceStatus === "Saucing") startSaucer(updateStepStatus);
   }, [sauceStatus]);
 
   if (sauceStatus === "Sauced") {
@@ -72,7 +83,11 @@ export default function Saucer() {
     return (
       <div className="container">
         <div className="f-header">Saucing...</div>
-        <StepsCircle circles={circles} hasProgressBar={true} />
+        <StepsCircle
+          circles={circles}
+          stepStatuses={stepStatuses}
+          hasProgressBar={true}
+        />
       </div>
     );
   } else if (sauceStatus === "Uploading") {

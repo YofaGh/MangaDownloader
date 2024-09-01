@@ -1,7 +1,11 @@
 import { PushButton, StepsCircle } from "..";
 import { WebtoonType, showHideModal } from "../../utils";
 
-export default function ModuleCheckerModal({ module, checkModule }) {
+export default function ModuleCheckerModal({
+  module,
+  checkModule,
+  stepStatuses,
+}) {
   const circles = [
     {
       id: "checkImage",
@@ -28,7 +32,11 @@ export default function ModuleCheckerModal({ module, checkModule }) {
         <div className="ch-steps-header">
           <h3>Checking Module: {module.domain}</h3>
         </div>
-        <StepsCircle circles={circles} preClassName="ch-" />
+        <StepsCircle
+          circles={circles}
+          preClassName="ch-"
+          stepStatuses={stepStatuses}
+        />
         <PushButton label="Try Again" onClick={() => checkModule(module)} />
         <PushButton
           label="Ok"

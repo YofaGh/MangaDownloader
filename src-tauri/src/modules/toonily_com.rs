@@ -276,7 +276,7 @@ impl Toonily {
                 domain: "toonily.com",
                 logo: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
                 download_image_headers,
-                sample: HashMap::from([("code", "2")]),
+                sample: HashMap::from([("manga", "peerless-dad")]),
                 searchable: true,
                 ..BaseModule::default()
             },

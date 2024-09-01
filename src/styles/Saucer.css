@@ -85,6 +85,12 @@
   background-color: var(--cyan);
   color: var(--gray);
 }
+.steps .steps-circle.dead {
+  transition-delay: 100ms;
+  border-color: var(--cyan)00;
+  background-color: #970000;
+  color: var(--gray);
+}
 .steps .steps-progress-bar {
   position: absolute;
   height: 4px;

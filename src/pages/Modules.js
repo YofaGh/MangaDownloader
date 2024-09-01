@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MCard, ModuleCheckerModal } from "../components";
 import {
   chunkArray,
@@ -18,166 +18,94 @@ export default function Modules() {
     (state) => state.settings
   );
   const [moduleToCheck, setModuleToCheck] = useState([]);
+  const [stepStatuses, setStepStatuses] = useState([]);
   const chunkedModules = chunkArray(
     useModulesStore((state) => state.modules),
     3
   );
 
-  window.addEventListener("click", (event) => {
-    event.target === document.getElementById("checkModal") &&
-      showHideModal("checkModal", false);
-  });
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (event.target === document.getElementById("checkModal"))
+        showHideModal("checkModal", false);
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const updateStepStatus = (stepIndex, status) => {
+    setStepStatuses((prev) => {
+      const newStatuses = [...prev];
+      newStatuses[stepIndex] = status;
+      return newStatuses;
+    });
+  };
 
   const checkModule = async (module) => {
     showHideModal("checkModal", true);
-    const funcs = [
-      "checkChapter",
-      "checkImage",
-      "checkDownloadImage",
-      "checkSearch",
-    ];
-    for (let i = 0; i < funcs.length; i++) {
-      try {
-        const element = document.getElementById(funcs[i]);
-        element.classList.remove("ch-active");
-        element.classList.remove("ch-done");
-        element.classList.remove("ch-dead");
-      } catch (e) {}
-    }
     setModuleToCheck(module);
     const sample = await getModuleSample(module.domain);
+    let circle = 0;
+    let chapter = "";
+    let images = [];
+    let save_names = false;
+    let image = "";
+    let path = "";
+    let saved_path = "";
+    let stat = "dead";
     if (module.type === WebtoonType.MANGA) {
-      let element = document.getElementById("checkChapter");
-      element.classList.add("ch-active");
-      let chapters = [];
-      try {
-        chapters = await getChapters(module.domain, sample.manga);
-      } catch (e) {}
-      element.classList.remove("ch-active");
-      if (chapters) {
-        element.classList.add("ch-done");
-        element = document.getElementById("checkImage");
-        element.classList.add("ch-active");
-        let images = [];
-        let save_names = [];
-        const response = await getImages(
-          module.domain,
-          sample.manga,
-          chapters[0].url
-        );
-        images = response[0];
-        save_names = response[1];
-        if (images) {
-          element.classList.remove("ch-active");
-          element.classList.add("ch-done");
-          element = document.getElementById("checkDownloadImage");
-          element.classList.add("ch-active");
-          let saved_path;
-          if (save_names) {
-            saved_path = await downloadImage(
-              module.domain,
-              images[0],
-              `${data_dir_path}/${save_names[0]}`
-            );
-          } else {
-            saved_path = await downloadImage(
-              module.domain,
-              images[0],
-              `${data_dir_path}/${module.domain}_test.${
-                images[0].split(".").slice(-1)[0]
-              }`
-            );
-          }
-          element.classList.remove("ch-active");
-          element.classList.add("ch-done");
-          await removeFile(saved_path);
-        } else {
-          element.classList.remove("ch-active");
-          element.classList.add("ch-dead");
-          element = document.getElementById("checkDownloadImage");
-          element.classList.add("ch-dead");
-        }
-      } else {
-        element.classList.remove("ch-remove");
-        element.classList.add("ch-dead");
-        element = document.getElementById("checkImage");
-        element.classList.add("ch-dead");
-        element = document.getElementById("checkDownloadImage");
-        element.classList.add("ch-dead");
-      }
-      if (module.searchable) {
-        element = document.getElementById("checkSearch");
-        element.classList.add("ch-active");
-        const results = await searchByKeyword(
-          module.domain,
-          sample.keyword || "a",
-          0.1,
-          false,
-          2
-        );
-        element.classList.remove("ch-active");
-        if (results) {
-          element.classList.add("ch-done");
-        } else {
-          element.classList.add("ch-dead");
-        }
-      }
-    } else if (module.type === WebtoonType.DOUJIN) {
-      let element = document.getElementById("checkImage");
-      element.classList.add("ch-active");
-      let images = [];
-      let save_names = [];
-      const response = await getImages(module.domain, sample.code, "");
-      images = response[0];
-      save_names = response[1];
-      if (images) {
-        element.classList.remove("ch-active");
-        element.classList.add("ch-done");
-        element = document.getElementById("checkDownloadImage");
-        element.classList.add("ch-active");
-        let saved_path;
-        if (save_names) {
-          saved_path = await downloadImage(
-            module.domain,
-            images[0],
-            `${data_dir_path}/${save_names[0]}`
-          );
-        } else {
-          saved_path = await downloadImage(
-            module.domain,
-            images[0],
-            `${data_dir_path}/${module.domain}_test.${
+      setStepStatuses(new Array(4).fill(""));
+      updateStepStatus(circle, "ch-active");
+      let chapters = await getChapters(module.domain, sample.manga);
+      if (chapters.length > 0) {
+        chapter = chapters[0].url;
+        stat = "done";
+      } else chapter = "$";
+      updateStepStatus(circle, `ch-${stat}`);
+      circle++;
+    } else setStepStatuses(new Array(3).fill(""));
+    updateStepStatus(circle, "ch-active");
+    stat = "dead";
+    if (chapter !== "$") {
+      [images, save_names] = await getImages(
+        module.domain,
+        sample.manga || sample.code,
+        chapter
+      );
+      if (images.length > 0) {
+        stat = "done";
+        image = images[0];
+        path = Array.isArray(save_names)
+          ? `${data_dir_path}/${save_names[0]}`
+          : `${data_dir_path}/${module.domain}_test.${
               images[0].split(".").slice(-1)[0]
-            }`
-          );
-        }
-        element.classList.remove("ch-active");
-        element.classList.add("ch-done");
-        await removeFile(saved_path);
-      } else {
-        element.classList.remove("ch-active");
-        element.classList.add("ch-dead");
-        element = document.getElementById("checkDownloadImage");
-        element.classList.add("ch-dead");
-      }
-      if (module.searchable) {
-        element = document.getElementById("checkSearch");
-        element.classList.add("ch-active");
-        const results = await searchByKeyword(
-          module.domain,
-          sample.keyword || "a",
-          0.1,
-          false,
-          2
-        );
-        element.classList.remove("ch-active");
-        if (results) {
-          element.classList.add("ch-done");
-        } else {
-          element.classList.add("ch-dead");
-        }
+            }`;
       }
     }
+    updateStepStatus(circle, `ch-${stat}`);
+    circle++;
+    updateStepStatus(circle, "ch-active");
+    stat = "dead";
+    if (image) saved_path = await downloadImage(module.domain, image, path);
+    if (saved_path) {
+      stat = "done";
+      await removeFile(saved_path);
+    }
+    updateStepStatus(circle, `ch-${stat}`);
+    stat = "dead";
+    circle++;
+    if (module.searchable) {
+      updateStepStatus(circle, "ch-active");
+      const results = await searchByKeyword(
+        module.domain,
+        sample.keyword || "a",
+        0.1,
+        2,
+        false
+      );
+      if (results.length > 0) stat = "done";
+    }
+    updateStepStatus(circle, `ch-${stat}`);
   };
 
   return (
@@ -202,7 +130,11 @@ export default function Modules() {
           </div>
         ))}
       </div>
-      <ModuleCheckerModal module={moduleToCheck} checkModule={checkModule} />
+      <ModuleCheckerModal
+        module={moduleToCheck}
+        checkModule={checkModule}
+        stepStatuses={stepStatuses}
+      />
     </div>
   );
 }

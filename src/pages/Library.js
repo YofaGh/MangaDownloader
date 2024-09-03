@@ -1,5 +1,11 @@
 import { Wcard, HomeButton } from "../components";
-import { chunkArray, getChapters, DownloadStatus, WebtoonType } from "../utils";
+import {
+  chunkArray,
+  getChapters,
+  DownloadStatus,
+  WebtoonType,
+  attemptToDownload,
+} from "../utils";
 import {
   useSettingsStore,
   useQueueStore,
@@ -12,6 +18,7 @@ export default function Library() {
   const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
+  const chunkedWebtoons = chunkArray(library, 3);
 
   const updateSingle = async (webtoon) => {
     const allChapters = await getChapters(webtoon.domain, webtoon.url);
@@ -26,13 +33,10 @@ export default function Library() {
         if (
           reached_last_downloaded_chapter &&
           !chaptersToDownload.includes(chapter)
-        ) {
+        )
           chaptersToDownload.push(chapter);
-        }
       }
-    } else {
-      chaptersToDownload = chaptersToDownload.concat(allChapters);
-    }
+    } else chaptersToDownload = chaptersToDownload.concat(allChapters);
     addToQueueBulk(
       chaptersToDownload.map((chapter) => ({
         type: WebtoonType.MANGA,
@@ -46,10 +50,9 @@ export default function Library() {
         status: DownloadStatus.STARTED,
       }))
     );
-    addSuccessNotification(`Added ${webtoon.title} to queue`);
+    addSuccessNotification(`Added all chapters of ${webtoon.title} to queue`);
+    attemptToDownload(webtoon);
   };
-
-  const chunkedWebtoons = chunkArray(library, 3);
 
   return (
     <div>

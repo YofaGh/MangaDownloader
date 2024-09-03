@@ -3,10 +3,10 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { QCard, ActionButtonBig } from ".";
 import {
   fixFolderName,
-  attemptToDownload,
   removeDirectory,
   DownloadStatus,
   WebtoonType,
+  attemptToDownload,
 } from "../utils";
 import {
   useQueueStore,
@@ -19,6 +19,7 @@ export default function Queue() {
   const {
     queue,
     removeFromQueue,
+    removeAllFromQueue,
     reOrderQueue,
     updateAllItemsInQueue,
     updateItemInQueue,
@@ -59,7 +60,19 @@ export default function Queue() {
     if (!queueEditable) setQueu(queue);
   }, [queue, queueEditable]);
 
+  const removeAllWebtoonsFromQueue = async () => {
+    if (downloading) stopDownloader();
+    queue.forEach((webtoon) => {
+      let folderName = fixFolderName(webtoon.title);
+      if (webtoon.type === WebtoonType.MANGA) folderName += `/${webtoon.info}`;
+      removeDirectory(`${download_path}/${folderName}`, true);
+    });
+    removeAllFromQueue();
+    addSuccessNotification(`Removed all from queue`);
+  };
+
   const removeWebtoonFromQueue = async (webtoon) => {
+    if (downloading && webtoon.id === downloading.id) stopDownloader();
     let folderName = fixFolderName(webtoon.title);
     let notifInfo = webtoon.title;
     if (webtoon.type === WebtoonType.MANGA) {
@@ -68,8 +81,8 @@ export default function Queue() {
     }
     removeFromQueue(webtoon.id);
     addSuccessNotification(`Removed ${notifInfo} from queue`);
-    if (downloading && webtoon.id === downloading.id) stopDownloader();
     removeDirectory(`${download_path}/${folderName}`, true);
+    attemptToDownload();
   };
 
   const handleWebtoonStatusChange = async (webtoon) => {
@@ -82,17 +95,16 @@ export default function Queue() {
   };
 
   const setAllWebtoonsStatus = async (status) => {
-    updateAllItemsInQueue({ status });
     if (status !== DownloadStatus.STARTED && downloading) stopDownloader();
+    updateAllItemsInQueue({ status });
     if (status === DownloadStatus.STOPPED) {
       deleteKeysFromAllItemsInQueue(["image", "total"]);
       queue.forEach((webtoon) => handleWebtoonStatusChange(webtoon));
     }
-    if (status === DownloadStatus.STARTED && !downloading) attemptToDownload();
+    if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
   const setWebtoonStatus = async (webtoon, status) => {
-    updateItemInQueue(webtoon.id, { status });
     if (
       status !== DownloadStatus.STARTED &&
       downloading &&
@@ -103,7 +115,8 @@ export default function Queue() {
       deleteItemKeysInQueue(webtoon.id, ["image", "total"]);
       handleWebtoonStatusChange(webtoon);
     }
-    if (status === DownloadStatus.STARTED && !downloading) attemptToDownload();
+    updateItemInQueue(webtoon.id, { status });
+    if (status === DownloadStatus.STARTED) attemptToDownload(webtoon);
   };
 
   if (queue.length === 0)
@@ -143,9 +156,7 @@ export default function Queue() {
             <ActionButtonBig
               tooltip="Delete All"
               svgName="trash"
-              onClick={() =>
-                queue.forEach((webtoon) => removeWebtoonFromQueue(webtoon))
-              }
+              onClick={removeAllWebtoonsFromQueue}
             />
           </div>
         ) : (

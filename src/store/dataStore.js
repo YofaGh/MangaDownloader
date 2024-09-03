@@ -26,12 +26,25 @@ export const useQueueStore = create((set) => ({
   queue: [],
   setQueue: (newQueue) => set({ queue: newQueue }),
   addToQueue: (newData) =>
-    set((state) => ({
-      queue: [...state.queue, newData],
-    })),
+    set((state) =>
+      state.queue.find((item) => item.id === newData.id)
+        ? {
+            queue: state.queue.map((item) =>
+              item.id === newData.id ? newData : item
+            ),
+          }
+        : { queue: [...state.queue, newData] }
+    ),
   addToQueueBulk: (newItems) =>
     set((state) => ({
-      queue: [...state.queue, ...newItems],
+      // queue: [...state.queue, ...newItems],
+      queue: newItems.reduce((prevQueue, item) => {
+        const existingItem = prevQueue.find((i) => i.id === item.id);
+        if (existingItem) {
+          return prevQueue.map((i) => (i.id === item.id ? item : i));
+        }
+        return [...prevQueue, item];
+      }, state.queue),
     })),
   deleteItemKeysInQueue: (id, keys) =>
     set((state) => ({
@@ -76,6 +89,7 @@ export const useQueueStore = create((set) => ({
     set((state) => ({
       queue: state.queue.filter((entry) => entry.id !== id),
     })),
+  removeAllFromQueue: () => set({ queue: [] }),
 }));
 
 export const useFavoritesStore = create((set) => ({

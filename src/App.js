@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
-import { attemptToDownload, writeFile, startUp, showHideModal } from "./utils";
+import { writeFile, startUp } from "./utils";
 import {
   Modules,
   Library,
@@ -21,49 +21,36 @@ import {
   useFavoritesStore,
   useLibraryStore,
   useQueueStore,
-  useDownloadingStore,
 } from "./store";
 
 export default function App() {
-  const { settings } = useSettingsStore();
-  const { queue } = useQueueStore();
-  const { downloaded } = useDownloadedStore();
-  const { library } = useLibraryStore();
-  const { favorites } = useFavoritesStore();
-  const { downloading } = useDownloadingStore();
-  const debouncerDelay = 2000;
-  const isFirstRender = useRef(true);
-
-  const useDebouncedWriteFile = (fileName, data, delay) => {
-    const timerRef = useRef(null);
-    useEffect(() => {
-      if (!data) return;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => writeFile(fileName, data), delay);
-      return () => clearTimeout(timerRef.current);
-    }, [data, fileName, delay]);
-  };
-
   useEffect(() => {
     startUp();
   }, []);
 
-  useEffect(() => {
-    if (!isFirstRender.current || !settings) return;
-    isFirstRender.current = false;
-    if (settings && !settings.download_path)
-      showHideModal("browse-modal", true);
-  }, [settings]);
+  const useStateSubscriber = (useStore, data, delay) => {
+    const timerRef = useRef(null);
+    useEffect(() => {
+      const unsubscribe = useStore.subscribe((state) => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        if (state[data])
+          timerRef.current = setTimeout(
+            () => writeFile(`${data}.json`, state[data]),
+            delay
+          );
+      });
+      return () => {
+        clearTimeout(timerRef.current);
+        unsubscribe();
+      };
+    }, [useStore, data, delay]);
+  };
 
-  useEffect(() => {
-    if (!downloading) attemptToDownload();
-  }, [downloading, queue]);
-
-  useDebouncedWriteFile("queue.json", queue, debouncerDelay);
-  useDebouncedWriteFile("downloaded.json", downloaded, debouncerDelay);
-  useDebouncedWriteFile("settings.json", settings, debouncerDelay);
-  useDebouncedWriteFile("favorites.json", favorites, debouncerDelay);
-  useDebouncedWriteFile("library.json", library, debouncerDelay);
+  useStateSubscriber(useFavoritesStore, "favorites", 500);
+  useStateSubscriber(useLibraryStore, "library", 500);
+  useStateSubscriber(useSettingsStore, "settings", 500);
+  useStateSubscriber(useQueueStore, "queue", 2000);
+  useStateSubscriber(useDownloadedStore, "downloaded", 2000);
 
   return (
     <HashRouter>

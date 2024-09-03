@@ -7,6 +7,7 @@ import {
   getInfo,
   DownloadStatus,
   WebtoonType,
+  attemptToDownload,
 } from "../utils";
 import {
   useSettingsStore,
@@ -19,7 +20,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
   const { load_covers } = useSettingsStore((state) => state.settings);
-  const { queue, addToQueue, updateItemInQueue } = useQueueStore();
+  const { addToQueue } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
 
   useEffect(() => {
@@ -34,20 +35,16 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
   const addDoujin = (status) => {
     const webt = {
       type: WebtoonType.DOUJIN,
-      id: `${module}_$_${url}`,
+      id: `${module}_$_${url}_$_`,
       title: webtoon.Title,
       info: url,
       module: module,
       doujin: url,
       status,
     };
-    if (!queue.find((item) => item.id === webt.id)) {
-      addToQueue(webt);
-      addSuccessNotification(`Added ${webt.title} to queue`);
-    } else {
-      updateItemInQueue(webt);
-      addSuccessNotification(`Updated ${webt.title} in queue`);
-    }
+    addToQueue(webt);
+    addSuccessNotification(`Added ${webt.title} to queue`);
+    if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
   return webtoonLoaded ? (

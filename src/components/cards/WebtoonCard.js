@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { retrieveImage } from "../../utils";
-import {
-  useDownloadingStore,
-  useLibraryStore,
-  useNotificationStore,
-} from "../../store";
+import { useLibraryStore, useNotificationStore } from "../../store";
 
 export default function Wcard({ webtoon, update, load_covers }) {
   const [loaded, setLoaded] = useState(false);
@@ -14,23 +10,12 @@ export default function Wcard({ webtoon, update, load_covers }) {
   );
   const { removeFromLibrary } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
-  const { downloading, clearDownloading, setStopRequested } =
-    useDownloadingStore();
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
     s2.classList.remove("back");
     s2.classList.add("backloaded");
     setLoaded(true);
-  };
-
-  const remove = async () => {
-    if (downloading && webtoon.id === downloading.id) {
-      setStopRequested(true);
-      clearDownloading();
-    }
-    removeFromLibrary(webtoon.id);
-    addSuccessNotification(`Removed ${webtoon.title} from Library`);
   };
 
   return (
@@ -89,7 +74,15 @@ export default function Wcard({ webtoon, update, load_covers }) {
                     style={{ width: "30px" }}
                   ></img>
                 </button>
-                <button className="mm-button remove-btn" onClick={remove}>
+                <button
+                  className="mm-button remove-btn"
+                  onClick={() => {
+                    removeFromLibrary(webtoon.id);
+                    addSuccessNotification(
+                      `Removed ${webtoon.title} from Library`
+                    );
+                  }}
+                >
                   <img
                     alt=""
                     src="./assets/trash.svg"

@@ -10,6 +10,7 @@ import {
   DownloadStatus,
   WebtoonType,
   showHideModal,
+  attemptToDownload,
 } from "../utils";
 import {
   Infoed,
@@ -25,7 +26,6 @@ import {
   useQueueStore,
   useLibraryStore,
   useNotificationStore,
-  useDownloadingStore,
 } from "../store";
 
 export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
@@ -37,11 +37,9 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const [imageSrc, setImageSrc] = useState("");
   const navigate = useNavigate();
   const { load_covers } = useSettingsStore((state) => state.settings);
-  const { queue, addToQueue, updateItemInQueue } = useQueueStore();
+  const { addToQueue, addToQueueBulk } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
-  const { downloading, clearDownloading, setStopRequested } =
-    useDownloadingStore();
   const id = `${module}_$_${url}`;
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
 
@@ -69,29 +67,33 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
       chapter: chapter.url,
       status,
     };
-    if (!queue.find((item) => item.id === webt.id)) {
-      addToQueue(webt);
-      addSuccessNotification(`Added ${webt.title} - ${chapter.name} to queue`);
-    } else {
-      updateItemInQueue(webt);
-      addSuccessNotification(
-        `Updated ${webt.title} - ${chapter.name} in queue`
-      );
-    }
+    addToQueue(webt);
+    addSuccessNotification(`Added ${webt.title} - ${chapter.name} to queue`);
+    if (status === DownloadStatus.STARTED) attemptToDownload(webt);
   };
 
-  const addAllChapters = (status) =>
-    chapters.forEach((chapter) => addChapter(chapter, status));
+  const addAllChapters = (status) => {
+    addToQueueBulk(
+      chapters.reverse().map((chapter) => ({
+        type: WebtoonType.MANGA,
+        id: `${id}_$_${chapter.url}`,
+        title: webtoon.Title,
+        info: chapter.name,
+        module,
+        manga: url,
+        chapter: chapter.url,
+        status,
+      }))
+    );
+    addSuccessNotification(`Added all chapters of ${webtoon.Title} to queue`);
+    if (status === DownloadStatus.STARTED) attemptToDownload();
+  };
 
   const updateLibrary = async () => {
     if (isInLibrary) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
       addSuccessNotification(`Removed ${webt.title} from Library`);
-      if (downloading && webt.id === downloading.id) {
-        setStopRequested(true);
-        clearDownloading();
-      }
     } else showHideModal("lib-modal", true);
   };
 

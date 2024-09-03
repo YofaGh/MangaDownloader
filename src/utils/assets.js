@@ -149,7 +149,14 @@ const startDownloading = async (webtoon) => {
     }
     i++;
   }
-  if (webtoon.inLibrary) {
+  if (
+    webtoon.inLibrary &&
+    useLibraryStore
+      .getState()
+      .library.find(
+        (item) => item.id === webtoon.id.split("_$_").slice(0, 2).join("_$_")
+      )
+  ) {
     useLibraryStore
       .getState()
       .updateItemInLibrary(`${webtoon.module}_$_${webtoon.manga}`, {
@@ -180,8 +187,9 @@ const startDownloading = async (webtoon) => {
     .addSuccessNotification(`Downloaded ${notifInfo}`);
   if (settings.auto_merge) merge(webtoon, false);
   if (settings.auto_convert) convert(webtoon, false);
-  useQueueStore.getState().removeFromQueue(webtoon.id);
   useDownloadingStore.getState().clearDownloading();
+  useQueueStore.getState().removeFromQueue(webtoon.id);
+  attemptToDownload();
 };
 
 export const startSearching = async () => {
@@ -370,6 +378,8 @@ export const startUp = async () => {
       .getState()
       .setModules(response.map((module) => ({ ...module, selected: true })));
   })();
+  if (!useSettingsStore.getState().settings.download_path)
+    showHideModal("browse-modal", true);
 };
 
 export const showHideModal = (id, show) =>

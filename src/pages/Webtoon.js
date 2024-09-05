@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { WebtoonType } from "../utils";
+import { Manga, Doujin } from "../components";
 import {
   useNotificationStore,
   useFavoritesStore,
   useModulesStore,
 } from "../store";
-import { Manga, Doujin } from "../components";
-import { WebtoonType } from "../utils";
 
 export default function Webtoon() {
   const { module, url } = useParams();

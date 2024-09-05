@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ExpandButton, Image } from "..";
-import { checkModule, DefaultModuleCover } from "../../utils";
+import { moduleChecker } from "../../operators";
+import { DefaultModuleCover } from "../../utils";
 
 export default function MCard({ module, setStepStatuses, setModuleToCheck }) {
   return (
@@ -28,7 +29,7 @@ export default function MCard({ module, setStepStatuses, setModuleToCheck }) {
               dimension={30}
               onClick={() => {
                 setModuleToCheck(module);
-                checkModule(module, setStepStatuses);
+                moduleChecker(module, setStepStatuses);
               }}
             />
           </div>

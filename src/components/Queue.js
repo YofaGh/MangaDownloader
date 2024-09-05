@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { QCard, ActionButtonBig } from ".";
+import { attemptToDownload } from "../operators";
 import {
   fixFolderName,
   removeDirectory,
   DownloadStatus,
   WebtoonType,
-  attemptToDownload,
 } from "../utils";
 import {
   useQueueStore,

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { attemptToDownload } from "../operators";
+import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 import {
   getDate,
   getDateTime,
@@ -9,7 +11,6 @@ import {
   DownloadStatus,
   WebtoonType,
   showHideModal,
-  attemptToDownload,
 } from "../utils";
 import {
   Infoed,
@@ -22,7 +23,6 @@ import {
   Image,
   Icon,
 } from ".";
-import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 
 export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});

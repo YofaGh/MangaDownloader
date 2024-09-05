@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { searcher } from "../operators";
+import { showHideModal } from "../utils";
 import {
   SearchBar,
   SearchFilterModal,
@@ -7,7 +9,6 @@ import {
   PushButton,
   ExpandButton,
 } from "../components";
-import { startSearching, showHideModal } from "../utils";
 import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
@@ -68,7 +69,7 @@ export default function Search() {
             dimension={20}
             onClick={() => {
               setStopRequested(false);
-              startSearching();
+              searcher();
             }}
           />
         </div>

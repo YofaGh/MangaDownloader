@@ -1,6 +1,6 @@
-import { FilterToggleButton, PushButton, CheckBox, Icon } from "..";
-import { useSearchStore, useModulesStore } from "../../store";
 import { showHideModal } from "../../utils";
+import { useSearchStore, useModulesStore } from "../../store";
+import { FilterToggleButton, PushButton, CheckBox, Icon } from "..";
 
 export default function SearchFilterModal() {
   const {

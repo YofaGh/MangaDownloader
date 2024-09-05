@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
 import { writeFile, startUp } from "./utils";
+import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
 import {
   Modules,
   Library,

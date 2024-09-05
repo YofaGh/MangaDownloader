@@ -1,10 +1,10 @@
+import { chooseFolder } from "../utils";
 import { FilterToggleButton, CheckBox } from "../components";
 import {
   useSettingsStore,
   useNotificationStore,
   useDownloadingStore,
 } from "../store";
-import { chooseFolder } from "../utils";
 
 export default function Settings() {
   const { settings, updateSettings } = useSettingsStore();

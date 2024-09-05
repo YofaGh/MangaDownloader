@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { getSaucersList, uploadImage, startSaucer, chooseFile } from "../utils";
+import { saucer } from "../operators";
+import { useNotificationStore, useSauceStore } from "../store";
+import { getSaucersList, uploadImage, chooseFile } from "../utils";
 import {
   SearchBar,
   ExpandButton,
@@ -9,7 +11,6 @@ import {
   PushButton,
   Icon,
 } from "../components";
-import { useNotificationStore, useSauceStore } from "../store";
 
 export default function Saucer() {
   const {
@@ -51,7 +52,7 @@ export default function Saucer() {
   };
 
   useEffect(() => {
-    if (sauceStatus === "Saucing") startSaucer(updateStepStatus);
+    if (sauceStatus === "Saucing") saucer(updateStepStatus);
   }, [sauceStatus]);
 
   if (sauceStatus === "Sauced") {

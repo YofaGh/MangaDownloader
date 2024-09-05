@@ -7,14 +7,16 @@ import {
   BaseDirectory,
 } from "@tauri-apps/plugin-fs";
 
-export const chooseFile = async () =>
-  await open();
+export const chooseFile = async () => await open();
 
 export const chooseFolder = async () => await open({ directory: true });
 
 export const removeFile = async (path) => await remove(path);
 
 export const getAppWindow = () => getCurrent();
+
+export const readFile = async (path) =>
+  await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8");
 
 export const writeFile = async (path, content) =>
   await writeTextFile(
@@ -23,6 +25,3 @@ export const writeFile = async (path, content) =>
     { baseDir: BaseDirectory.AppData },
     "utf8"
   );
-
-export const readFile = async (path) =>
-  await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8");

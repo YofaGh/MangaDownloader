@@ -23,21 +23,6 @@ export const retrieveImage = async (domain, url) =>
 export const validateImage = async (path) =>
   await invoke("validate_image", { path });
 
-export const searchByKeyword = async (
-  domain,
-  keyword,
-  sleepTime,
-  pageLimit,
-  absolute
-) =>
-  await invoke("search_by_keyword", {
-    domain,
-    keyword,
-    sleepTime,
-    pageLimit,
-    absolute,
-  });
-
 export const getSaucersList = async () => await invoke("get_saucers_list");
 
 export const uploadImage = async (path) =>
@@ -62,3 +47,18 @@ export const readDirectory = async (path) =>
   await invoke("read_directory", { path });
 
 export const openFolder = async (path) => await invoke("open_folder", { path });
+
+export const searchByKeyword = async (
+  domain,
+  keyword,
+  sleepTime,
+  pageLimit,
+  absolute
+) =>
+  await invoke("search_by_keyword", {
+    domain,
+    keyword,
+    sleepTime,
+    pageLimit,
+    absolute,
+  });

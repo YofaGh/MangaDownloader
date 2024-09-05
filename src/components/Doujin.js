@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { attemptToDownload } from "../operators";
+import { useQueueStore, useNotificationStore } from "../store";
 import {
   Infoed,
   FlipButton,
@@ -14,9 +16,7 @@ import {
   getInfo,
   DownloadStatus,
   WebtoonType,
-  attemptToDownload,
 } from "../utils";
-import { useQueueStore, useNotificationStore } from "../store";
 
 export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});

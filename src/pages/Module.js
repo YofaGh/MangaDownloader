@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
+import { useSettingsStore } from "../store";
+import { searchByKeyword, showHideModal } from "../utils";
 import {
   SearchBar,
   PushButton,
@@ -8,8 +10,6 @@ import {
   Loading,
   ModuleSearchModal,
 } from "../components";
-import { searchByKeyword, showHideModal } from "../utils";
-import { useSettingsStore } from "../store";
 
 export default function Module() {
   const { module } = useParams();

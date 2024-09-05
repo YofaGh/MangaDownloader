@@ -1,6 +1,6 @@
 import { PushButton } from "..";
-import { chooseFolder, showHideModal } from "../../utils";
 import { useSettingsStore } from "../../store";
+import { chooseFolder, showHideModal } from "../../utils";
 
 export default function DownloadPathModal() {
   const updateSettings = useSettingsStore((state) => state.updateSettings);

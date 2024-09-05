@@ -1,12 +1,7 @@
+import { attemptToDownload } from "../operators";
 import { Wcard, HomeButton } from "../components";
-import {
-  chunkArray,
-  getChapters,
-  DownloadStatus,
-  WebtoonType,
-  attemptToDownload,
-} from "../utils";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
+import { chunkArray, getChapters, DownloadStatus, WebtoonType } from "../utils";
 
 export default function Library() {
   const { addToQueueBulk } = useQueueStore();

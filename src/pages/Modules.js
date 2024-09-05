@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { MCard, ModuleCheckerModal } from "../components";
-import { chunkArray, showHideModal } from "../utils";
 import { useModulesStore } from "../store";
+import { chunkArray, showHideModal } from "../utils";
+import { MCard, ModuleCheckerModal } from "../components";
 
 export default function Modules() {
   const [moduleToCheck, setModuleToCheck] = useState([]);

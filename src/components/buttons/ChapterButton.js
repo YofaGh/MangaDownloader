@@ -1,5 +1,5 @@
-import { DownloadStatus } from "../../utils";
 import { Icon } from "..";
+import { DownloadStatus } from "../../utils";
 
 export default function ChapterButton({ chapter, addChapter }) {
   return (

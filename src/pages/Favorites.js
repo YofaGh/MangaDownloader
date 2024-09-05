@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { FavoriteWebtoon } from "../components";
 import { useFavoritesStore } from "../store";
+import { FavoriteWebtoon } from "../components";
 
 export default function Favorites() {
   const { favorites, removeFromFavorites } = useFavoritesStore();

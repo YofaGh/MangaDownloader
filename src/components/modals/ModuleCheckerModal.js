@@ -1,5 +1,7 @@
+import { moduleChecker } from "../../operators";
 import { PushButton, StepsCircle, Icon } from "..";
-import { WebtoonType, showHideModal, checkModule } from "../../utils";
+import { WebtoonType, showHideModal } from "../../utils";
+
 
 export default function ModuleCheckerModal({
   moduleToCheck,
@@ -29,7 +31,7 @@ export default function ModuleCheckerModal({
         />
         <PushButton
           label="Try Again"
-          onClick={() => checkModule(moduleToCheck, setStepStatuses)}
+          onClick={() => moduleChecker(moduleToCheck, setStepStatuses)}
         />
         <PushButton
           label="Ok"

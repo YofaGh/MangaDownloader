@@ -1,5 +1,5 @@
-import { Queue, Downloaded, PushButton } from "../components";
 import { useDownloadTabStore } from "../store";
+import { Queue, Downloaded, PushButton } from "../components";
 
 export default function Download() {
   const { downloadTab, setDownloadTab } = useDownloadTabStore();

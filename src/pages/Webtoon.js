@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   useNotificationStore,
@@ -10,19 +10,17 @@ import { WebtoonType } from "../utils";
 
 export default function Webtoon() {
   const { module, url } = useParams();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const { addSuccessNotification } = useNotificationStore();
   const { favorites, addToFavorites, removeFromFavorites } =
     useFavoritesStore();
   const moduleType = useModulesStore((state) => state.modules).find(
     (m) => m.domain === module
   ).type;
   const id = `${moduleType}_$_${module}_$_${url}`;
+  const [isFavorite, setIsFavorite] = useState(
+    favorites.some((webtoon) => webtoon.id === id)
+  );
+  const { addSuccessNotification } = useNotificationStore();
   const favoritesSvg = isFavorite ? "favorites" : "favorites-outlined";
-
-  useEffect(() => {
-    setIsFavorite(favorites.some((webtoon) => webtoon.id === id));
-  }, []);
 
   const updateWebtoon = ({ title, cover }) => {
     if (isFavorite) {

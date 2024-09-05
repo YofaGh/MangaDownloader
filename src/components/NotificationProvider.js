@@ -32,16 +32,15 @@ const Notification = ({ id, message, type }) => {
   };
 
   const handlePauseTimer = () => clearInterval(intervalID);
-
-  const handleCloseNotification = () => {
-    handlePauseTimer();
-    setExit(true);
-    setTimeout(() => removeNotification(id), 400);
-  };
-
+  
   useEffect(() => {
+    const handleCloseNotification = () => {
+      clearInterval(intervalID)
+      setExit(true);
+      setTimeout(() => removeNotification(id), 400);
+    };
     if (width === 100) handleCloseNotification();
-  }, [width]);
+  }, [id, intervalID, removeNotification, width]);
 
   useEffect(() => {
     handleStartTimer();

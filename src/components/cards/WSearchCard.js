@@ -1,12 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage } from "../../utils";
+import { Image } from "..";
 
-export default function WSearchCard({ webtoon, load_covers }) {
-  const [imageSrc, setImageSrc] = useState(
-    load_covers ? webtoon.thumbnail : "./assets/default-cover.svg"
-  );
-
+export default function WSearchCard({ webtoon }) {
   return (
     <Link
       to={
@@ -17,12 +12,11 @@ export default function WSearchCard({ webtoon, load_covers }) {
       style={{ textDecoration: "none" }}
     >
       <div className="search-card">
-        <img
+        <Image
           className="search-i"
-          alt=""
-          src={imageSrc}
-          onError={() => retrieveImage(imageSrc, webtoon.domain, setImageSrc)}
-        ></img>
+          src={webtoon.thumbnail}
+          domain={webtoon.domain}
+        />
         <div className="info-searched-w">
           <h3>
             {webtoon.name.slice(0, 100)}

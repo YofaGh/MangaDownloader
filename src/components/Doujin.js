@@ -1,25 +1,26 @@
 import { useState, useEffect } from "react";
-import { Infoed, FlipButton, DownloadButton, Loading, Rating } from ".";
+import {
+  Infoed,
+  FlipButton,
+  DownloadButton,
+  Loading,
+  Rating,
+  Image,
+  Icon,
+} from ".";
 import {
   getDate,
   getDateTime,
-  retrieveImage,
   getInfo,
   DownloadStatus,
   WebtoonType,
   attemptToDownload,
 } from "../utils";
-import {
-  useSettingsStore,
-  useQueueStore,
-  useNotificationStore,
-} from "../store";
+import { useQueueStore, useNotificationStore } from "../store";
 
 export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState("");
-  const { load_covers } = useSettingsStore((state) => state.settings);
   const { addToQueue } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
 
@@ -28,9 +29,8 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
       const response = await getInfo(module, url);
       setWebtoon(response);
       setWebtoonLoaded(true);
-      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
     })();
-  }, [load_covers, module, url]);
+  }, [module, url]);
 
   const addDoujin = (status) => {
     const webt = {
@@ -51,12 +51,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
-          <img
-            className="webtoon-i"
-            alt=""
-            src={imageSrc}
-            onError={() => retrieveImage(imageSrc, module, setImageSrc)}
-          ></img>
+          <Image className="webtoon-i" src={webtoon.Cover} domain={module} />
         </div>
         <div className="flex-item">
           <div className="title-sec">
@@ -71,7 +66,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
                   })
                 }
               >
-                <img alt="" src={favoritesSvg} className="icongt"></img>
+                <Icon svgName={favoritesSvg} className="icongt" />
                 {webtoon.Rating && <Rating rating={webtoon.Rating} />}
               </button>
             </div>

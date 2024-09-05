@@ -1,3 +1,5 @@
+import { Icon } from "../components";
+
 export default function About() {
   return (
     <div className="container">
@@ -10,7 +12,7 @@ export default function About() {
             target="_blank"
             rel="noreferrer"
           >
-            <img alt="" src="./assets/github.svg" className="a-img"></img>
+            <Icon svgName="github" className="a-img" />
           </a>
           <a
             className="social-link"
@@ -18,7 +20,7 @@ export default function About() {
             target="_blank"
             rel="noreferrer"
           >
-            <img alt="" src="./assets/linkedin.svg" className="a-img"></img>
+            <Icon svgName="linkedin" className="a-img" />
           </a>
         </div>
       </div>

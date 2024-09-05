@@ -1,4 +1,4 @@
-import { PushButton, StepsCircle } from "..";
+import { PushButton, StepsCircle, Icon } from "..";
 import { WebtoonType, showHideModal, checkModule } from "../../utils";
 
 export default function ModuleCheckerModal({
@@ -17,7 +17,7 @@ export default function ModuleCheckerModal({
           className="buttonh closeBtn"
           onClick={() => showHideModal("checkModal", false)}
         >
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
+          <Icon svgName="delete" />
         </button>
         <div className="ch-steps-header">
           <h3>Checking Module: {moduleToCheck.domain}</h3>

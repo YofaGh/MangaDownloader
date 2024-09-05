@@ -1,12 +1,13 @@
+import { Icon } from "..";
+
 export default function ExpandButton({ name, onClick, dimension }) {
   return (
     <button className={`m-button ${name}-btn`} onClick={onClick || (() => {})}>
-      <img
-        alt=""
-        src={`./assets/${name}.svg`}
+      <Icon
+        svgName={name}
         className="btn-icon"
         style={{ width: dimension, height: dimension }}
-      ></img>
+      />
     </button>
   );
 }

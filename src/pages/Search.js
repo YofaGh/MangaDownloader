@@ -11,9 +11,7 @@ import { startSearching, showHideModal } from "../utils";
 import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
-  const { default_search_depth, load_covers } = useSettingsStore(
-    (state) => state.settings
-  );
+  const { default_search_depth } = useSettingsStore((state) => state.settings);
   const [sortBy, setSortBy] = useState("");
   const {
     searchResults,
@@ -136,7 +134,7 @@ export default function Search() {
         <br />
         <div className="s-cont">
           {searchResults.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} load_covers={load_covers} />
+            <WSearchCard key={index} webtoon={item} />
           ))}
         </div>
       </div>

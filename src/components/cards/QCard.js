@@ -8,6 +8,7 @@ export default function QCard({
 }) {
   let image = webtoon.image || 0;
   let total = webtoon.total || 0;
+  let inf = total === 0 ? "" : `${image}/${total}`;
 
   return (
     <div className="queue-card">
@@ -20,8 +21,8 @@ export default function QCard({
         <div className="statusg">
           <div className="d-status">
             {webtoon.status === DownloadStatus.STARTED
-              ? `Downloading Image ${image}/${total}`
-              : `Downloaded ${image}/${total} Images`}
+              ? `Downloading Image ${inf}`
+              : `Downloaded ${inf} Images`}
           </div>
         </div>
       )}

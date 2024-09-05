@@ -8,7 +8,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 export const chooseFile = async () =>
-  await open({ directory: false, multiple: false });
+  await open();
 
 export const chooseFolder = async () => await open({ directory: true });
 
@@ -26,14 +26,3 @@ export const writeFile = async (path, content) =>
 
 export const readFile = async (path) =>
   await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8");
-
-export const DownloadStatus = Object.freeze({
-  STARTED: "Started",
-  PAUSED: "Paused",
-  STOPPED: "Stopped",
-});
-
-export const WebtoonType = Object.freeze({
-  MANGA: "Manga",
-  DOUJIN: "Doujin",
-});

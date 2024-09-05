@@ -1,51 +1,52 @@
 import { Link } from "react-router-dom";
+import { Icon } from ".";
 
 export default function SideBar() {
   return (
     <div className="sidebar">
       <Link to={{ pathname: "/" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/home.svg" className="icon"></img>
+          <Icon svgName="home" />
         </button>
       </Link>
       <Link to={{ pathname: "library" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/library.svg" className="icon"></img>
+          <Icon svgName="library" />
         </button>
       </Link>
       <Link to={{ pathname: "search" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/search.svg" className="icon"></img>
+          <Icon svgName="search" />
         </button>
       </Link>
       <Link to={{ pathname: "download" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/dPage.svg" className="icon"></img>
+          <Icon svgName="dPage" />
         </button>
       </Link>
       <Link to={{ pathname: "modules" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/module.svg" className="icon"></img>
+          <Icon svgName="module" />
         </button>
       </Link>
       <Link to={{ pathname: "favorites" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/favorites.svg" className="icon"></img>
+          <Icon svgName="favorites" />
         </button>
       </Link>
       <Link to={{ pathname: "saucer" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/saucer.svg" className="icon"></img>
+          <Icon svgName="saucer" />
         </button>
       </Link>
       <Link to={{ pathname: "about" }} style={{ marginTop: "auto" }}>
         <button className="buttonh">
-          <img alt="" src="./assets/about.svg" className="icon"></img>
+          <Icon svgName="about" />
         </button>
       </Link>
       <Link to={{ pathname: "settings" }} style={{ marginBottom: "40px" }}>
         <button className="buttonhg">
-          <img alt="" src="./assets/settings.svg" className="icon"></img>
+          <Icon svgName="settings" />
         </button>
       </Link>
     </div>

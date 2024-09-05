@@ -18,9 +18,7 @@ export default function Webtoon() {
     (m) => m.domain === module
   ).type;
   const id = `${moduleType}_$_${module}_$_${url}`;
-  const favoritesSvg = isFavorite
-    ? "./assets/favorites.svg"
-    : "./assets/favorites-outlined.svg";
+  const favoritesSvg = isFavorite ? "favorites" : "favorites-outlined";
 
   useEffect(() => {
     setIsFavorite(favorites.some((webtoon) => webtoon.id === id));

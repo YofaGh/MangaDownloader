@@ -1,4 +1,5 @@
 import { DownloadStatus } from "../../utils";
+import { Icon } from "..";
 
 export default function ChapterButton({ chapter, addChapter }) {
   return (
@@ -10,7 +11,7 @@ export default function ChapterButton({ chapter, addChapter }) {
             className="mg-button download-btn"
             onClick={() => addChapter(chapter, DownloadStatus.STARTED)}
           >
-            <img alt="" src="./assets/download.svg" className="btng-icon"></img>
+            <Icon svgName="download" className="btng-icon" />
           </span>
         </li>
         <li>
@@ -18,7 +19,7 @@ export default function ChapterButton({ chapter, addChapter }) {
             className="mg-button queue-btn"
             onClick={() => addChapter(chapter, DownloadStatus.STOPPED)}
           >
-            <img alt="" src="./assets/queue.svg" className="btng-icon"></img>
+            <Icon svgName="queue" className="btng-icon" />
           </span>
         </li>
       </ul>

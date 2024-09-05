@@ -7,12 +7,9 @@ import {
   Loading,
   StepsCircle,
   PushButton,
+  Icon,
 } from "../components";
-import {
-  useSettingsStore,
-  useNotificationStore,
-  useSauceStore,
-} from "../store";
+import { useNotificationStore, useSauceStore } from "../store";
 
 export default function Saucer() {
   const {
@@ -26,7 +23,6 @@ export default function Saucer() {
     clearSauce,
   } = useSauceStore();
   const { addSuccessNotification } = useNotificationStore();
-  const { load_covers } = useSettingsStore((state) => state.settings);
   const [stepStatuses, setStepStatuses] = useState([]);
 
   useEffect(() => {
@@ -46,6 +42,7 @@ export default function Saucer() {
 
   const upload = async () => {
     const path = await chooseFile();
+    if (!path) return;
     setSauceStatus("Uploading");
     const response = await uploadImage(path);
     setSauceUrl(response);
@@ -66,11 +63,7 @@ export default function Saucer() {
         </div>
         <div className="ff-container">
           {sauceResults.map((result) => (
-            <SaucerResult
-              key={result.url}
-              result={result}
-              load_covers={load_covers}
-            />
+            <SaucerResult key={result.url} result={result} />
           ))}
         </div>
       </div>
@@ -112,12 +105,11 @@ export default function Saucer() {
         <div className="locate-container">
           <div className="locate-header">
             <label htmlFor="file" onClick={upload}>
-              <img
-                alt=""
-                src="./assets/upload.svg"
+              <Icon
+                svgName="upload"
                 className="buttonh icon"
                 style={{ width: "70px", height: "70px" }}
-              ></img>
+              />
             </label>
             <p>Upload An Image</p>
           </div>

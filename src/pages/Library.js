@@ -6,15 +6,9 @@ import {
   WebtoonType,
   attemptToDownload,
 } from "../utils";
-import {
-  useSettingsStore,
-  useQueueStore,
-  useLibraryStore,
-  useNotificationStore,
-} from "../store";
+import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 
 export default function Library() {
-  const { load_covers } = useSettingsStore((state) => state.settings);
   const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
@@ -72,11 +66,7 @@ export default function Library() {
             <div key={index} className="card-row">
               {chunk.map((webtoon) => (
                 <div key={webtoon.title} className="card-wrapper">
-                  <Wcard
-                    webtoon={webtoon}
-                    update={updateSingle}
-                    load_covers={load_covers}
-                  />
+                  <Wcard webtoon={webtoon} update={updateSingle} />
                 </div>
               ))}
             </div>

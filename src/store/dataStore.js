@@ -37,7 +37,6 @@ export const useQueueStore = create((set) => ({
     ),
   addToQueueBulk: (newItems) =>
     set((state) => ({
-      // queue: [...state.queue, ...newItems],
       queue: newItems.reduce((prevQueue, item) => {
         const existingItem = prevQueue.find((i) => i.id === item.id);
         if (existingItem) {

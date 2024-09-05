@@ -1,38 +1,21 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExpandButton } from "..";
-import { retrieveImage, checkModule } from "../../utils";
+import { ExpandButton, Image } from "..";
+import { checkModule, DefaultModuleCover } from "../../utils";
 
-export default function MCard({
-  module,
-  load_covers,
-  setStepStatuses,
-  setModuleToCheck,
-}) {
-  const [imageSrc, setImageSrc] = useState(
-    load_covers && module.logo ? module.logo : "./assets/module-cyan.svg"
-  );
-
+export default function MCard({ module, setStepStatuses, setModuleToCheck }) {
   return (
     <div className="m-card">
       <div className="m-card-info">
         <div className="m-title">
           <div className="m-label">{module.type}</div>
           <div className="m-logo">
-            <img
+            <Image
               referrerPolicy="no-referrer"
-              src={imageSrc}
+              src={module.logo}
               loading="lazy"
-              alt=""
               style={{ width: 70, height: 70 }}
-              onError={() =>
-                retrieveImage(
-                  imageSrc,
-                  module.domain,
-                  setImageSrc,
-                  "./assets/module-cyan.svg"
-                )
-              }
+              domain={module.domain}
+              defImage={DefaultModuleCover}
             />
           </div>
           <div className="m-name">{module.domain}</div>

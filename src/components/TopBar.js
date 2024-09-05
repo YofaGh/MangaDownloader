@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SideBar } from ".";
+import { SideBar, Icon } from ".";
 import { getAppWindow, WebtoonType } from "../utils";
 import { useDownloadingStore, useDownloadedStore } from "../store";
 
@@ -50,12 +50,11 @@ export default function TopBar() {
         </div>
         <div className="titleBarBtns">
           <button className="d-buttonh" onClick={() => navigate("download")}>
-            <img
-              alt=""
-              src="./assets/download-st.svg"
+            <Icon
+              svgName="download-st"
               className="icon-t"
               style={{ width: "20px", height: "20px", marginRight: "3px" }}
-            ></img>
+            />
             {downloadLabel && (
               <span className="d-tooltip">{downloadLabel}</span>
             )}
@@ -64,10 +63,10 @@ export default function TopBar() {
             className="topBtn minimizeBtn"
             onClick={() => appWindow.minimize()}
           >
-            <img alt="" src="./assets/minimize.svg" className="icon-t"></img>
+            <Icon svgName="minimize" className="icon-t" />
           </button>
           <button className="topBtn closeBtn" onClick={() => appWindow.close()}>
-            <img alt="" src="./assets/delete.svg" className="icon-t"></img>
+            <Icon svgName="delete" className="icon-t" />
           </button>
         </div>
       </div>

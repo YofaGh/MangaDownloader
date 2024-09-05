@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { MCard, ModuleCheckerModal } from "../components";
 import { chunkArray, showHideModal } from "../utils";
-import { useSettingsStore, useModulesStore } from "../store";
+import { useModulesStore } from "../store";
 
 export default function Modules() {
-  const { load_covers } = useSettingsStore((state) => state.settings);
   const [moduleToCheck, setModuleToCheck] = useState([]);
   const [stepStatuses, setStepStatuses] = useState([]);
   const chunkedModules = chunkArray(useModulesStore().modules, 3);
@@ -32,7 +31,6 @@ export default function Modules() {
               <div key={module.domain} className="card-wrapper">
                 <MCard
                   module={module}
-                  load_covers={load_covers}
                   setStepStatuses={setStepStatuses}
                   setModuleToCheck={setModuleToCheck}
                 />

@@ -1,4 +1,4 @@
-import { CheckBox } from "..";
+import { CheckBox, Icon } from "..";
 import { showHideModal } from "../../utils";
 
 export default function AddToLibraryModal({
@@ -14,7 +14,7 @@ export default function AddToLibraryModal({
           className="buttonh closeBtn"
           onClick={() => showHideModal("mod-Modal", false)}
         >
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
+          <Icon svgName="delete" />
         </button>
         <div className="filter-types">
           <div className="in-depth">

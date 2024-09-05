@@ -1,4 +1,4 @@
-import { FilterToggleButton, PushButton, CheckBox } from "..";
+import { FilterToggleButton, PushButton, CheckBox, Icon } from "..";
 import { useSearchStore, useModulesStore } from "../../store";
 import { showHideModal } from "../../utils";
 
@@ -21,7 +21,7 @@ export default function SearchFilterModal() {
           className="buttonh closeBtn"
           onClick={() => showHideModal("myModal", false)}
         >
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
+          <Icon svgName="delete"/>
         </button>
         <div className="filter-types">
           <h2>Type:&nbsp;</h2>

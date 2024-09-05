@@ -74,13 +74,13 @@ export const getDateTime = (datetime) => {
   }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 };
 
-export const retrieveImage = async (url, domain, setImageSrc, defImage) => {
+export const retrieveImage = async (url, domain, defImage) => {
+  if (!domain) return defImage;
   try {
     const response = await _retrieveImage(domain, url);
-    setImageSrc(response);
-  } catch (_) {
-    setImageSrc(defImage || "./assets/default-cover.svg");
-  }
+    return response || defImage;
+  } catch (_) {}
+  return defImage;
 };
 
 export const chunkArray = (array, size) =>

@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { retrieveImage } from "../../utils";
+import { Image, Icon } from "..";
 import { useLibraryStore, useNotificationStore } from "../../store";
 
-export default function Wcard({ webtoon, update, load_covers }) {
+export default function Wcard({ webtoon, update }) {
   const [loaded, setLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState(
-    load_covers ? webtoon.cover : "./assets/default-cover.svg"
-  );
+  const [imageSrc, setImageSrc] = useState();
   const { removeFromLibrary } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
 
@@ -15,6 +13,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
     let s2 = document.getElementById(webtoon.title);
     s2.classList.remove("back");
     s2.classList.add("backloaded");
+    setImageSrc(document.getElementById(`WC-${webtoon.title}`).src);
     setLoaded(true);
   };
 
@@ -25,14 +24,11 @@ export default function Wcard({ webtoon, update, load_covers }) {
           <div className="back" id={webtoon.title}>
             <div className="back-content">
               <div className="tey">
-                <img
-                  src={imageSrc}
-                  alt=""
+                <Image
+                  id={`WC-${webtoon.title}`}
+                  src={webtoon.cover}
                   className="img-back"
                   onLoad={stopRotate}
-                  onError={() =>
-                    retrieveImage(imageSrc, module.domain, setImageSrc)
-                  }
                 />
               </div>
               <div className="info">
@@ -47,7 +43,7 @@ export default function Wcard({ webtoon, update, load_covers }) {
           {loaded && (
             <div className="front">
               <div className="img">
-                <img src={imageSrc} alt="" className="img-front" />
+                <Image src={imageSrc} className="img-front" />
               </div>
               <div className="front-content">
                 <small className="badge">{webtoon.domain}</small>
@@ -55,24 +51,22 @@ export default function Wcard({ webtoon, update, load_covers }) {
               <div className="front-buttons">
                 <Link to={`/${webtoon.domain}/webtoon/${webtoon.url}`}>
                   <button className="mm-button info-btn">
-                    <img
-                      alt=""
-                      src="./assets/info.svg"
+                    <Icon
+                      svgName="info"
                       className="btn-icon-n"
                       style={{ width: "30px" }}
-                    ></img>
+                    />
                   </button>
                 </Link>
                 <button
                   className="mm-button update-btn"
                   onClick={() => update(webtoon)}
                 >
-                  <img
-                    alt=""
-                    src="./assets/download.svg"
+                  <Icon
+                    svgName="download"
                     className="btn-icon-n"
                     style={{ width: "30px" }}
-                  ></img>
+                  />
                 </button>
                 <button
                   className="mm-button remove-btn"
@@ -83,12 +77,11 @@ export default function Wcard({ webtoon, update, load_covers }) {
                     );
                   }}
                 >
-                  <img
-                    alt=""
-                    src="./assets/trash.svg"
+                  <Icon
+                    svgName="trash"
                     className="btn-icon-n"
                     style={{ width: "30px" }}
-                  ></img>
+                  />
                 </button>
               </div>
             </div>

@@ -13,7 +13,7 @@ import { useSettingsStore } from "../store";
 
 export default function Module() {
   const { module } = useParams();
-  const { default_search_depth, sleep_time, load_covers } = useSettingsStore(
+  const { default_search_depth, sleep_time } = useSettingsStore(
     (state) => state.settings
   );
   const [input, setInput] = useState("");
@@ -137,7 +137,7 @@ export default function Module() {
           }}
         >
           {results.map((item, index) => (
-            <WSearchCard key={index} webtoon={item} load_covers={load_covers} />
+            <WSearchCard key={index} webtoon={item} />
           ))}
         </div>
       </div>

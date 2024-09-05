@@ -1,4 +1,4 @@
-import { PushButton } from "..";
+import { PushButton, Icon } from "..";
 import { showHideModal } from "../../utils";
 
 export default function AddToLibraryModal({
@@ -13,7 +13,7 @@ export default function AddToLibraryModal({
           className="buttonh closeBtn"
           onClick={() => showHideModal("lib-modal", false)}
         >
-          <img alt="" src="./assets/delete.svg" className="icon"></img>
+          <Icon svgName="delete" />
         </button>
         <div className="title">Add manga to library</div>
         <br />

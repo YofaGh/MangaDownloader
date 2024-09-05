@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   getDate,
   getDateTime,
-  retrieveImage,
   chunkArray,
   getInfo,
   getChapters,
@@ -20,13 +19,10 @@ import {
   ChapterButton,
   DownloadButton,
   AddToLibraryModal,
+  Image,
+  Icon,
 } from ".";
-import {
-  useSettingsStore,
-  useQueueStore,
-  useLibraryStore,
-  useNotificationStore,
-} from "../store";
+import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 
 export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const [webtoon, setWebtoon] = useState({});
@@ -34,9 +30,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   const [chaptersLoaded, setChaptersLoaded] = useState(false);
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const [chapters, setChapters] = useState([]);
-  const [imageSrc, setImageSrc] = useState("");
   const navigate = useNavigate();
-  const { load_covers } = useSettingsStore((state) => state.settings);
   const { addToQueue, addToQueueBulk } = useQueueStore();
   const { addSuccessNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
@@ -49,12 +43,11 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
       setWebtoon(response);
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
-      setImageSrc(load_covers ? response.Cover : "./assets/default-cover.svg");
       const chapters = await getChapters(module, url);
       setChapters(chapters);
       setChaptersLoaded(true);
     })();
-  }, [load_covers, module, url]);
+  }, [module, url]);
 
   const addChapter = (chapter, status) => {
     const webt = {
@@ -125,21 +118,11 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
         onClick={() => navigate(-1)}
         style={{ marginTop: "50px", marginRight: "auto", marginLeft: "50px" }}
       >
-        <img
-          alt=""
-          src="./assets/goto.svg"
-          className="icon"
-          style={{ rotate: "180deg" }}
-        ></img>
+        <Icon svgName="goto" style={{ rotate: "180deg" }} />
       </button>
       <div className="basic-info">
         <div className="fixed">
-          <img
-            className="webtoon-i"
-            alt=""
-            src={imageSrc}
-            onError={() => retrieveImage(imageSrc, module, setImageSrc)}
-          ></img>
+          <Image className="webtoon-i" src={webtoon.Cover} domain={module} />
           {webtoon.Rating && <Rating rating={webtoon.Rating} />}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>
@@ -156,18 +139,10 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
                   })
                 }
               >
-                <img alt="" src={favoritesSvg} className="icongt"></img>
+                <Icon svgName={favoritesSvg} className="icongt" />
               </button>
               <button className="buttonht" onClick={updateLibrary}>
-                <img
-                  alt=""
-                  src={
-                    isInLibrary
-                      ? "./assets/library.svg"
-                      : "./assets/add_to_library.svg"
-                  }
-                  className="icon"
-                ></img>
+                <Icon svgName={isInLibrary ? "library" : "add_to_library"} />
               </button>
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>

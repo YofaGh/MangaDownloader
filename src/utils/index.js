@@ -44,6 +44,11 @@ export {
   getAppWindow,
   readFile as _readFile,
   writeFile as _writeFile,
+} from "./etc";
+
+export {
   DownloadStatus,
   WebtoonType,
-} from "./etc";
+  DefaultModuleCover,
+  DefaultWebtoonCover,
+} from "./constants";

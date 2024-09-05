@@ -1,11 +1,9 @@
-export default function SaucerResult({ result, load_covers }) {
+import { Image } from "..";
+
+export default function SaucerResult({ result }) {
   return (
     <div className="sr-card">
-      <img
-        alt=""
-        className="sr-img"
-        src={load_covers ? result.image : "./assets/default-cover.svg"}
-      ></img>
+      <Image className="sr-img" src={result.image} />
       <div className="sr-textBox">
         <div className="sr-textContent">
           <p className="sr-h1">

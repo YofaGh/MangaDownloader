@@ -12,6 +12,7 @@ export { default as SearchBar } from "./SearchBar";
 export { default as SideBar } from "./SideBar";
 export { default as TopBar } from "./TopBar";
 export { default as StepsCircle } from "./StepsCircle";
+export { Image, Icon } from "./Media";
 
 export { default as DCard } from "./cards/DCard";
 export { default as MCard } from "./cards/ModuleCard";

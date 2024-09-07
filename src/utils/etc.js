@@ -16,12 +16,14 @@ export const removeFile = async (path) => await remove(path);
 export const getAppWindow = () => getCurrent();
 
 export const readFile = async (path) =>
-  await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8");
+  JSON.parse(
+    await readTextFile(path, { baseDir: BaseDirectory.AppData }, "utf8")
+  );
 
-export const writeFile = async (path, content) =>
+export const writeFile = async (path, data) =>
   await writeTextFile(
     path,
-    content,
+    JSON.stringify(data, null, 2),
     { baseDir: BaseDirectory.AppData },
     "utf8"
   );

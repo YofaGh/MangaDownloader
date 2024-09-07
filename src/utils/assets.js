@@ -10,8 +10,7 @@ import {
 import {
   _merge,
   _convert,
-  _readFile,
-  _writeFile,
+  readFile,
   getModules,
   openFolder,
   WebtoonType,
@@ -84,16 +83,6 @@ export const isUrlValid = (url) => {
   }
 };
 
-export const writeFile = async (fileName, data) => {
-  if (fileName === "library.json") {
-    data = data.reduce((acc, { title, ...details }) => {
-      acc[title] = details;
-      return acc;
-    }, {});
-  }
-  await _writeFile(fileName, JSON.stringify(data, null, 2));
-};
-
 export const startUp = async () => {
   const datas = {
     "settings.json": useSettingsStore.getState().updateSettings,
@@ -104,9 +93,8 @@ export const startUp = async () => {
   };
   await Promise.all(
     Object.entries(datas).map(async ([file, setter]) => {
-      const contents = await _readFile(file);
-      let data = JSON.parse(contents);
-      if (file === "queue.json") {
+      let data = await readFile(file);
+      if (file === "queue.json")
         data = data.map((item) => ({
           ...item,
           status:
@@ -114,12 +102,6 @@ export const startUp = async () => {
               ? DownloadStatus.PAUSED
               : item.status,
         }));
-      } else if (file === "library.json") {
-        data = Object.entries(data).map(([title, details]) => ({
-          title,
-          ...details,
-        }));
-      }
       setter(data);
     })
   );

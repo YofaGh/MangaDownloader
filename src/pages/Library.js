@@ -19,13 +19,9 @@ export default function Library() {
           reached_last_downloaded_chapter = true;
           continue;
         }
-        if (
-          reached_last_downloaded_chapter &&
-          !chaptersToDownload.includes(chapter)
-        )
-          chaptersToDownload.push(chapter);
+        if (reached_last_downloaded_chapter) chaptersToDownload.push(chapter);
       }
-    } else chaptersToDownload = chaptersToDownload.concat(allChapters);
+    } else chaptersToDownload = allChapters;
     addToQueueBulk(
       chaptersToDownload.map((chapter) => ({
         type: WebtoonType.MANGA,

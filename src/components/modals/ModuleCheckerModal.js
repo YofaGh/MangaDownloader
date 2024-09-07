@@ -21,7 +21,7 @@ export default function ModuleCheckerModal({
         >
           <Icon svgName="delete" />
         </button>
-        <div className="ch-steps-header">
+        <div className="steps-header">
           <h3>Checking Module: {moduleToCheck.domain}</h3>
         </div>
         <StepsCircle

@@ -24,7 +24,6 @@ export {
   convert,
   startUp,
   getDate,
-  writeFile,
   chunkArray,
   isUrlValid,
   getDateTime,
@@ -34,12 +33,12 @@ export {
 } from "./assets";
 
 export {
+  readFile,
+  writeFile,
   chooseFile,
   removeFile,
   chooseFolder,
   getAppWindow,
-  readFile as _readFile,
-  writeFile as _writeFile,
 } from "./etc";
 
 export {

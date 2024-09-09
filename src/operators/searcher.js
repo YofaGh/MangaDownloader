@@ -32,15 +32,14 @@ export default async function searcher() {
   for (const module of selectedSearchModules) {
     if (useSearchStore.getState().stopRequested) return;
     setSearching(module);
-    addSearchResult(
-      await searchByKeyword(
-        module,
-        searchKeyword,
-        sleepTime,
-        searchDepth,
-        searchAbsolute
-      )
+    const result = await searchByKeyword(
+      module,
+      searchKeyword,
+      sleepTime,
+      searchDepth,
+      searchAbsolute
     );
+    addSearchResult(result);
   }
   doneSearching();
 }

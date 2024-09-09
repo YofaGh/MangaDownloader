@@ -18,7 +18,12 @@ import {
   WebtoonType,
 } from "../utils";
 
-export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
+export default function Doujin({
+  module,
+  url,
+  favoritesSvg,
+  toggleFavoriteWebtoon,
+}) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const { addToQueue } = useQueueStore();
@@ -60,10 +65,7 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
               <button
                 className="buttonht"
                 onClick={() =>
-                  updateWebtoon({
-                    title: webtoon.Title,
-                    cover: webtoon.Cover,
-                  })
+                  toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
                 }
               >
                 <Icon svgName={favoritesSvg} className="icongt" />
@@ -73,9 +75,10 @@ export default function Doujin({ module, url, favoritesSvg, updateWebtoon }) {
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>
           <div className="info-sec">
-            {Object.entries(webtoon.Extras).map(([key, value]) => (
-              <Infoed title={`${key}:`} info={value} />
-            ))}
+            {webtoon.Extras &&
+              Object.entries(webtoon.Extras).map(([key, value]) => (
+                <Infoed title={`${key}:`} info={value} />
+              ))}
             <Infoed title="Pages:" info={webtoon.Pages} />
             {webtoon.Dates &&
               Object.entries(webtoon.Dates).map(([key, value]) => (

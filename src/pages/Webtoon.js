@@ -22,18 +22,15 @@ export default function Webtoon() {
   const { addSuccessNotification } = useNotificationStore();
   const favoritesSvg = isFavorite ? "favorites" : "favorites-outlined";
 
-  const updateWebtoon = ({ title, cover }) => {
+  const toggleFavoriteWebtoon = (title, cover) => {
     if (isFavorite) {
       removeFromFavorites(id);
       addSuccessNotification(`Removed ${title} from favorites`);
-      setIsFavorite(false);
     } else {
-      if (!favorites.some((wt) => wt.id === id)) {
-        addToFavorites({ title, id, cover });
-        addSuccessNotification(`Added ${title} to favorites`);
-      }
-      setIsFavorite(true);
+      addToFavorites({ id, title, cover });
+      addSuccessNotification(`Added ${title} to favorites`);
     }
+    setIsFavorite(!isFavorite);
   };
 
   return moduleType === WebtoonType.MANGA ? (
@@ -41,14 +38,14 @@ export default function Webtoon() {
       module={module}
       url={url}
       favoritesSvg={favoritesSvg}
-      updateWebtoon={updateWebtoon}
+      toggleFavoriteWebtoon={toggleFavoriteWebtoon}
     />
   ) : (
     <Doujin
       module={module}
       url={url}
       favoritesSvg={favoritesSvg}
-      updateWebtoon={updateWebtoon}
+      toggleFavoriteWebtoon={toggleFavoriteWebtoon}
     />
   );
 }

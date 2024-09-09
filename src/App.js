@@ -3,24 +3,24 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import { writeFile, startUp } from "./utils";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
 import {
+  About,
+  Search,
+  Module,
+  Saucer,
   Modules,
   Library,
-  Search,
-  HomePage,
   Webtoon,
-  Module,
+  HomePage,
   Download,
-  Favorites,
-  Saucer,
   Settings,
-  About,
+  Favorites,
 } from "./pages";
 import {
-  useSettingsStore,
-  useDownloadedStore,
-  useFavoritesStore,
-  useLibraryStore,
   useQueueStore,
+  useLibraryStore,
+  useSettingsStore,
+  useFavoritesStore,
+  useDownloadedStore,
 } from "./store";
 
 export default function App() {
@@ -46,10 +46,10 @@ export default function App() {
     }, [useStore, data, delay]);
   };
 
-  useStateSubscriber(useFavoritesStore, "favorites", 500);
+  useStateSubscriber(useQueueStore, "queue", 2000);
   useStateSubscriber(useLibraryStore, "library", 500);
   useStateSubscriber(useSettingsStore, "settings", 500);
-  useStateSubscriber(useQueueStore, "queue", 2000);
+  useStateSubscriber(useFavoritesStore, "favorites", 500);
   useStateSubscriber(useDownloadedStore, "downloaded", 2000);
 
   return (
@@ -58,16 +58,16 @@ export default function App() {
       <NotificationProvider />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/library" element={<Library />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/download" element={<Download />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="/modules" element={<Modules />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/about" element={<About />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/saucer" element={<Saucer />} />
-        <Route path="/:module/webtoon/:url*" element={<Webtoon />} />
         <Route path="/:module" element={<Module />} />
+        <Route path="/modules" element={<Modules />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/download" element={<Download />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/favorites" element={<Favorites />} />
+        <Route path="/:module/webtoon/:url*" element={<Webtoon />} />
       </Routes>
       <DownloadPathModal />
     </HashRouter>

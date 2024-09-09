@@ -6,7 +6,11 @@
 
 .f-container {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .f-card {

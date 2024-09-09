@@ -21,27 +21,6 @@
   overflow-x: hidden;
 }
 
-.card-row-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  overflow-x: scroll;
-}
-
-.card-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  margin-left: 10px;
-}
-
-.card-wrapper {
-  flex: 0 0 33.33%;
-  padding: 10px;
-}
 .notification-wrapper {
   position: fixed;
   top: 50px;

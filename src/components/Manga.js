@@ -5,7 +5,6 @@ import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 import {
   getDate,
   getDateTime,
-  chunkArray,
   getInfo,
   getChapters,
   DownloadStatus,
@@ -24,7 +23,12 @@ import {
   Icon,
 } from ".";
 
-export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
+export default function Manga({
+  module,
+  url,
+  favoritesSvg,
+  toggleFavoriteWebtoon,
+}) {
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [chaptersLoaded, setChaptersLoaded] = useState(false);
@@ -91,10 +95,15 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
   };
 
   const handleAddMangaToLibrary = () => {
-    if (library.some((manga) => manga.title === mangaTitleForLibrary)) {
+    if (
+      library.some((manga) => manga.title === mangaTitleForLibrary) ||
+      !mangaTitleForLibrary
+    ) {
+      let errorMessage = "Enter a valid name.";
       const errorField = document.getElementById("pwmessage");
-      errorField.innerText =
-        "A manga with this title is already in your library.";
+      if (mangaTitleForLibrary)
+        errorMessage = "A manga with this title is already in your library.";
+      errorField.innerText = errorMessage;
       errorField.style.color = "red";
     } else {
       addToLibrary({
@@ -133,10 +142,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
               <button
                 className="buttonht"
                 onClick={() =>
-                  updateWebtoon({
-                    title: webtoon.Title,
-                    cover: webtoon.Cover,
-                  })
+                  toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
                 }
               >
                 <Icon svgName={favoritesSvg} className="icongt" />
@@ -176,7 +182,7 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
         </div>
       </div>
       {chaptersLoaded ? (
-        <div>
+        <div className="f-container">
           <DownloadButton
             label="Download All Chapters"
             onClick={() => addAllChapters(DownloadStatus.STARTED)}
@@ -187,15 +193,13 @@ export default function Manga({ module, url, favoritesSvg, updateWebtoon }) {
           />
           <br />
           <br />
-          <div>
-            {chunkArray(chapters.reverse(), 3).map((chunk, index) => (
-              <div key={index} className="card-row">
-                {chunk.map((chapter) => (
-                  <div key={chapter.url} className="card-wrapper">
-                    <ChapterButton chapter={chapter} addChapter={addChapter} />
-                  </div>
-                ))}
-              </div>
+          <div className="f-container">
+            {chapters.reverse().map((chapter) => (
+              <ChapterButton
+                key={chapter.url}
+                chapter={chapter}
+                addChapter={addChapter}
+              />
             ))}
           </div>
         </div>

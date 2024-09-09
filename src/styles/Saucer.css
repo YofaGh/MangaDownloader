@@ -22,14 +22,6 @@
   color: var(--cyan);
 }
 
-.ff-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
-}
-
 .locate-header {
   flex: 1;
   width: 100%;

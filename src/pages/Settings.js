@@ -28,18 +28,14 @@ export default function Settings() {
           <CheckBox
             label="Auto Merge:"
             checked={settings.auto_merge}
-            onChange={() =>
-              updateSettings({ auto_merge: !settings.auto_merge })
-            }
+            onChange={(e) => updateSettings({ auto_merge: e.target.checked })}
           />
         </div>
         <div className="in-depth">
           <CheckBox
             label="Auto Convert To PDF:"
             checked={settings.auto_convert}
-            onChange={() =>
-              updateSettings({ auto_convert: !settings.auto_convert })
-            }
+            onChange={(e) => updateSettings({ auto_convert: e.target.checked })}
           />
         </div>
         <div className="cyb-checkbox-label">
@@ -47,18 +43,18 @@ export default function Settings() {
           <FilterToggleButton
             label="Normal"
             selected={settings.merge_method === "Normal"}
-            onChange={() => {
-              if (settings.merge_method === "Fit")
-                updateSettings({ merge_method: "Normal" });
-            }}
+            onChange={() =>
+              settings.merge_method === "Fit" &&
+              updateSettings({ merge_method: "Normal" })
+            }
           />
           <FilterToggleButton
             label="Fit"
             selected={settings.merge_method === "Fit"}
-            onChange={() => {
-              if (settings.merge_method === "Normal")
-                updateSettings({ merge_method: "Fit" });
-            }}
+            onChange={() =>
+              settings.merge_method === "Normal" &&
+              updateSettings({ merge_method: "Fit" })
+            }
           />
         </div>
       </div>
@@ -67,9 +63,7 @@ export default function Settings() {
           <CheckBox
             label="Load Covers:"
             checked={settings.load_covers}
-            onChange={() =>
-              updateSettings({ load_covers: !settings.load_covers })
-            }
+            onChange={(e) => updateSettings({ load_covers: e.target.checked })}
           />
         </div>
         <div className="cyb-checkbox-label">

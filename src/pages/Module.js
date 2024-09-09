@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSettingsStore } from "../store";
 import { searchByKeyword, showHideModal } from "../utils";
 import {
@@ -12,7 +12,6 @@ import {
 } from "../components";
 
 export default function Module() {
-  const { module } = useParams();
   const { default_search_depth, sleep_time } = useSettingsStore(
     (state) => state.settings
   );
@@ -23,12 +22,12 @@ export default function Module() {
   const [searchingStatus, setSearchingStatus] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("");
-  const { is_coded, searchable } = useLocation().state.module;
+  const { is_coded, searchable, domain } = useLocation().state.module;
 
   const startSearching = async () => {
     setSearchingStatus("searching");
     const response = await searchByKeyword(
-      module,
+      domain,
       input,
       sleep_time,
       depth,
@@ -79,7 +78,7 @@ export default function Module() {
               is_coded ? "or Enter Doujin Code" : ""
             }`}
           />
-          <Link to={`/${module}/webtoon/${input}`}>
+          <Link to={`/${domain}/webtoon/${input}`}>
             <ExpandButton name="goto" dimension={20} />
           </Link>
           {searchable && (
@@ -142,7 +141,5 @@ export default function Module() {
         </div>
       </div>
     );
-  } else {
-    return <></>;
   }
 }

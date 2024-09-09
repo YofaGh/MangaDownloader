@@ -24,7 +24,6 @@ export {
   convert,
   startUp,
   getDate,
-  chunkArray,
   isUrlValid,
   getDateTime,
   fixFolderName,

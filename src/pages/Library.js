@@ -1,13 +1,12 @@
 import { attemptToDownload } from "../operators";
 import { Wcard, HomeButton } from "../components";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
-import { chunkArray, getChapters, DownloadStatus, WebtoonType } from "../utils";
+import { getChapters, DownloadStatus, WebtoonType } from "../utils";
 
 export default function Library() {
   const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
   const { addSuccessNotification } = useNotificationStore();
-  const chunkedWebtoons = chunkArray(library, 3);
 
   const updateSingle = async (webtoon) => {
     const allChapters = await getChapters(webtoon.domain, webtoon.url);
@@ -47,20 +46,16 @@ export default function Library() {
           <HomeButton
             svgName="download"
             label="Update All"
-            onClick={() => {
-              if (library.length > 0) library.forEach(updateSingle);
-            }}
+            onClick={() => library.forEach(updateSingle)}
           />
         </div>
-        <div className="card-row-container">
-          {chunkedWebtoons.map((chunk, index) => (
-            <div key={index} className="card-row">
-              {chunk.map((webtoon) => (
-                <div key={webtoon.title} className="card-wrapper">
-                  <Wcard webtoon={webtoon} update={updateSingle} />
-                </div>
-              ))}
-            </div>
+        <div className="f-container">
+          {library.map((webtoon) => (
+            <Wcard
+              key={webtoon.title}
+              webtoon={webtoon}
+              update={updateSingle}
+            />
           ))}
         </div>
       </div>

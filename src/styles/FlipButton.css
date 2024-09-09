@@ -7,7 +7,6 @@
 
 .cube {
   color: #ccc;
-  font-family: "Roboto", sans-serif;
   transition: all 0.85s cubic-bezier(0.17, 0.67, 0.14, 0.93);
   transform-style: preserve-3d;
   transform-origin: 100% 50%;

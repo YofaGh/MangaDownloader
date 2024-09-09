@@ -62,7 +62,7 @@ export default function Saucer() {
           <h2>Results</h2>
           <PushButton label="Reset" onClick={clearSauce} />
         </div>
-        <div className="ff-container">
+        <div className="f-container">
           {sauceResults.map((result) => (
             <SaucerResult key={result.url} result={result} />
           ))}

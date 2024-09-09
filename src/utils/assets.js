@@ -25,7 +25,7 @@ export const convert = async (webtoon, openPath) => {
   let pdfName = fixFolderName(webtoon.title);
   let notifInfo = webtoon.title;
   if (webtoon.type === WebtoonType.MANGA) {
-    pdfName += `_${webtoon.info}`;
+    pdfName += `_${webtoon.info}.pdf`;
     notifInfo += ` - ${webtoon.info}`;
   } else pdfName = `${webtoon.doujin}_${pdfName}.pdf`;
   await _convert(webtoon.path, pdfName);
@@ -68,11 +68,6 @@ export const retrieveImage = async (url, domain, defImage) => {
   } catch (_) {}
   return defImage;
 };
-
-export const chunkArray = (array, size) =>
-  Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
-    array.slice(i * size, i * size + size)
-  );
 
 export const isUrlValid = (url) => {
   try {

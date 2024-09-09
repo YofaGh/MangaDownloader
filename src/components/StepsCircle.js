@@ -14,8 +14,8 @@ export default function StepsCircle({
       <div className={`${preClassName}steps`}>
         {circles.map((name, index) => (
           <span
-            className={`${preClassName}steps-circle ${stepStatuses[index]}`}
             key={name}
+            className={`${preClassName}steps-circle ${stepStatuses[index]}`}
           >
             {name}
           </span>
@@ -23,8 +23,8 @@ export default function StepsCircle({
         {hasProgressBar && (
           <div className={`${preClassName}steps-progress-bar`}>
             <span
-              className={`${preClassName}steps-indicator`}
               style={{ width: `${progress}%` }}
+              className={`${preClassName}steps-indicator`}
             ></span>
           </div>
         )}

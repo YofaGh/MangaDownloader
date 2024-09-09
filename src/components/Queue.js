@@ -1,37 +1,39 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { QCard, ActionButtonBig } from ".";
+import { QCard, ActionButton } from ".";
 import { attemptToDownload } from "../operators";
 import {
-  fixFolderName,
-  removeDirectory,
-  DownloadStatus,
   WebtoonType,
+  fixFolderName,
+  DownloadStatus,
+  removeDirectory,
 } from "../utils";
 import {
   useQueueStore,
-  useDownloadingStore,
   useSettingsStore,
+  useDownloadingStore,
   useNotificationStore,
 } from "../store";
 
 export default function Queue() {
   const {
     queue,
-    removeFromQueue,
-    removeAllFromQueue,
     reOrderQueue,
-    updateAllItemsInQueue,
+    removeFromQueue,
     updateItemInQueue,
+    removeAllFromQueue,
+    updateAllItemsInQueue,
     deleteItemKeysInQueue,
     deleteKeysFromAllItemsInQueue,
   } = useQueueStore();
   const { downloading, clearDownloading, setStopRequested } =
     useDownloadingStore();
-  const { download_path } = useSettingsStore((state) => state.settings);
-  const [queueEditable, setQueueEditable] = useState(false);
   const [queu, setQueu] = useState(queue);
-  const { addSuccessNotification } = useNotificationStore();
+  const [queueEditable, setQueueEditable] = useState(false);
+  const { download_path } = useSettingsStore((state) => state.settings);
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   function handleOnDragEnd(result) {
     if (!result.destination) return;
@@ -133,42 +135,49 @@ export default function Queue() {
         <div className="info-manage">Number of Items: {queu.length}</div>
         {!queueEditable ? (
           <div className="manage-btn">
-            <ActionButtonBig
-              tooltip="Edit List"
+            <ActionButton
               svgName="edit"
+              tooltip="Edit List"
+              btnClassName="buttong"
               onClick={() => setQueueEditable(true)}
             />
-            <ActionButtonBig
-              tooltip="Stop All"
+            <ActionButton
               svgName="stop"
+              tooltip="Stop All"
+              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.STOPPED)}
             />
-            <ActionButtonBig
-              tooltip="Pause All"
+            <ActionButton
               svgName="pause"
+              tooltip="Pause All"
+              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.PAUSED)}
             />
-            <ActionButtonBig
-              tooltip="Start All"
+            <ActionButton
               svgName="start"
+              tooltip="Start All"
+              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.STARTED)}
             />
-            <ActionButtonBig
-              tooltip="Delete All"
+            <ActionButton
               svgName="trash"
+              tooltip="Delete All"
+              btnClassName="buttong"
               onClick={removeAllWebtoonsFromQueue}
             />
           </div>
         ) : (
           <div className="manage-btn">
-            <ActionButtonBig
-              tooltip="Discard"
+            <ActionButton
               svgName="delete"
+              tooltip="Discard"
+              btnClassName="buttong"
               onClick={discardChanges}
             />
-            <ActionButtonBig
-              tooltip="Apply"
+            <ActionButton
               svgName="done"
+              tooltip="Apply"
+              btnClassName="buttong"
               onClick={confirmChanges}
             />
           </div>
@@ -185,9 +194,9 @@ export default function Queue() {
               >
                 {queu.map((webtoon, index) => (
                   <Draggable
+                    index={index}
                     key={webtoon.id}
                     draggableId={webtoon.id}
-                    index={index}
                     isDragDisabled={!queueEditable}
                   >
                     {(provided) => (

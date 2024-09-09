@@ -2,7 +2,9 @@ import { Image, Icon } from ".";
 import { useNotificationStore } from "../store";
 
 export default function FavoriteWebtoon({ webtoon, removeFromFavorites }) {
-  const { addSuccessNotification } = useNotificationStore();
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   return (
     <div className="f-card">

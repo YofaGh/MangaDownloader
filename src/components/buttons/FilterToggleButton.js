@@ -2,8 +2,8 @@ export default function FilterToggleButton({ label, selected, onChange }) {
   return (
     <div className="filter-toggle">
       <input
-        type="checkbox"
         id={label}
+        type="checkbox"
         className="nio"
         checked={selected}
         onChange={onChange}

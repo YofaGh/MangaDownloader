@@ -3,16 +3,16 @@ import { useModulesStore, useSearchStore, useSettingsStore } from "../store";
 
 export default async function searcher() {
   const {
-    searchKeyword,
+    clearSearch,
     searchDepth,
-    searchAbsolute,
     setSearching,
     doneSearching,
-    setSearchKeyword,
+    searchKeyword,
+    searchAbsolute,
     addSearchResult,
-    setSelectedSearchModules,
-    clearSearch,
+    setSearchKeyword,
     searchModuleTypes,
+    setSelectedSearchModules,
   } = useSearchStore.getState();
   clearSearch();
   const selectedSearchModules = useModulesStore
@@ -43,4 +43,4 @@ export default async function searcher() {
     );
   }
   doneSearching();
-};
+}

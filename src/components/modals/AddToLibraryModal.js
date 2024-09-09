@@ -25,10 +25,10 @@ export default function AddToLibraryModal({
         </div>
         <br />
         <input
-          placeholder="Enter a title"
-          className="input"
           name="text"
           type="text"
+          className="input"
+          placeholder="Enter a title"
           value={mangaTitleForLibrary}
           onChange={(e) => setMangaTitleForLibrary(e.target.value)}
         ></input>

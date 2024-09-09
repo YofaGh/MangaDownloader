@@ -2,10 +2,9 @@ import { moduleChecker } from "../../operators";
 import { PushButton, StepsCircle, Icon } from "..";
 import { WebtoonType, showHideModal } from "../../utils";
 
-
 export default function ModuleCheckerModal({
-  moduleToCheck,
   stepStatuses,
+  moduleToCheck,
   setStepStatuses,
 }) {
   const circles = ["Getting Images", "Downloading an Image"];

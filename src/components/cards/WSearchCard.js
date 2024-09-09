@@ -2,13 +2,10 @@ import { Link } from "react-router-dom";
 import { Image } from "..";
 
 export default function WSearchCard({ webtoon }) {
+  const url = webtoon.url || webtoon.code;
   return (
     <Link
-      to={
-        webtoon.url
-          ? `/${webtoon.domain}/webtoon/${webtoon.url}`
-          : `/${webtoon.domain}/webtoon/${webtoon.code}`
-      }
+      to={`/${webtoon.domain}/webtoon/${url}`}
       style={{ textDecoration: "none" }}
     >
       <div className="search-card">

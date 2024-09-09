@@ -28,12 +28,10 @@ export {
   FlipButton,
   HomeButton,
   PushButton,
+  ActionButton,
   FilterButton,
   ExpandButton,
   ChapterButton,
   DownloadButton,
-  ActionButtonBig,
-  ActionButtonSmall,
-  ActionButtonCustom,
   FilterToggleButton,
 } from "./buttons";

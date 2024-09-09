@@ -3,28 +3,30 @@ import { saucer } from "../operators";
 import { useNotificationStore, useSauceStore } from "../store";
 import { getSaucersList, uploadImage, chooseFile } from "../utils";
 import {
+  Icon,
+  Loading,
   SearchBar,
+  PushButton,
+  StepsCircle,
   ExpandButton,
   SaucerResult,
-  Loading,
-  StepsCircle,
-  PushButton,
-  Icon,
 } from "../components";
 
 export default function Saucer() {
-  const {
-    sauceStatus,
-    sauceUrl,
-    sauceResults,
-    saucers,
-    setSauceStatus,
-    setSauceUrl,
-    setSaucers,
-    clearSauce,
-  } = useSauceStore();
-  const { addSuccessNotification } = useNotificationStore();
   const [stepStatuses, setStepStatuses] = useState([]);
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
+  const {
+    saucers,
+    sauceUrl,
+    clearSauce,
+    setSaucers,
+    sauceStatus,
+    setSauceUrl,
+    sauceResults,
+    setSauceStatus,
+  } = useSauceStore();
 
   useEffect(() => {
     if (saucers.length === 0) {
@@ -74,9 +76,9 @@ export default function Saucer() {
       <div className="container">
         <div className="f-header">Saucing...</div>
         <StepsCircle
-          circles={saucers.map((site) => site[0].toUpperCase() + site.slice(1))}
-          stepStatuses={stepStatuses}
           hasProgressBar={true}
+          stepStatuses={stepStatuses}
+          circles={saucers.map((site) => site[0].toUpperCase() + site.slice(1))}
         />
       </div>
     );

@@ -3,11 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import { useSettingsStore } from "../store";
 import { searchByKeyword, showHideModal } from "../utils";
 import {
+  Loading,
   SearchBar,
   PushButton,
-  ExpandButton,
   WSearchCard,
-  Loading,
+  ExpandButton,
   ModuleSearchModal,
 } from "../components";
 
@@ -16,12 +16,12 @@ export default function Module() {
     (state) => state.settings
   );
   const [input, setInput] = useState("");
-  const [absolute, setAbsolute] = useState(false);
+  const [sortBy, setSortBy] = useState("");
   const [results, setResults] = useState([]);
+  const [absolute, setAbsolute] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const [depth, setDepth] = useState(default_search_depth);
   const [searchingStatus, setSearchingStatus] = useState(null);
-  const [sortOpen, setSortOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("");
   const { is_coded, searchable, domain } = useLocation().state.module;
 
   const startSearching = async () => {
@@ -130,8 +130,8 @@ export default function Module() {
         <div
           style={{
             display: "flex",
-            flexDirection: "row",
             flexWrap: "wrap",
+            flexDirection: "row",
             justifyContent: "center",
           }}
         >

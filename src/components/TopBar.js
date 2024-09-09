@@ -7,9 +7,9 @@ import { useDownloadingStore, useDownloadedStore } from "../store";
 export default function TopBar() {
   const navigate = useNavigate();
   const appWindow = getAppWindow();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { downloading } = useDownloadingStore();
   const { downloaded } = useDownloadedStore();
+  const { downloading } = useDownloadingStore();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   let downloadLabel, item;
   if (downloading) {
     downloadLabel = `Downloading ${downloading.title}`;
@@ -32,8 +32,8 @@ export default function TopBar() {
       <div data-tauri-drag-region className="topBar">
         <div className="titleBar">
           <input
-            id="menu-checkbox"
             type="checkbox"
+            id="menu-checkbox"
             onChange={showHideMenus}
             checked={isMenuOpen}
           ></input>
@@ -51,8 +51,8 @@ export default function TopBar() {
         <div className="titleBarBtns">
           <button className="d-buttonh" onClick={() => navigate("download")}>
             <Icon
-              svgName="download-st"
               className="icon-t"
+              svgName="download-st"
               style={{ width: "20px", height: "20px", marginRight: "3px" }}
             />
             {downloadLabel && (

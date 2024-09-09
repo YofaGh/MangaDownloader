@@ -1,12 +1,14 @@
 import { attemptToDownload } from "../operators";
 import { Wcard, HomeButton } from "../components";
-import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 import { getChapters, DownloadStatus, WebtoonType } from "../utils";
+import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 
 export default function Library() {
-  const { addToQueueBulk } = useQueueStore();
   const { library } = useLibraryStore();
-  const { addSuccessNotification } = useNotificationStore();
+  const addToQueueBulk = useQueueStore((state) => state.addToQueueBulk);
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   const updateSingle = async (webtoon) => {
     const allChapters = await getChapters(webtoon.domain, webtoon.url);
@@ -52,8 +54,8 @@ export default function Library() {
         <div className="f-container">
           {library.map((webtoon) => (
             <Wcard
-              key={webtoon.title}
               webtoon={webtoon}
+              key={webtoon.title}
               update={updateSingle}
             />
           ))}

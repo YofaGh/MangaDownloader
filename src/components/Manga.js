@@ -3,43 +3,43 @@ import { useNavigate } from "react-router-dom";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 import {
-  getDate,
-  getDateTime,
   getInfo,
   getChapters,
-  DownloadStatus,
   WebtoonType,
   showHideModal,
+  DownloadStatus,
 } from "../utils";
 import {
+  Icon,
+  Image,
   Infoed,
-  FlipButton,
   Rating,
   Loading,
+  FlipButton,
   ChapterButton,
   DownloadButton,
   AddToLibraryModal,
-  Image,
-  Icon,
 } from ".";
 
 export default function Manga({
-  module,
   url,
+  module,
   favoritesSvg,
   toggleFavoriteWebtoon,
 }) {
+  const navigate = useNavigate();
+  const id = `${module}_$_${url}`;
   const [webtoon, setWebtoon] = useState({});
+  const [chapters, setChapters] = useState([]);
+  const { addToQueue, addToQueueBulk } = useQueueStore();
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
   const [chaptersLoaded, setChaptersLoaded] = useState(false);
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
-  const [chapters, setChapters] = useState([]);
-  const navigate = useNavigate();
-  const { addToQueue, addToQueueBulk } = useQueueStore();
-  const { addSuccessNotification } = useNotificationStore();
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
-  const id = `${module}_$_${url}`;
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   useEffect(() => {
     (async () => {
@@ -165,17 +165,7 @@ export default function Manga({
             <div style={{ display: "inline-flex" }}>
               {webtoon.Dates &&
                 Object.entries(webtoon.Dates).map(([key, value]) => (
-                  <FlipButton
-                    key={key}
-                    frontText={
-                      <div>
-                        {key}
-                        <br />
-                        {getDate(value)}
-                      </div>
-                    }
-                    backText={getDateTime(value)}
-                  />
+                  <FlipButton key={key} label={key} datetime={value} />
                 ))}
             </div>
           </div>

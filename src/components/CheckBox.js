@@ -4,9 +4,9 @@ export default function CheckBox({ label, onChange, checked }) {
       {label}&nbsp;
       <input
         type="checkbox"
-        className="cyberpunk-checkbox"
         checked={checked}
         onChange={onChange}
+        className="cyberpunk-checkbox"
       ></input>
     </label>
   );

@@ -1,29 +1,29 @@
 import { useState, useEffect } from "react";
 import { searcher } from "../operators";
 import { showHideModal } from "../utils";
+import { useSettingsStore, useSearchStore } from "../store";
 import {
   SearchBar,
-  SearchFilterModal,
-  FilterButton,
-  WSearchCard,
   PushButton,
+  WSearchCard,
+  FilterButton,
   ExpandButton,
+  SearchFilterModal,
 } from "../components";
-import { useSettingsStore, useSearchStore } from "../store";
 
 export default function Search() {
-  const { default_search_depth } = useSettingsStore((state) => state.settings);
   const [sortBy, setSortBy] = useState("");
+  const { default_search_depth } = useSettingsStore((state) => state.settings);
   const {
-    searchResults,
-    searchStatus,
-    searchKeyword,
-    searchDepth,
-    setSearchDepth,
-    selectedSearchModules,
-    setSearchKeyword,
     clearSearch,
+    searchDepth,
+    searchStatus,
+    searchResults,
+    searchKeyword,
+    setSearchDepth,
+    setSearchKeyword,
     setStopRequested,
+    selectedSearchModules,
   } = useSearchStore();
   if (searchDepth === 0) setSearchDepth(default_search_depth);
 
@@ -93,12 +93,12 @@ export default function Search() {
           {selectedSearchModules.map((item) => (
             <FilterButton
               key={item}
+              loading={searchStatus.searching === item}
+              selected={searchResults.some(({ domain }) => domain === item)}
               label={`${item}  ${
                 searchResults.filter((result) => result.domain === item)
                   .length || ""
               }`}
-              selected={searchResults.some(({ domain }) => domain === item)}
-              loading={searchStatus.searching === item}
             />
           ))}
         </div>
@@ -124,11 +124,11 @@ export default function Search() {
           {selectedSearchModules.map((item) => (
             <FilterButton
               key={item}
+              selected={true}
+              loading={false}
               label={`${item} ${
                 searchResults.filter(({ domain }) => domain === item).length
               }`}
-              selected={true}
-              loading={false}
             />
           ))}
         </div>

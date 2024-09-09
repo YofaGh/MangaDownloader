@@ -2,14 +2,16 @@ import { chooseFolder } from "../utils";
 import { FilterToggleButton, CheckBox } from "../components";
 import {
   useSettingsStore,
-  useNotificationStore,
   useDownloadingStore,
+  useNotificationStore,
 } from "../store";
 
 export default function Settings() {
-  const { settings, updateSettings } = useSettingsStore();
-  const { addErrorNotification } = useNotificationStore();
   const { downloading } = useDownloadingStore();
+  const { settings, updateSettings } = useSettingsStore();
+  const addErrorNotification = useNotificationStore(
+    (state) => state.addErrorNotification
+  );
 
   const changeFilePath = async () => {
     if (downloading) {
@@ -69,8 +71,8 @@ export default function Settings() {
         <div className="cyb-checkbox-label">
           Sleep Time:&nbsp;&nbsp;
           <input
-            type="number"
             name="text"
+            type="number"
             className="input-depth"
             defaultValue={settings.sleep_time}
             onChange={(e) =>
@@ -83,8 +85,8 @@ export default function Settings() {
         <div className="cyb-checkbox-label">
           Default Search Depth: &nbsp;&nbsp;
           <input
-            type="number"
             name="text"
+            type="number"
             className="input-depth"
             defaultValue={settings.default_search_depth}
             onChange={(e) =>
@@ -98,11 +100,11 @@ export default function Settings() {
       <div className="cyb-checkbox-label">
         Download Path:&nbsp;
         <input
-          className="input"
+          readOnly
           name="text"
           type="text"
+          className="input"
           value={settings.download_path}
-          readOnly
         ></input>
         <span className="playstore-button texts" onClick={changeFilePath}>
           <span className="text-2">Browse</span>

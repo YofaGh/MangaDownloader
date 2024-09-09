@@ -4,10 +4,12 @@ import { Image, Icon } from "..";
 import { useLibraryStore, useNotificationStore } from "../../store";
 
 export default function Wcard({ webtoon, update }) {
-  const [loaded, setLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState();
+  const [loaded, setLoaded] = useState(false);
   const { removeFromLibrary } = useLibraryStore();
-  const { addSuccessNotification } = useNotificationStore();
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
@@ -25,10 +27,10 @@ export default function Wcard({ webtoon, update }) {
             <div className="back-content">
               <div className="tey">
                 <Image
-                  id={`WC-${webtoon.title}`}
                   src={webtoon.cover}
-                  className="img-back"
                   onLoad={stopRotate}
+                  className="img-back"
+                  id={`WC-${webtoon.title}`}
                 />
               </div>
               <div className="info">

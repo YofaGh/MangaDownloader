@@ -7,18 +7,18 @@ export default function About() {
       <div>
         <div className="a-card">
           <a
-            className="social-link"
-            href="https://github.com/YofaGh"
             target="_blank"
             rel="noreferrer"
+            className="social-link"
+            href="https://github.com/YofaGh"
           >
             <Icon svgName="github" className="a-img" />
           </a>
           <a
-            className="social-link"
-            href="https://www.linkedin.com/in/yousef-ghadiri-795b74242"
             target="_blank"
             rel="noreferrer"
+            className="social-link"
+            href="https://www.linkedin.com/in/yousef-ghadiri-795b74242"
           >
             <Icon svgName="linkedin" className="a-img" />
           </a>

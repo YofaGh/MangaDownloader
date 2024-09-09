@@ -20,18 +20,18 @@ export default function AddToLibraryModal({
           <div className="in-depth">
             <h2>Depth:&nbsp;&nbsp;</h2>
             <input
+              name="text"
               type="number"
               value={depth}
-              onChange={(e) => setDepth(e.target.value)}
-              name="text"
               className="input-depth"
+              onChange={(e) => setDepth(e.target.value)}
             ></input>
             &nbsp;&nbsp;
           </div>
           <div className="in-depth">
             <CheckBox
-              label=<h2>Only in Title:</h2>
               checked={absolute}
+              label=<h2>Only in Title:</h2>
               onChange={(e) => setAbsolute(e.target.checked)}
             />
           </div>

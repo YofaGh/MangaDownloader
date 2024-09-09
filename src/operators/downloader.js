@@ -1,22 +1,22 @@
 import {
+  useQueueStore,
+  useLibraryStore,
+  useSettingsStore,
   useDownloadedStore,
   useDownloadingStore,
-  useLibraryStore,
   useNotificationStore,
-  useQueueStore,
-  useSettingsStore,
 } from "../store";
 import {
-  createDirectory,
-  downloadImage,
-  getImages,
-  readDirectory,
-  validateImage,
-  WebtoonType,
-  fixFolderName,
   merge,
   convert,
+  getImages,
+  WebtoonType,
+  downloadImage,
+  readDirectory,
+  validateImage,
+  fixFolderName,
   DownloadStatus,
+  createDirectory,
 } from "../utils";
 
 export default function attemptToDownload() {

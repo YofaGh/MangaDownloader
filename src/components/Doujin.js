@@ -1,33 +1,29 @@
 import { useState, useEffect } from "react";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useNotificationStore } from "../store";
+import { getInfo, WebtoonType, DownloadStatus } from "../utils";
 import {
+  Icon,
+  Image,
+  Rating,
   Infoed,
+  Loading,
   FlipButton,
   DownloadButton,
-  Loading,
-  Rating,
-  Image,
-  Icon,
 } from ".";
-import {
-  getDate,
-  getDateTime,
-  getInfo,
-  DownloadStatus,
-  WebtoonType,
-} from "../utils";
 
 export default function Doujin({
-  module,
   url,
+  module,
   favoritesSvg,
   toggleFavoriteWebtoon,
 }) {
+  const { addToQueue } = useQueueStore();
   const [webtoon, setWebtoon] = useState({});
   const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const { addToQueue } = useQueueStore();
-  const { addSuccessNotification } = useNotificationStore();
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   useEffect(() => {
     (async () => {
@@ -82,16 +78,7 @@ export default function Doujin({
             <Infoed title="Pages:" info={webtoon.Pages} />
             {webtoon.Dates &&
               Object.entries(webtoon.Dates).map(([key, value]) => (
-                <FlipButton
-                  frontText={
-                    <div>
-                      {key}
-                      <br />
-                      {getDate(value)}
-                    </div>
-                  }
-                  backText={getDateTime(value)}
-                />
+                <FlipButton key={key} label={key} datetime={value} />
               ))}
           </div>
         </div>

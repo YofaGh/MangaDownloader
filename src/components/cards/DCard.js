@@ -1,5 +1,5 @@
+import { ActionButton } from "..";
 import { convert, merge } from "../../utils";
-import { ActionButtonCustom, ActionButtonSmall } from "..";
 
 export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
   return (
@@ -13,25 +13,27 @@ export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
         <div className="d-status">Downladed {webtoon.images + ""} Images</div>
       </div>
       <div className="button-containerrr">
-        <ActionButtonCustom
-          onClick={() => merge(webtoon, true)}
+        <ActionButton
           svgName="merge"
           tooltip="Merge"
+          icnClassName="icofn"
+          onClick={() => merge(webtoon, true)}
         />
-        <ActionButtonCustom
-          onClick={() => convert(webtoon, true)}
+        <ActionButton
           svgName="pdf"
+          icnClassName="icofn"
           tooltip="Convert to PDF"
+          onClick={() => convert(webtoon, true)}
         />
-        <ActionButtonSmall
-          onClick={() => removeWebtoon(webtoon.id)}
+        <ActionButton
           svgName="delete"
           tooltip="Remove"
+          onClick={() => removeWebtoon(webtoon.id)}
         />
-        <ActionButtonSmall
-          onClick={() => deleteFolder(webtoon)}
+        <ActionButton
           svgName="trash"
           tooltip="Delete Folder"
+          onClick={() => deleteFolder(webtoon)}
         />
       </div>
     </div>

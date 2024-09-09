@@ -3,9 +3,9 @@ import { useParams } from "react-router-dom";
 import { WebtoonType } from "../utils";
 import { Manga, Doujin } from "../components";
 import {
-  useNotificationStore,
-  useFavoritesStore,
   useModulesStore,
+  useFavoritesStore,
+  useNotificationStore,
 } from "../store";
 
 export default function Webtoon() {
@@ -19,8 +19,10 @@ export default function Webtoon() {
   const [isFavorite, setIsFavorite] = useState(
     favorites.some((webtoon) => webtoon.id === id)
   );
-  const { addSuccessNotification } = useNotificationStore();
   const favoritesSvg = isFavorite ? "favorites" : "favorites-outlined";
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
 
   const toggleFavoriteWebtoon = (title, cover) => {
     if (isFavorite) {

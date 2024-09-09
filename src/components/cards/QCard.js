@@ -1,10 +1,10 @@
-import { ActionButtonSmall } from "..";
+import { ActionButton } from "..";
 import { DownloadStatus } from "../../utils";
 
 export default function QCard({
   webtoon,
-  removeWebtoonFromQueue,
   setWebtoonStatus,
+  removeWebtoonFromQueue,
 }) {
   let image = webtoon.image || 0;
   let total = webtoon.total || 0;
@@ -27,24 +27,24 @@ export default function QCard({
         </div>
       )}
       <div className="button-containerrr">
-        <ActionButtonSmall
+        <ActionButton
           svgName="trash"
           tooltip="Delete"
           onClick={() => removeWebtoonFromQueue(webtoon)}
         />
-        <ActionButtonSmall
+        <ActionButton
           svgName="stop"
           tooltip="Stop"
           onClick={() => setWebtoonStatus(webtoon, DownloadStatus.STOPPED)}
         />
         {webtoon.status === DownloadStatus.STARTED ? (
-          <ActionButtonSmall
+          <ActionButton
             svgName="pause"
             tooltip="Pause"
             onClick={() => setWebtoonStatus(webtoon, DownloadStatus.PAUSED)}
           />
         ) : (
-          <ActionButtonSmall
+          <ActionButton
             svgName="start"
             tooltip="Start"
             onClick={() => setWebtoonStatus(webtoon, DownloadStatus.STARTED)}

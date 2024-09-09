@@ -3,16 +3,16 @@ import { useSearchStore, useModulesStore } from "../../store";
 import { FilterToggleButton, PushButton, CheckBox, Icon } from "..";
 
 export default function SearchFilterModal() {
-  const {
-    searchModuleTypes,
-    updateSearchModuleTypeByIndex,
-    searchAbsolute,
-    setSearchAbsolute,
-    searchDepth,
-    setSearchDepth,
-  } = useSearchStore();
   const { modules, updateModuleSelected, updateModulesSelected } =
     useModulesStore();
+  const {
+    searchDepth,
+    setSearchDepth,
+    searchAbsolute,
+    searchModuleTypes,
+    setSearchAbsolute,
+    updateSearchModuleTypeByIndex,
+  } = useSearchStore();
 
   return (
     <div id="myModal" className="modal">
@@ -21,7 +21,7 @@ export default function SearchFilterModal() {
           className="buttonh closeBtn"
           onClick={() => showHideModal("myModal", false)}
         >
-          <Icon svgName="delete"/>
+          <Icon svgName="delete" />
         </button>
         <div className="filter-types">
           <h2>Type:&nbsp;</h2>
@@ -39,19 +39,19 @@ export default function SearchFilterModal() {
           <div className="in-depth">
             <h2>Depth:&nbsp;&nbsp;</h2>
             <input
+              name="text"
               type="number"
               value={searchDepth}
-              onChange={(e) => setSearchDepth(Number(e.target.value))}
-              name="text"
               className="input-depth"
+              onChange={(e) => setSearchDepth(Number(e.target.value))}
             ></input>
             &nbsp;&nbsp;
           </div>
           <div className="in-depth">
             <CheckBox
-              label=<h2>Only in Title:</h2>
               checked={searchAbsolute}
-              onChange={() => (e) => setSearchAbsolute(e.target.checked)}
+              label=<h2>Only in Title:</h2>
+              onChange={(e) => setSearchAbsolute(e.target.checked)}
             />
           </div>
         </div>

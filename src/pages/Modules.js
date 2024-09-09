@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useModulesStore } from "../store";
 import { showHideModal } from "../utils";
+import { useModulesStore } from "../store";
 import { MCard, ModuleCheckerModal } from "../components";
 
 export default function Modules() {
-  const [moduleToCheck, setModuleToCheck] = useState([]);
   const [stepStatuses, setStepStatuses] = useState([]);
+  const [moduleToCheck, setModuleToCheck] = useState([]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,16 +26,16 @@ export default function Modules() {
       <div className="f-container">
         {useModulesStore((state) => state.modules).map((module) => (
           <MCard
-            key={module.domain}
             module={module}
+            key={module.domain}
             setStepStatuses={setStepStatuses}
             setModuleToCheck={setModuleToCheck}
           />
         ))}
       </div>
       <ModuleCheckerModal
-        moduleToCheck={moduleToCheck}
         stepStatuses={stepStatuses}
+        moduleToCheck={moduleToCheck}
         setStepStatuses={setStepStatuses}
       />
     </div>

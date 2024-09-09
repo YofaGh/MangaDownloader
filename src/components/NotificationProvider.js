@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useNotificationStore } from "../store";
 
 export default function NotificationProvider() {
-  const { notifications } = useNotificationStore();
   return (
     <div className="notification-wrapper">
-      {notifications.map((notification) => (
-        <Notification key={notification.id} {...notification} />
-      ))}
+      {useNotificationStore((state) => state.notifications).map(
+        (notification) => (
+          <Notification key={notification.id} {...notification} />
+        )
+      )}
     </div>
   );
 }
@@ -16,7 +17,9 @@ const Notification = ({ id, message, type }) => {
   const [exit, setExit] = useState(false);
   const [width, setWidth] = useState(0);
   const [intervalID, setIntervalID] = useState(null);
-  const { removeNotification } = useNotificationStore();
+  const removeNotification = useNotificationStore(
+    (state) => state.removeNotification
+  );
 
   const handleStartTimer = () => {
     const id = setInterval(
@@ -31,11 +34,9 @@ const Notification = ({ id, message, type }) => {
     setIntervalID(id);
   };
 
-  const handlePauseTimer = () => clearInterval(intervalID);
-  
   useEffect(() => {
     const handleCloseNotification = () => {
-      clearInterval(intervalID)
+      clearInterval(intervalID);
       setExit(true);
       setTimeout(() => removeNotification(id), 400);
     };
@@ -48,8 +49,8 @@ const Notification = ({ id, message, type }) => {
 
   return (
     <div
-      onMouseEnter={handlePauseTimer}
       onMouseLeave={handleStartTimer}
+      onMouseEnter={() => clearInterval(intervalID)}
       className={`notification-item ${type} ${exit ? "exit" : ""}`}
     >
       <p>{message}</p>

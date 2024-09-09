@@ -1,4 +1,4 @@
-import { DCard, ActionButtonBig } from ".";
+import { DCard, ActionButton } from ".";
 import { removeDirectory } from "../utils";
 import { useDownloadedStore } from "../store";
 
@@ -30,14 +30,16 @@ export default function Downloaded() {
       <div className="manage">
         <div className="info-manage">Number of Items: {downloaded.length}</div>
         <div className="manage-btn">
-          <ActionButtonBig
-            tooltip="Remove All from List"
+          <ActionButton
             svgName="delete"
+            btnClassName="buttong"
             onClick={removeAllDownloaded}
+            tooltip="Remove All from List"
           />
-          <ActionButtonBig
-            tooltip="Delete All"
+          <ActionButton
             svgName="trash"
+            tooltip="Delete All"
+            btnClassName="buttong"
             onClick={deleteAllWebtoons}
           />
         </div>
@@ -47,10 +49,10 @@ export default function Downloaded() {
           {downloaded.map((webtoon, index) => (
             <li key={webtoon.id}>
               <DCard
-                webtoon={webtoon}
                 index={index}
-                removeWebtoon={removeFromDownloaded}
+                webtoon={webtoon}
                 deleteFolder={deleteFolder}
+                removeWebtoon={removeFromDownloaded}
               />
             </li>
           ))}

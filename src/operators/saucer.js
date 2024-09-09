@@ -2,10 +2,10 @@ import { sauce, isUrlValid } from "../utils";
 import { useNotificationStore, useSauceStore } from "../store";
 
 export default async function saucer(updateStepStatus) {
-  const { sauceUrl, saucers, setSauceStatus, addSauceResult } =
-    useSauceStore.getState();
   const { addErrorNotification, addSuccessNotification } =
     useNotificationStore.getState();
+  const { sauceUrl, saucers, setSauceStatus, addSauceResult } =
+    useSauceStore.getState();
   if (!isUrlValid(sauceUrl)) {
     addErrorNotification("Invalid URL");
     setSauceStatus(null);
@@ -21,4 +21,4 @@ export default async function saucer(updateStepStatus) {
   }
   addSuccessNotification("Sauced");
   setSauceStatus("Sauced");
-};
+}

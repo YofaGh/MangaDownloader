@@ -1,30 +1,21 @@
-export default function StepsCircle({
-  circles,
-  stepStatuses,
-  preClassName,
-  hasProgressBar,
-}) {
-  preClassName = preClassName || "";
+export default function StepsCircle({ circles, stepStatuses, hasProgressBar }) {
   const progress =
     (stepStatuses.filter((status) => status !== "").length / circles.length) *
     100;
 
   return (
-    <div className={`${preClassName}steps-container`}>
-      <div className={`${preClassName}steps`}>
+    <div className="steps-container">
+      <div className="steps">
         {circles.map((name, index) => (
-          <span
-            key={name}
-            className={`${preClassName}steps-circle ${stepStatuses[index]}`}
-          >
+          <span key={name} className={`steps-circle ${stepStatuses[index]}`}>
             {name}
           </span>
         ))}
         {hasProgressBar && (
-          <div className={`${preClassName}steps-progress-bar`}>
+          <div className="steps-progress-bar">
             <span
               style={{ width: `${progress}%` }}
-              className={`${preClassName}steps-indicator`}
+              className="steps-indicator"
             ></span>
           </div>
         )}

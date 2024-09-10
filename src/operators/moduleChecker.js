@@ -32,16 +32,16 @@ export default async function moduleChecker(module, setStepStatuses) {
   chapter = image = path = saved_path = "";
   if (module.type === WebtoonType.MANGA) {
     setStepStatuses(new Array(4).fill(""));
-    updateStepStatus(circle, "ch-active");
+    updateStepStatus(circle, "active");
     let chapters = await getChapters(module.domain, sample.manga);
     if (chapters.length > 0) {
       chapter = chapters[0].url;
       stat = "done";
     } else chapter = "$";
-    updateStepStatus(circle, `ch-${stat}`);
+    updateStepStatus(circle, stat);
     circle++;
   } else setStepStatuses(new Array(3).fill(""));
-  updateStepStatus(circle, "ch-active");
+  updateStepStatus(circle, "active");
   stat = "dead";
   if (chapter !== "$") {
     [images, save_names] = await getImages(
@@ -59,20 +59,20 @@ export default async function moduleChecker(module, setStepStatuses) {
           }`;
     }
   }
-  updateStepStatus(circle, `ch-${stat}`);
+  updateStepStatus(circle, stat);
   circle++;
-  updateStepStatus(circle, "ch-active");
+  updateStepStatus(circle, "active");
   stat = "dead";
   if (image) saved_path = await downloadImage(module.domain, image, path);
   if (saved_path) {
     stat = "done";
     await removeFile(saved_path);
   }
-  updateStepStatus(circle, `ch-${stat}`);
+  updateStepStatus(circle, stat);
   stat = "dead";
   circle++;
   if (module.searchable) {
-    updateStepStatus(circle, "ch-active");
+    updateStepStatus(circle, "active");
     const results = await searchByKeyword(
       module.domain,
       sample.keyword || "a",
@@ -82,5 +82,5 @@ export default async function moduleChecker(module, setStepStatuses) {
     );
     if (results.length > 0) stat = "done";
   }
-  updateStepStatus(circle, `ch-${stat}`);
-};
+  updateStepStatus(circle, stat);
+}

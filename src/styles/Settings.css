@@ -20,8 +20,3 @@
   display: flex;
   align-items: center;
 }
-
-.playstore-button{
-  cursor: pointer;
-  color: var(--cyan);
-}

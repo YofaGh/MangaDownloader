@@ -25,14 +25,13 @@
   height: 40px;
   max-width: 40px;
   font-size: x-large;
- }
- 
- .input-depth:focus {
+}
+
+.input-depth:focus {
   color: var(--cyan);
   border: 2px solid var(--cyan);
   outline: none;
- }
- 
+}
 
 .modal {
   text-align: center;

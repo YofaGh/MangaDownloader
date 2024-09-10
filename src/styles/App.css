@@ -21,12 +21,44 @@
   overflow-x: hidden;
 }
 
+.container p {
+  text-align: center;
+  color: var(--cyan);
+  font-weight: bold;
+}
+
+div.scrollmenu {
+  margin-top: 100px;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+div.scrollmenu span {
+  display: inline-block;
+  text-align: center;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.home-buttons {
+  width: 500px;
+}
+
 .notification-wrapper {
   position: fixed;
   top: 50px;
   right: 10px;
   width: 300px;
   z-index: 999;
+}
+
+#file {
+  display: none;
 }
 
 .notification-item {
@@ -38,7 +70,7 @@
   animation-fill-mode: forwards;
   width: 300px;
   background-color: var(--gray);
-  font-size:smaller;
+  font-size: smaller;
 }
 
 @keyframes SlideLeft {
@@ -74,12 +106,12 @@
 .notification-item .bar {
   height: 10px;
 }
-.notification-item.success{
+.notification-item.success {
   color: var(--cyan);
   border: 1px solid var(--cyan);
 }
 
-.notification-item.error{
+.notification-item.error {
   color: rgba(134, 0, 0, 0.977);
   border: 1px solid rgba(134, 0, 0, 0.977);
   font-weight: bold;

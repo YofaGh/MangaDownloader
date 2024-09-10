@@ -1,9 +1,3 @@
-.container p {
-  text-align: center;
-  color: var(--cyan);
-  font-weight: bold;
-}
-
 .locate-container {
   height: 200px;
   width: 200px;
@@ -31,75 +25,6 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-}
-
-#file {
-  display: none;
-}
-
-.steps-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  max-width: 400px;
-  width: 100%;
-}
-.steps-container .steps {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-}
-.steps .steps-circle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 70px;
-  width: 70px;
-  color: #999;
-  font-size: 15px;
-  border-radius: 50%;
-  background: var(--gray);
-  border: 4px solid var(--cyan);
-  transition: all 200ms ease;
-  transition-delay: 0s;
-}
-.steps .steps-circle.active {
-  transition-delay: 100ms;
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
-.steps .steps-circle.done {
-  transition-delay: 100ms;
-  border-color: var(--cyan)00;
-  background-color: var(--cyan);
-  color: var(--gray);
-}
-.steps .steps-circle.dead {
-  transition-delay: 100ms;
-  border-color: var(--cyan)00;
-  background-color: #970000;
-  color: var(--gray);
-}
-.steps .steps-progress-bar {
-  position: absolute;
-  height: 4px;
-  width: 100%;
-  background: var(--gray);
-  z-index: -1;
-}
-.steps-progress-bar .steps-indicator {
-  position: absolute;
-  height: 100%;
-  width: 0px;
-  background: var(--cyan);
-  transition: all 300ms ease;
-}
-.steps-container {
-  display: flex;
-  gap: 20px;
 }
 
 .sr-card {

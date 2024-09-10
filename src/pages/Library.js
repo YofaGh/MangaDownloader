@@ -37,7 +37,7 @@ export default function Library() {
       }))
     );
     addSuccessNotification(`Added all chapters of ${webtoon.title} to queue`);
-    attemptToDownload(webtoon);
+    attemptToDownload();
   };
 
   return (

@@ -34,7 +34,7 @@ export default function Doujin({
   }, [module, url]);
 
   const addDoujin = (status) => {
-    const webt = {
+    addToQueue({
       type: WebtoonType.DOUJIN,
       id: `${module}_$_${url}_$_`,
       title: webtoon.Title,
@@ -42,9 +42,8 @@ export default function Doujin({
       module: module,
       doujin: url,
       status,
-    };
-    addToQueue(webt);
-    addSuccessNotification(`Added ${webt.title} to queue`);
+    });
+    addSuccessNotification(`Added ${webtoon.Title} to queue`);
     if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 

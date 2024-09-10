@@ -1,20 +1,21 @@
-.ch-steps-container {
+.steps-container {
   align-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 40px;
-  max-width: 500px;
+  max-width: 400px;
   width: 100%;
   margin: 0 auto;
 }
-.ch-steps-container .ch-steps {
+.steps-container .steps {
   display: flex;
+  gap: 15px;
   align-items: center;
   justify-content: space-between;
   position: relative;
 }
-.ch-steps .ch-steps-circle {
+.steps .steps-circle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,29 +28,36 @@
   border: 4px solid var(--cyan);
   transition: all 200ms ease;
   transition-delay: 0s;
-  margin: 10px;
+  margin-bottom: 10px;
 }
-.ch-steps .ch-steps-circle.ch-active {
+.steps .steps-circle.active {
   transition-delay: 100ms;
   border-color: var(--cyan);
   color: var(--cyan);
 }
-.ch-steps .ch-steps-circle.ch-done {
+.steps .steps-circle.done {
   transition-delay: 100ms;
-  border-color: var(--cyan)00;
+  border-color: var(--cyan) 00;
   background-color: var(--cyan);
   color: var(--gray);
 }
-.ch-steps .ch-steps-circle.ch-dead {
+.steps .steps-circle.dead {
   transition-delay: 100ms;
-  border-color: var(--cyan)00;
+  border-color: var(--cyan) 00;
   background-color: #970000;
   color: var(--gray);
 }
-.ch-steps .ch-steps-progress-bar {
+.steps .steps-progress-bar {
   position: absolute;
   height: 4px;
   width: 100%;
   background: var(--gray);
   z-index: -1;
+}
+.steps-progress-bar .steps-indicator {
+  position: absolute;
+  height: 100%;
+  width: 0px;
+  background: var(--cyan);
+  transition: all 300ms ease;
 }

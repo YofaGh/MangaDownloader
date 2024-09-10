@@ -175,61 +175,6 @@
   }
 }
 
-.mm-button {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--gray);
-  border: none;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0px 0px 20px var(--gray);
-  cursor: pointer;
-  transition-duration: 0.3s;
-  overflow: hidden;
-  position: relative;
-  margin-right: 5px;
-  margin-left: 5px;
-  justify-self: center;
-  align-self: center;
-  vertical-align: middle;
-}
-
-.btn-icon-n {
-  width: 12px;
-  transition-duration: 0.3s;
-  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
-    brightness(95%) contrast(101%);
-  background-size: 40px;
-}
-
-.btn-icon-n path {
-  fill: white;
-}
-
-.mm-button:hover {
-  width: 100px;
-  border-radius: 50px;
-  transition-duration: 0.3s;
-  align-items: center;
-}
-
-.mm-button:hover .btn-icon-n {
-  width: 50px;
-  transition-duration: 0.3s;
-  transform: translateY(60%);
-}
-
-.mm-button::before {
-  position: absolute;
-  top: -10px;
-  color: var(--cyan);
-  transition-duration: 0.3s;
-  font-size: 2px;
-}
-
 .info-btn::before {
   content: "Info";
 }
@@ -240,15 +185,4 @@
 
 .remove-btn::before {
   content: "Remove";
-}
-
-.mm-button:hover::before {
-  font-size: 16px;
-  opacity: 1;
-  transform: translateY(30px);
-  transition-duration: 0.3s;
-}
-
-.mm-button:hover .btn-icon-n {
-  opacity: 0;
 }

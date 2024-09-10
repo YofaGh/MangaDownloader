@@ -12,6 +12,8 @@
   transition: all 0.2s ease;
   text-decoration: none;
   margin: 20px;
+  cursor: pointer;
+  color: var(--cyan);
 }
 
 .playstore-button:hover {

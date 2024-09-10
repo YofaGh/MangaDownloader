@@ -48,13 +48,13 @@ export default function Manga({
       setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
       const chapters = await getChapters(module, url);
-      setChapters(chapters);
+      setChapters(chapters.reverse());
       setChaptersLoaded(true);
     })();
   }, [module, url]);
 
   const addChapter = (chapter, status) => {
-    const webt = {
+    addToQueue({
       type: WebtoonType.MANGA,
       id: `${id}_$_${chapter.url}`,
       title: webtoon.Title,
@@ -63,10 +63,9 @@ export default function Manga({
       manga: url,
       chapter: chapter.url,
       status,
-    };
-    addToQueue(webt);
-    addSuccessNotification(`Added ${webt.title} - ${chapter.name} to queue`);
-    if (status === DownloadStatus.STARTED) attemptToDownload(webt);
+    });
+    addSuccessNotification(`Added ${webtoon.Title} - ${chapter.name} to queue`);
+    if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
   const addAllChapters = (status) => {
@@ -184,7 +183,7 @@ export default function Manga({
           <br />
           <br />
           <div className="f-container">
-            {chapters.reverse().map((chapter) => (
+            {chapters.map((chapter) => (
               <ChapterButton
                 key={chapter.url}
                 chapter={chapter}

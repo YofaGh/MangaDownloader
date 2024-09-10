@@ -52,26 +52,26 @@ export default function Wcard({ webtoon, update }) {
               </div>
               <div className="front-buttons">
                 <Link to={`/${webtoon.domain}/webtoon/${webtoon.url}`}>
-                  <button className="mm-button info-btn">
+                  <button className="m-button m-button-big info-btn">
                     <Icon
                       svgName="info"
-                      className="btn-icon-n"
+                      className="btn-icon"
                       style={{ width: "30px" }}
                     />
                   </button>
                 </Link>
                 <button
-                  className="mm-button update-btn"
+                  className="m-button m-button-big update-btn"
                   onClick={() => update(webtoon)}
                 >
                   <Icon
                     svgName="download"
-                    className="btn-icon-n"
+                    className="btn-icon"
                     style={{ width: "30px" }}
                   />
                 </button>
                 <button
-                  className="mm-button remove-btn"
+                  className="m-button m-button-big remove-btn"
                   onClick={() => {
                     removeFromLibrary(webtoon.id);
                     addSuccessNotification(
@@ -81,7 +81,7 @@ export default function Wcard({ webtoon, update }) {
                 >
                   <Icon
                     svgName="trash"
-                    className="btn-icon-n"
+                    className="btn-icon"
                     style={{ width: "30px" }}
                   />
                 </button>

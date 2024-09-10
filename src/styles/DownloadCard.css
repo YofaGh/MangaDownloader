@@ -140,3 +140,9 @@
   filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
     brightness(95%) contrast(101%);
 }
+
+.icofn {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

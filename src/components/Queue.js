@@ -118,7 +118,7 @@ export default function Queue() {
       handleWebtoonStatusChange(webtoon);
     }
     updateItemInQueue(webtoon.id, { status });
-    if (status === DownloadStatus.STARTED) attemptToDownload(webtoon);
+    if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
   if (queue.length === 0)

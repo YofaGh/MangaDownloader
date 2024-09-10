@@ -23,11 +23,7 @@ export default function ModuleCheckerModal({
         <div className="steps-header">
           <h3>Checking Module: {moduleToCheck.domain}</h3>
         </div>
-        <StepsCircle
-          circles={circles}
-          preClassName="ch-"
-          stepStatuses={stepStatuses}
-        />
+        <StepsCircle circles={circles} stepStatuses={stepStatuses} />
         <PushButton
           label="Try Again"
           onClick={() => moduleChecker(moduleToCheck, setStepStatuses)}

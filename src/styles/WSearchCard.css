@@ -27,7 +27,7 @@
   transform: scale(0.95) rotateZ(1.1deg);
 }
 
-.search-info{
+.search-info {
   display: flex;
   margin-top: 0;
   justify-content: space-around;

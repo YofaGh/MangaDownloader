@@ -49,12 +49,8 @@ export default function TopBar() {
           </div>
         </div>
         <div className="titleBarBtns">
-          <button className="d-buttonh" onClick={() => navigate("download")}>
-            <Icon
-              className="icon-t"
-              svgName="download-st"
-              style={{ width: "20px", height: "20px", marginRight: "3px" }}
-            />
+          <button className="buttonh d-buttonh" onClick={() => navigate("download")}>
+            <Icon className="icon-t-d" svgName="download-st" />
             {downloadLabel && (
               <span className="d-tooltip">{downloadLabel}</span>
             )}

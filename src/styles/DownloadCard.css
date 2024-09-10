@@ -80,59 +80,6 @@
   border-image-slice: 1;
 }
 
-.tooltip {
-  position: absolute;
-  top: -30px;
-  opacity: 0;
-  background-color: var(--cyan);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition-duration: 0.5s;
-  pointer-events: none;
-  letter-spacing: 0.5px;
-}
-
-.buttonh {
-  outline: 0 !important;
-  border: 0 !important;
-  height: 50px;
-  border-radius: 50%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: all ease-in-out;
-  cursor: pointer;
-  transition-duration: 1s;
-}
-
-.buttonh:hover {
-  animation-duration: 1s;
-  animation-name: buttonhover;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-
-@keyframes buttonhover {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-3px);
-  }
-}
-
-.buttonh:hover .tooltip {
-  opacity: 1;
-  transition-duration: 0.5s;
-}
-
 .icon {
   font-size: 20px;
   width: 20px;

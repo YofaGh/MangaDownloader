@@ -104,6 +104,14 @@
     brightness(95%) contrast(101%);
 }
 
+.icon-t-d {
+  width: 20px;
+  height: 20px;
+  filter: invert(35%) sepia(98%) saturate(968%) hue-rotate(142deg)
+    brightness(95%) contrast(101%);
+  margin-right: 3px;
+}
+
 .titleBarBtns > .minimizeBtn:hover {
   background-color: var(--cyan);
 }
@@ -179,19 +187,8 @@
   transform: rotate(-90deg);
 }
 
-
 .d-buttonh {
-  outline: 0 !important;
-  border: 0 !important;
-  border-radius: 50%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: all ease-in-out;
-  cursor: pointer;
-  transition-duration: 1s;
+  height: initial;
 }
 
 .d-tooltip {
@@ -213,22 +210,12 @@
 
 .d-buttonh:hover {
   animation-duration: 1s;
-  animation-name: d-buttonhover;
+  animation-name: buttonhover;
   animation-iteration-count: infinite;
   animation-direction: alternate;
 }
 
-@keyframes d-buttonhover {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-3px);
-  }
-}
-
-.d-buttonh:hover .d-tooltip {
+.buttonh:hover .d-tooltip {
   opacity: 1;
   transition-duration: 0.5s;
 }

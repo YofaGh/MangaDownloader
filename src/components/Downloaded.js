@@ -32,14 +32,12 @@ export default function Downloaded() {
         <div className="manage-btn">
           <ActionButton
             svgName="delete"
-            btnClassName="buttong"
             onClick={removeAllDownloaded}
             tooltip="Remove All from List"
           />
           <ActionButton
             svgName="trash"
             tooltip="Delete All"
-            btnClassName="buttong"
             onClick={deleteAllWebtoons}
           />
         </div>

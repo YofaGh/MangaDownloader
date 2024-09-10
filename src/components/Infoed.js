@@ -21,7 +21,7 @@ export default function Infoed({ title, info }) {
       <div className="title-info">{title} </div>
       {typeof info === "object" ? (
         info.map((minfo) => (
-          <div key={minfo} style={{ display: "inline-flex" }}>
+          <div key={minfo} className="display-inline-flex">
             <button className="cssbuttons-io">
               <span>{minfo} </span>
             </button>

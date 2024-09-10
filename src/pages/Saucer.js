@@ -92,7 +92,7 @@ export default function Saucer() {
   } else {
     return (
       <div className="container">
-        <div style={{ display: "inline-flex" }}>
+        <div className="display-inline-flex">
           <SearchBar
             input={sauceUrl}
             setInput={setSauceUrl}

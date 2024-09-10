@@ -17,6 +17,7 @@
   width: fit-content;
   justify-content: right;
   align-self: center;
+  gap: 30px;
 }
 .info-manage {
   padding-left: 20px;
@@ -28,62 +29,6 @@
   font-weight: bold;
 }
 
-.buttong {
-  outline: 0 !important;
-  border: 0 !important;
-  height: 50px;
-  margin-right: 30px;
-  border-radius: 50%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: all ease-in-out;
-  cursor: pointer;
-  transition-duration: 1s;
-}
-
-.buttong:hover {
-  animation-duration: 1s;
-  animation-name: buttonhover;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-
-@keyframes buttonhover {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-3px);
-  }
-}
-
-.tooltip {
-  position: absolute;
-  top: -30px;
-  opacity: 0;
-  background-color: var(--cyan);
-  width: fit-content;
-  white-space: nowrap;
-  color: white;
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition-duration: 0.5s;
-  pointer-events: none;
-  letter-spacing: 0.5px;
-}
-
-.buttong:hover .tooltip {
-  opacity: 1;
-  transition-duration: 0.5s;
-}
 .ul-queue {
   list-style-type: none;
   list-style-position: inside;

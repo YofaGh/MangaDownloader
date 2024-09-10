@@ -61,6 +61,20 @@ div.scrollmenu span {
   display: none;
 }
 
+.display-inline-flex {
+  display: inline-flex;
+}
+
+.sidebar {
+  width: 45px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: fixed;
+}
+
 .notification-item {
   box-shadow: 0 0 10px var(--gray);
   border-radius: 10px;

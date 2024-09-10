@@ -29,11 +29,9 @@ export default function Manga({
 }) {
   const navigate = useNavigate();
   const id = `${module}_$_${url}`;
-  const [webtoon, setWebtoon] = useState({});
-  const [chapters, setChapters] = useState([]);
+  const [webtoon, setWebtoon] = useState(null);
+  const [chapters, setChapters] = useState(null);
   const { addToQueue, addToQueueBulk } = useQueueStore();
-  const [webtoonLoaded, setWebtoonLoaded] = useState(false);
-  const [chaptersLoaded, setChaptersLoaded] = useState(false);
   const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
   const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
@@ -45,11 +43,9 @@ export default function Manga({
     (async () => {
       const response = await getInfo(module, url);
       setWebtoon(response);
-      setWebtoonLoaded(true);
       setMangaTitleForLibrary(response.Title);
       const chapters = await getChapters(module, url);
       setChapters(chapters.reverse());
-      setChaptersLoaded(true);
     })();
   }, [module, url]);
 
@@ -119,10 +115,10 @@ export default function Manga({
     }
   };
 
-  return webtoonLoaded ? (
+  return webtoon ? (
     <div className="container">
       <button
-        className="buttonht"
+        className="buttonh buttonht"
         onClick={() => navigate(-1)}
         style={{ marginTop: "50px", marginRight: "auto", marginLeft: "50px" }}
       >
@@ -139,14 +135,14 @@ export default function Manga({
             <div className="title">
               {webtoon.Title}
               <button
-                className="buttonht"
+                className="buttonh buttonht"
                 onClick={() =>
                   toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
                 }
               >
                 <Icon svgName={favoritesSvg} className="icongt" />
               </button>
-              <button className="buttonht" onClick={updateLibrary}>
+              <button className="buttonh buttonht" onClick={updateLibrary}>
                 <Icon svgName={isInLibrary ? "library" : "add_to_library"} />
               </button>
             </div>
@@ -161,7 +157,7 @@ export default function Manga({
               Object.entries(webtoon.Extras).map(([key, value]) => (
                 <Infoed key={key} title={`${key}:`} info={value} />
               ))}
-            <div style={{ display: "inline-flex" }}>
+            <div className="display-inline-flex">
               {webtoon.Dates &&
                 Object.entries(webtoon.Dates).map(([key, value]) => (
                   <FlipButton key={key} label={key} datetime={value} />
@@ -170,7 +166,7 @@ export default function Manga({
           </div>
         </div>
       </div>
-      {chaptersLoaded ? (
+      {chapters ? (
         <div className="f-container">
           <DownloadButton
             label="Download All Chapters"

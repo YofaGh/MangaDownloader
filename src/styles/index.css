@@ -19,7 +19,7 @@
 @import "SearchBar.css";
 @import "SearchFilter.css";
 @import "Settings.css";
-@import "SideBar.css";
+@import "StdButton.css";
 @import "StepsCircle.css";
 @import "Topbar.css";
 @import "Webtoon.css";
@@ -44,6 +44,7 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
 ::-webkit-scrollbar {
   display: none;
 }

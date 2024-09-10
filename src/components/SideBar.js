@@ -45,7 +45,7 @@ export default function SideBar() {
         </button>
       </Link>
       <Link to={{ pathname: "settings" }} style={{ marginBottom: "40px" }}>
-        <button className="buttonhg">
+        <button className="buttonh buttonhg">
           <Icon svgName="settings" />
         </button>
       </Link>

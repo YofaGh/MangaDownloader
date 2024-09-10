@@ -19,18 +19,13 @@ export default function Doujin({
   toggleFavoriteWebtoon,
 }) {
   const { addToQueue } = useQueueStore();
-  const [webtoon, setWebtoon] = useState({});
-  const [webtoonLoaded, setWebtoonLoaded] = useState(false);
+  const [webtoon, setWebtoon] = useState(null);
   const addSuccessNotification = useNotificationStore(
     (state) => state.addSuccessNotification
   );
 
   useEffect(() => {
-    (async () => {
-      const response = await getInfo(module, url);
-      setWebtoon(response);
-      setWebtoonLoaded(true);
-    })();
+    (async () => setWebtoon(await getInfo(module, url)))();
   }, [module, url]);
 
   const addDoujin = (status) => {
@@ -47,7 +42,7 @@ export default function Doujin({
     if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
-  return webtoonLoaded ? (
+  return webtoon ? (
     <div className="container">
       <div className="basic-info">
         <div className="fixed">
@@ -58,7 +53,7 @@ export default function Doujin({
             <div className="title">
               {webtoon.Title}
               <button
-                className="buttonht"
+                className="buttonh buttonht"
                 onClick={() =>
                   toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
                 }

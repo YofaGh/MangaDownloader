@@ -57,7 +57,7 @@ export default function Search() {
   if (searchStatus.init) {
     return (
       <div className="container">
-        <div style={{ display: "flex" }}>
+        <div className="display-inline-flex">
           <ExpandButton
             name="filter"
             dimension={20}

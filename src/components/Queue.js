@@ -138,31 +138,26 @@ export default function Queue() {
             <ActionButton
               svgName="edit"
               tooltip="Edit List"
-              btnClassName="buttong"
               onClick={() => setQueueEditable(true)}
             />
             <ActionButton
               svgName="stop"
               tooltip="Stop All"
-              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.STOPPED)}
             />
             <ActionButton
               svgName="pause"
               tooltip="Pause All"
-              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.PAUSED)}
             />
             <ActionButton
               svgName="start"
               tooltip="Start All"
-              btnClassName="buttong"
               onClick={() => setAllWebtoonsStatus(DownloadStatus.STARTED)}
             />
             <ActionButton
               svgName="trash"
               tooltip="Delete All"
-              btnClassName="buttong"
               onClick={removeAllWebtoonsFromQueue}
             />
           </div>
@@ -171,13 +166,11 @@ export default function Queue() {
             <ActionButton
               svgName="delete"
               tooltip="Discard"
-              btnClassName="buttong"
               onClick={discardChanges}
             />
             <ActionButton
               svgName="done"
               tooltip="Apply"
-              btnClassName="buttong"
               onClick={confirmChanges}
             />
           </div>

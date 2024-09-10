@@ -20,7 +20,7 @@ export default function FavoriteWebtoon({ webtoon, removeFromFavorites }) {
             </div>
             <div className="f-infoo">
               <button
-                className="buttonht"
+                className="buttonh buttonht"
                 onClick={(e) => {
                   e.preventDefault();
                   removeFromFavorites(webtoon.id);

@@ -1,11 +1,38 @@
+import { useState } from "react";
 import { PushButton, Icon } from "..";
 import { showHideModal } from "../../utils";
+import { useLibraryStore, useNotificationStore } from "../../store";
 
-export default function AddToLibraryModal({
-  mangaTitleForLibrary,
-  setMangaTitleForLibrary,
-  handleAddMangaToLibrary,
-}) {
+export default function AddToLibraryModal({ webtoon, domain, url }) {
+  const [error, setError] = useState(null);
+  const [title, setTitle] = useState(webtoon.Title);
+  const { library, addToLibrary } = useLibraryStore();
+  const addSuccessNotification = useNotificationStore(
+    (state) => state.addSuccessNotification
+  );
+
+  const handleAddMangaToLibrary = () => {
+    if (library.some((manga) => manga.title === title) || !title) {
+      setError(
+        title
+          ? "A manga with this title is already in your library."
+          : "Enter a valid name."
+      );
+      return;
+    }
+    addToLibrary({
+      title,
+      id: `${domain}_$_${url}`,
+      enabled: true,
+      domain,
+      url,
+      cover: webtoon.Cover,
+      last_downloaded_chapter: null,
+    });
+    addSuccessNotification(`Added ${title} to library`);
+    showHideModal("lib-modal", false);
+  };
+
   return (
     <div id="lib-modal" className="modal">
       <div className="modal-content">
@@ -29,8 +56,8 @@ export default function AddToLibraryModal({
           type="text"
           className="input"
           placeholder="Enter a title"
-          value={mangaTitleForLibrary}
-          onChange={(e) => setMangaTitleForLibrary(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         ></input>
         <PushButton label="Ok" onClick={handleAddMangaToLibrary} />
         <PushButton
@@ -38,7 +65,7 @@ export default function AddToLibraryModal({
           onClick={() => showHideModal("lib-modal", false)}
         />
         <br />
-        <span id="pwmessage"></span>
+        {error && <span className="error-message">{error}</span>}
       </div>
     </div>
   );

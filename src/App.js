@@ -24,10 +24,7 @@ import {
 } from "./store";
 
 export default function App() {
-  useEffect(() => {
-    startUp();
-  }, []);
-
+  startUp();
   const useStateSubscriber = (useStore, data, delay) => {
     const timerRef = useRef(null);
     useEffect(() => {

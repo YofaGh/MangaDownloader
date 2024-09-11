@@ -75,6 +75,10 @@ div.scrollmenu span {
   position: fixed;
 }
 
+.error-message {
+  color: red;
+}
+
 .notification-item {
   box-shadow: 0 0 10px var(--gray);
   border-radius: 10px;

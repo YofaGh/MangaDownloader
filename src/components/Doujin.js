@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useNotificationStore } from "../store";
 import { getInfo, WebtoonType, DownloadStatus } from "../utils";
@@ -20,13 +20,10 @@ export default function Doujin({
 }) {
   const { addToQueue } = useQueueStore();
   const [webtoon, setWebtoon] = useState(null);
+  (async () => setWebtoon(await getInfo(module, url)))();
   const addSuccessNotification = useNotificationStore(
     (state) => state.addSuccessNotification
   );
-
-  useEffect(() => {
-    (async () => setWebtoon(await getInfo(module, url)))();
-  }, [module, url]);
 
   const addDoujin = (status) => {
     addToQueue({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
@@ -32,22 +32,15 @@ export default function Manga({
   const [webtoon, setWebtoon] = useState(null);
   const [chapters, setChapters] = useState(null);
   const { addToQueue, addToQueueBulk } = useQueueStore();
-  const [mangaTitleForLibrary, setMangaTitleForLibrary] = useState("");
-  const { library, addToLibrary, removeFromLibrary } = useLibraryStore();
+  const { library, removeFromLibrary } = useLibraryStore();
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
   const addSuccessNotification = useNotificationStore(
     (state) => state.addSuccessNotification
   );
-
-  useEffect(() => {
-    (async () => {
-      const response = await getInfo(module, url);
-      setWebtoon(response);
-      setMangaTitleForLibrary(response.Title);
-      const chapters = await getChapters(module, url);
-      setChapters(chapters.reverse());
-    })();
-  }, [module, url]);
+  (async () => {
+    setWebtoon(await getInfo(module, url));
+    setChapters((await getChapters(module, url)).reverse());
+  })();
 
   const addChapter = (chapter, status) => {
     addToQueue({
@@ -87,32 +80,6 @@ export default function Manga({
       removeFromLibrary(id);
       addSuccessNotification(`Removed ${webt.title} from Library`);
     } else showHideModal("lib-modal", true);
-  };
-
-  const handleAddMangaToLibrary = () => {
-    if (
-      library.some((manga) => manga.title === mangaTitleForLibrary) ||
-      !mangaTitleForLibrary
-    ) {
-      let errorMessage = "Enter a valid name.";
-      const errorField = document.getElementById("pwmessage");
-      if (mangaTitleForLibrary)
-        errorMessage = "A manga with this title is already in your library.";
-      errorField.innerText = errorMessage;
-      errorField.style.color = "red";
-    } else {
-      addToLibrary({
-        title: mangaTitleForLibrary,
-        id,
-        enabled: true,
-        domain: module,
-        url,
-        cover: webtoon.Cover,
-        last_downloaded_chapter: null,
-      });
-      addSuccessNotification(`Added ${mangaTitleForLibrary} to library`);
-      showHideModal("lib-modal", false);
-    }
   };
 
   return webtoon ? (
@@ -194,11 +161,7 @@ export default function Manga({
           <Loading />
         </div>
       )}
-      <AddToLibraryModal
-        mangaTitleForLibrary={mangaTitleForLibrary}
-        setMangaTitleForLibrary={setMangaTitleForLibrary}
-        handleAddMangaToLibrary={handleAddMangaToLibrary}
-      />
+      <AddToLibraryModal webtoon={webtoon} domain={module} url={url} />
     </div>
   ) : (
     <div className="container">

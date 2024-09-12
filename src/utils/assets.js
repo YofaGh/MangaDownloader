@@ -31,7 +31,7 @@ export const convert = async (webtoon, openPath) => {
   await _convert(webtoon.path, pdfName);
   useNotificationStore
     .getState()
-    .addSuccessNotification(`Converted ${notifInfo} to PDF`);
+    .notifySuccess(`Converted ${notifInfo} to PDF`);
   if (openPath) await openFolder(`${webtoon.path}\\${pdfName}`);
 };
 
@@ -44,7 +44,7 @@ export const merge = async (webtoon, openPath) => {
     notifInfo += ` - ${webtoon.info}`;
   }
   await _merge(webtoon.path, path, merge_method);
-  useNotificationStore.getState().addSuccessNotification(`Merged ${notifInfo}`);
+  useNotificationStore.getState().notifySuccess(`Merged ${notifInfo}`);
   if (openPath) await openFolder(path);
 };
 

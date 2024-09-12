@@ -104,9 +104,7 @@ async function downloader(webtoon) {
     id: webtoon.id,
     ...inf,
   });
-  useNotificationStore
-    .getState()
-    .addSuccessNotification(`Downloaded ${notifInfo}`);
+  useNotificationStore.getState().notifySuccess(`Downloaded ${notifInfo}`);
   if (settings.auto_merge) merge(webtoon, false);
   if (settings.auto_convert) convert(webtoon, false);
   useDownloadingStore.getState().clearDownloading();

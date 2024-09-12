@@ -16,9 +16,7 @@ export default function Doujin({ url, module }) {
   const { addToQueue } = useQueueStore();
   const [webtoon, setWebtoon] = useState(null);
   (async () => setWebtoon(await getInfo(module, url)))();
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
   const addDoujin = (status) => {
     addToQueue({
@@ -30,7 +28,7 @@ export default function Doujin({ url, module }) {
       doujin: url,
       status,
     });
-    addSuccessNotification(`Added ${webtoon.Title} to queue`);
+    notifySuccess(`Added ${webtoon.Title} to queue`);
     if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 

@@ -7,9 +7,7 @@ export default function Wcard({ webtoon, update }) {
   const [imageSrc, setImageSrc] = useState();
   const [loaded, setLoaded] = useState(false);
   const { removeFromLibrary } = useLibraryStore();
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
   const stopRotate = () => {
     let s2 = document.getElementById(webtoon.title);
@@ -74,9 +72,7 @@ export default function Wcard({ webtoon, update }) {
                   className="m-button m-button-big remove-btn"
                   onClick={() => {
                     removeFromLibrary(webtoon.id);
-                    addSuccessNotification(
-                      `Removed ${webtoon.title} from Library`
-                    );
+                    notifySuccess(`Removed ${webtoon.title} from Library`);
                   }}
                 >
                   <Icon

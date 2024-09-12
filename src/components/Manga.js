@@ -29,9 +29,7 @@ export default function Manga({ url, module }) {
   const { addToQueue, addToQueueBulk } = useQueueStore();
   const { library, removeFromLibrary } = useLibraryStore();
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
   (async () => {
     setWebtoon(await getInfo(module, url));
     setChapters((await getChapters(module, url)).reverse());
@@ -48,7 +46,7 @@ export default function Manga({ url, module }) {
       chapter: chapter.url,
       status,
     });
-    addSuccessNotification(`Added ${webtoon.Title} - ${chapter.name} to queue`);
+    notifySuccess(`Added ${webtoon.Title} - ${chapter.name} to queue`);
     if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
@@ -65,7 +63,7 @@ export default function Manga({ url, module }) {
         status,
       }))
     );
-    addSuccessNotification(`Added all chapters of ${webtoon.Title} to queue`);
+    notifySuccess(`Added all chapters of ${webtoon.Title} to queue`);
     if (status === DownloadStatus.STARTED) attemptToDownload();
   };
 
@@ -73,7 +71,7 @@ export default function Manga({ url, module }) {
     if (isInLibrary) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
-      addSuccessNotification(`Removed ${webt.title} from Library`);
+      notifySuccess(`Removed ${webt.title} from Library`);
     } else showHideModal("lib-modal", true);
   };
 

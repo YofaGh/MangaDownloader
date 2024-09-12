@@ -31,9 +31,7 @@ export default function Queue() {
   const [queu, setQueu] = useState(queue);
   const [queueEditable, setQueueEditable] = useState(false);
   const { download_path } = useSettingsStore((state) => state.settings);
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
   function handleOnDragEnd(result) {
     if (!result.destination) return;
@@ -70,7 +68,7 @@ export default function Queue() {
       removeDirectory(`${download_path}/${folderName}`, true);
     });
     removeAllFromQueue();
-    addSuccessNotification(`Removed all from queue`);
+    notifySuccess(`Removed all from queue`);
   };
 
   const removeWebtoonFromQueue = async (webtoon) => {
@@ -82,7 +80,7 @@ export default function Queue() {
       notifInfo += ` - ${webtoon.info}`;
     }
     removeFromQueue(webtoon.id);
-    addSuccessNotification(`Removed ${notifInfo} from queue`);
+    notifySuccess(`Removed ${notifInfo} from queue`);
     removeDirectory(`${download_path}/${folderName}`, true);
     attemptToDownload();
   };

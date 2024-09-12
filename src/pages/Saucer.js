@@ -14,9 +14,7 @@ import {
 
 export default function Saucer() {
   const [stepStatuses, setStepStatuses] = useState([]);
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
   const {
     saucers,
     sauceUrl,
@@ -49,7 +47,7 @@ export default function Saucer() {
     setSauceStatus("Uploading");
     const response = await uploadImage(path);
     setSauceUrl(response);
-    addSuccessNotification(`Uploaded ${response}`);
+    notifySuccess(`Uploaded ${response}`);
     setSauceStatus(null);
   };
 

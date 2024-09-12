@@ -6,9 +6,7 @@ import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 export default function Library() {
   const { library } = useLibraryStore();
   const addToQueueBulk = useQueueStore((state) => state.addToQueueBulk);
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
   const updateSingle = async (webtoon) => {
     const allChapters = await getChapters(webtoon.domain, webtoon.url);
@@ -36,7 +34,7 @@ export default function Library() {
         status: DownloadStatus.STARTED,
       }))
     );
-    addSuccessNotification(`Added all chapters of ${webtoon.title} to queue`);
+    notifySuccess(`Added all chapters of ${webtoon.title} to queue`);
     attemptToDownload();
   };
 

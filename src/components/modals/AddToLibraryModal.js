@@ -7,9 +7,7 @@ export default function AddToLibraryModal({ webtoon, domain, url }) {
   const [error, setError] = useState(null);
   const [title, setTitle] = useState(webtoon.Title);
   const { library, addToLibrary } = useLibraryStore();
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
   const handleAddMangaToLibrary = () => {
     if (library.some((manga) => manga.title === title) || !title) {
@@ -29,7 +27,7 @@ export default function AddToLibraryModal({ webtoon, domain, url }) {
       cover: webtoon.Cover,
       last_downloaded_chapter: null,
     });
-    addSuccessNotification(`Added ${title} to library`);
+    notifySuccess(`Added ${title} to library`);
     showHideModal("lib-modal", false);
   };
 

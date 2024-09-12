@@ -56,17 +56,24 @@ export const useDownloadingStore = create((set) => ({
 
 export const useNotificationStore = create((set, get) => ({
   notifications: [],
-  addNotification: (message, type) =>
-    set((state) => ({
-      notifications: [...state.notifications, { id: uuidv4(), type, message }],
-    })),
   removeNotification: (id) =>
     set((state) => ({
       notifications: state.notifications.filter((note) => note.id !== id),
     })),
-  addSuccessNotification: (message) =>
-    get().addNotification(message, "success"),
-  addErrorNotification: (message) => get().addNotification(message, "error"),
+  notifySuccess: (message) =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { id: uuidv4(), type: "success", message },
+      ],
+    })),
+  notifyError: (message) =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { id: uuidv4(), type: "error", message },
+      ],
+    })),
 }));
 
 export const useDownloadTabStore = create((set) => ({

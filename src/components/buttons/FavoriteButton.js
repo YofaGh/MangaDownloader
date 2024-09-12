@@ -8,18 +8,16 @@ export default function FavoriteButton({ id, title, cover }) {
   const [isFavorite, setIsFavorite] = useState(
     favorites.some((webtoon) => webtoon.id === id)
   );
-  const addSuccessNotification = useNotificationStore(
-    (state) => state.addSuccessNotification
-  );
+  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
   const addWentoonToFavorites = () => {
     addToFavorites({ id, title, cover });
-    addSuccessNotification(`Added ${title} to favorites`);
+    notifySuccess(`Added ${title} to favorites`);
     setIsFavorite(true);
   };
   const removeWentoonFromFavorites = (e) => {
     e.preventDefault();
     removeFromFavorites(id);
-    addSuccessNotification(`Removed ${title} from favorites`);
+    notifySuccess(`Removed ${title} from favorites`);
     setIsFavorite(false);
   };
 

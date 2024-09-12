@@ -9,13 +9,11 @@ import {
 export default function Settings() {
   const { downloading } = useDownloadingStore();
   const { settings, updateSettings } = useSettingsStore();
-  const addErrorNotification = useNotificationStore(
-    (state) => state.addErrorNotification
-  );
+  const notifyError = useNotificationStore((state) => state.notifyError);
 
   const changeFilePath = async () => {
     if (downloading) {
-      addErrorNotification("There's a download in progress. Stop it first.");
+      notifyError("There's a download in progress. Stop it first.");
       return;
     }
     const download_path = await chooseFolder();

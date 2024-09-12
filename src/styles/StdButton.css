@@ -20,7 +20,7 @@
   background-color: var(--cyan);
   width: fit-content;
   white-space: nowrap;
-  color: white;
+  color: var(--gray);
   display: inline-block;
   padding: 5px 10px;
   border-radius: 5px;

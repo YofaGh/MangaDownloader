@@ -121,14 +121,12 @@ export default function Queue() {
 
   if (queue.length === 0)
     return (
-      <div className="queue-div">
-        <div className="manage">
-          <div className="info-manage">Number of Items: 0</div>
-        </div>
+      <div className="manage">
+        <div className="info-manage">Number of Items: 0</div>
       </div>
     );
   return (
-    <div className="queue-div">
+    <div>
       <div className="manage">
         <div className="info-manage">Number of Items: {queu.length}</div>
         {!queueEditable ? (

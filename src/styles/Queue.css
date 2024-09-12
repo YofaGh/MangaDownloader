@@ -2,10 +2,6 @@
   font-size: x-large;
   color: white;
 }
-.queue-div {
-  background-color: var(--gray);
-  border-radius: 50px;
-}
 .manage {
   min-height: 60px;
   display: flex;
@@ -20,7 +16,7 @@
   gap: 30px;
 }
 .info-manage {
-  padding-left: 20px;
+  padding-left: 2px;
   width: 100%;
   font-size: larger;
   color: var(--cyan);
@@ -28,17 +24,16 @@
   align-self: center;
   font-weight: bold;
 }
-
 .ul-queue {
   list-style-type: none;
   list-style-position: inside;
   padding-left: 0;
 }
 .queue-list {
-  background-color: rgba(72, 72, 72, 0.619);
-  border-radius: 50px;
-  padding-bottom: 10px;
-  padding-top: 10px;
+  border-radius: 20px;
+  padding: 5px;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 .no-info{
   color: var(--cyan);

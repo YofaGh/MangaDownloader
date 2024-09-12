@@ -196,7 +196,7 @@
   top: 50px;
   opacity: 0;
   background-color: var(--cyan);
-  color: white;
+  color: var(--gray);
   padding: 5px 10px;
   border-radius: 5px;
   display: flex;

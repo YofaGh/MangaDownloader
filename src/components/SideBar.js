@@ -31,7 +31,7 @@ export default function SideBar() {
       </Link>
       <Link to={{ pathname: "favorites" }}>
         <button className="buttonh">
-          <Icon svgName="favorites" />
+          <Icon svgName="heart" />
         </button>
       </Link>
       <Link to={{ pathname: "saucer" }}>

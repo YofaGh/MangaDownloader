@@ -25,11 +25,11 @@ export default function FavoriteButton({ id, title, cover }) {
 
   return isFavorite ? (
     <button className="buttonh buttonht" onClick={removeWentoonFromFavorites}>
-      <Icon svgName="favorites" className="icongt" />
+      <Icon svgName="heart" className="icongt" />
     </button>
   ) : (
     <button className="buttonh buttonht" onClick={addWentoonToFavorites}>
-      <Icon svgName="favorites-outlined" className="icongt" />
+      <Icon svgName="heart-broken" className="icongt" />
     </button>
   );
 }

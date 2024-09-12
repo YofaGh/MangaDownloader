@@ -22,7 +22,7 @@ export default function HomePage() {
             <HomeButton label="Modules" svgName="module" />
           </Link>
           <Link to={{ pathname: "favorites" }}>
-            <HomeButton label="Favorites" svgName="favorites" />
+            <HomeButton label="Favorites" svgName="heart" />
           </Link>
           <Link to={{ pathname: "saucer" }}>
             <HomeButton label="Saucer" svgName="saucer" />

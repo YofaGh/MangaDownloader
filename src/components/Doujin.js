@@ -3,21 +3,16 @@ import { attemptToDownload } from "../operators";
 import { useQueueStore, useNotificationStore } from "../store";
 import { getInfo, WebtoonType, DownloadStatus } from "../utils";
 import {
-  Icon,
   Image,
   Rating,
   Infoed,
   Loading,
   FlipButton,
   DownloadButton,
+  FavoriteButton,
 } from ".";
 
-export default function Doujin({
-  url,
-  module,
-  favoritesSvg,
-  toggleFavoriteWebtoon,
-}) {
+export default function Doujin({ url, module }) {
   const { addToQueue } = useQueueStore();
   const [webtoon, setWebtoon] = useState(null);
   (async () => setWebtoon(await getInfo(module, url)))();
@@ -44,20 +39,17 @@ export default function Doujin({
       <div className="basic-info">
         <div className="fixed">
           <Image className="webtoon-i" src={webtoon.Cover} domain={module} />
+          {webtoon.Rating && <Rating rating={webtoon.Rating} />}
         </div>
         <div className="flex-item">
           <div className="title-sec">
             <div className="title">
               {webtoon.Title}
-              <button
-                className="buttonh buttonht"
-                onClick={() =>
-                  toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
-                }
-              >
-                <Icon svgName={favoritesSvg} className="icongt" />
-                {webtoon.Rating && <Rating rating={webtoon.Rating} />}
-              </button>
+              <FavoriteButton
+                id={`${WebtoonType.DOUJIN}_$_${module}_$_${url}`}
+                title={webtoon.Title}
+                cover={webtoon.Cover}
+              />
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>

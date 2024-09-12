@@ -18,15 +18,11 @@ import {
   FlipButton,
   ChapterButton,
   DownloadButton,
+  FavoriteButton,
   AddToLibraryModal,
 } from ".";
 
-export default function Manga({
-  url,
-  module,
-  favoritesSvg,
-  toggleFavoriteWebtoon,
-}) {
+export default function Manga({ url, module }) {
   const navigate = useNavigate();
   const id = `${module}_$_${url}`;
   const [webtoon, setWebtoon] = useState(null);
@@ -101,14 +97,11 @@ export default function Manga({
           <div className="title-sec">
             <div className="title">
               {webtoon.Title}
-              <button
-                className="buttonh buttonht"
-                onClick={() =>
-                  toggleFavoriteWebtoon(webtoon.Title, webtoon.Cover)
-                }
-              >
-                <Icon svgName={favoritesSvg} className="icongt" />
-              </button>
+              <FavoriteButton
+                id={`${WebtoonType.MANGA}_$_${module}_$_${url}`}
+                title={webtoon.Title}
+                cover={webtoon.Cover}
+              />
               <button className="buttonh buttonht" onClick={updateLibrary}>
                 <Icon svgName={isInLibrary ? "library" : "add_to_library"} />
               </button>

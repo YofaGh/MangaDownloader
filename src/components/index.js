@@ -3,7 +3,6 @@ export { default as Queue } from "./Queue";
 export { default as Manga } from "./Manga";
 export { default as Doujin } from "./Doujin";
 export { default as Infoed } from "./Infoed";
-export { default as Rating } from "./Rating";
 export { default as TopBar } from "./TopBar";
 export { default as Loading } from "./Loading";
 export { default as SideBar } from "./SideBar";

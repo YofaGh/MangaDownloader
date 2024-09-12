@@ -3,8 +3,8 @@ import { attemptToDownload } from "../operators";
 import { useQueueStore, useNotificationStore } from "../store";
 import { getInfo, WebtoonType, DownloadStatus } from "../utils";
 import {
+  Icon,
   Image,
-  Rating,
   Infoed,
   Loading,
   FlipButton,
@@ -39,7 +39,12 @@ export default function Doujin({ url, module }) {
       <div className="basic-info">
         <div className="fixed">
           <Image className="webtoon-i" src={webtoon.Cover} domain={module} />
-          {webtoon.Rating && <Rating rating={webtoon.Rating} />}
+          {webtoon.Rating && (
+            <div>
+              {webtoon.Rating}
+              <Icon svgName="star" className="icongt" />
+            </div>
+          )}
         </div>
         <div className="flex-item">
           <div className="title-sec">

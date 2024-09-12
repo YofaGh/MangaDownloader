@@ -13,7 +13,6 @@ import {
   Icon,
   Image,
   Infoed,
-  Rating,
   Loading,
   FlipButton,
   ChapterButton,
@@ -90,7 +89,12 @@ export default function Manga({ url, module }) {
       <div className="basic-info">
         <div className="fixed">
           <Image className="webtoon-i" src={webtoon.Cover} domain={module} />
-          {webtoon.Rating && <Rating rating={webtoon.Rating} />}
+          {webtoon.Rating && (
+            <div>
+              {webtoon.Rating}
+              <Icon svgName="star" className="icongt" />
+            </div>
+          )}
           <Infoed title="Status:" info={webtoon.Status} />
         </div>
         <div className="flex-item">

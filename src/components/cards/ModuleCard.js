@@ -11,10 +11,8 @@ export default function MCard({ module, setStepStatuses, setModuleToCheck }) {
           <div className="m-label">{module.type}</div>
           <div className="m-logo">
             <Image
-              loading="lazy"
               src={module.logo}
               domain={module.domain}
-              referrerPolicy="no-referrer"
               defImage={DefaultModuleCover}
               style={{ width: 70, height: 70 }}
             />

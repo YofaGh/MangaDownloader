@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { HomeButton } from "../components";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div className="container">
       <div className="App">

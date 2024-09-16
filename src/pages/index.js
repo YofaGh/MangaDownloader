@@ -1,6 +1,6 @@
+export { default as Home } from "./Home";
 export { default as About } from "./About";
 export { default as Search } from "./Search";
-export { default as HomePage } from "./Home";
 export { default as Module } from "./Module";
 export { default as Saucer } from "./Saucer";
 export { default as Modules } from "./Modules";

@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import { writeFile, startUp } from "./utils";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
 import {
+  Home,
   About,
   Search,
   Module,
@@ -10,7 +11,6 @@ import {
   Modules,
   Library,
   Webtoon,
-  HomePage,
   Download,
   Settings,
   Favorites,
@@ -54,7 +54,7 @@ export default function App() {
       <TopBar />
       <NotificationProvider />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/search" element={<Search />} />
         <Route path="/saucer" element={<Saucer />} />

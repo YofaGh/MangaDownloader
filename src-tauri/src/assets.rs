@@ -202,7 +202,6 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
     retrieve(domain, url).await.unwrap_or_default()
 }
 
-#[tauri::command]
 async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
     let response: Response = get_module(domain).retrieve_image(url).await?;
     let image: Bytes = response.bytes().await.unwrap();

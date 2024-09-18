@@ -1,13 +1,16 @@
+use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderValue, COOKIE, REFERER},
     Method, Response,
 };
-use scraper::{html::Select, ElementRef, Html, Selector};
+use select::{
+    document::Document,
+    node::Node,
+    predicate::{Attr, Class, Name, Predicate},
+};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
-
-use crate::models::{BaseModule, Module};
 
 pub struct Toonily {
     base: BaseModule,
@@ -18,122 +21,99 @@ impl Module for Toonily {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Html = Html::parse_document(&response.text().await?);
+        let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<&str, Value> = HashMap::new();
-        let info_box: ElementRef = document
-            .select(&Selector::parse("div.tab-summary")?)
+        let mut extras: HashMap<String, Value> = HashMap::new();
+        let info_box = document
+            .find(Name("div").and(Class("tab-summary")))
             .next()
             .unwrap();
-        if let Some(element) = info_box.select(&Selector::parse("img")?).next() {
+        if let Some(element) = info_box.find(Name("img")).next() {
             info.insert(
                 "Cover".to_owned(),
-                to_value(element.value().attr("data-src").unwrap_or("")).unwrap_or_default(),
+                to_value(element.attr("data-src").unwrap_or("")).unwrap_or_default(),
             );
         }
-        if let Some(element) = document
-            .select(&Selector::parse("div.post-title h1")?)
-            .next()
-        {
-            info.insert(
-                "Title".to_owned(),
-                to_value(element.text().collect::<Vec<_>>().join("").trim()).unwrap_or_default(),
-            );
+        if let Some(element) = info_box.find(Name("div").and(Class("post-title"))).next() {
+            if let Some(element) = element.find(Name("h1")).next() {
+                info.insert(
+                    "Title".to_owned(),
+                    to_value(element.descendants().next().unwrap().text().trim())
+                        .unwrap_or_default(),
+                );
+            }
         }
         if let Some(element) = document
-            .select(&Selector::parse("div.summary__content")?)
+            .find(Name("div").and(Class("summary__content")))
             .next()
         {
             info.insert(
                 "Summary".to_owned(),
-                to_value(element.text().collect::<Vec<_>>().join("").trim()).unwrap_or_default(),
+                to_value(element.text().trim()).unwrap_or_default(),
             );
         }
         if let Some(element) = document
-            .select(&Selector::parse("span#averagerate")?)
+            .find(Name("span").and(Attr("id", "averagerate")))
             .next()
         {
             info.insert(
                 "Rating".to_owned(),
-                to_value(
-                    element
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join("")
-                        .trim()
-                        .parse::<f64>()
-                        .unwrap_or(0.0),
-                )
-                .unwrap_or_default(),
+                to_value(element.text().trim().parse::<f64>().unwrap_or(0.0)).unwrap_or_default(),
             );
         }
-        let tags: Vec<String> = document
-            .select(&Selector::parse("div.wp-manga-tags-list a")?)
-            .map(|tag| {
-                tag.text()
-                    .collect::<Vec<_>>()
-                    .join("")
-                    .trim()
-                    .replace('#', "")
-            })
-            .collect::<Vec<_>>();
-        extras.insert("Tags", to_value(tags).unwrap_or_default());
-        let manga_info_row: ElementRef = document
-            .select(&Selector::parse("div.manga-info-row")?)
+        if let Some(element) = info_box.find(Name("div").and(Class("post-status"))).next() {
+            if let Some(element) = element
+                .find(Name("div").and(Class("summary-content")))
+                .nth(1)
+            {
+                info.insert(
+                    "Status".to_owned(),
+                    to_value(element.text().trim()).unwrap_or_default(),
+                );
+            }
+        }
+        if let Some(tags) = document
+            .find(Name("div").and(Class("wp-manga-tags-list")))
             .next()
-            .unwrap();
-        let box_selector: Selector = Selector::parse("div.post-content_item")?;
-        for box_elem in manga_info_row.select(&box_selector) {
-            let box_str: String = box_elem.text().collect::<Vec<_>>().join("");
+        {
+            let tags: Vec<String> = tags
+                .find(Name("a"))
+                .map(|a| a.text().trim().replace('#', "").to_string())
+                .collect();
+            extras.insert("Tags".to_string(), to_value(tags).unwrap_or_default());
+        }
+        let boxes: Vec<Node> = document
+            .find(Name("div").and(Class("manga-info-row")))
+            .next()
+            .unwrap()
+            .find(Name("div").and(Class("post-content_item")))
+            .collect();
+        for box_elem in boxes {
+            let box_str: String = box_elem.find(Name("h5")).next().unwrap().text();
             let content: &str = box_str.trim();
             if content.contains("Alt Name") {
                 info.insert(
                     "Alternative".to_string(),
                     to_value(
                         box_elem
-                            .select(&Selector::parse("div.summary-content")?)
+                            .find(Name("div").and(Class("summary-content")))
                             .next()
                             .unwrap()
                             .text()
-                            .collect::<Vec<_>>()
-                            .join("")
                             .trim(),
                     )
                     .unwrap_or_default(),
                 );
-            } else if content.contains("Author") {
+            } else {
                 extras.insert(
-                    "Authors",
+                    box_str.replace("(s)", "s").to_string(),
                     to_value(
                         box_elem
-                            .select(&Selector::parse("a")?)
-                            .map(|a| a.text().collect::<Vec<_>>().join(""))
-                            .collect::<Vec<_>>(),
-                    )
-                    .unwrap_or_default(),
-                );
-            } else if content.contains("Artist") {
-                extras.insert(
-                    "Artists",
-                    to_value(
-                        box_elem
-                            .select(&Selector::parse("a")?)
-                            .map(|a| a.text().collect::<Vec<_>>().join(""))
-                            .collect::<Vec<_>>(),
-                    )
-                    .unwrap_or_default(),
-                );
-            } else if content.contains("Genre") {
-                extras.insert(
-                    "Genres",
-                    to_value(
-                        box_elem
-                            .select(&Selector::parse("a")?)
-                            .map(|a| a.text().collect::<Vec<_>>().join(""))
+                            .find(Name("a"))
+                            .map(|a| a.text())
                             .collect::<Vec<_>>(),
                     )
                     .unwrap_or_default(),
@@ -149,18 +129,15 @@ impl Module for Toonily {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let resp: Response = self.send_simple_request(&url).await?;
-        let body: String = resp.text().await?;
-        let document: Html = Html::parse_document(&body);
+        let response: Response = self.send_simple_request(&url).await?;
+        let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
-            .select(&Selector::parse("li.wp-manga-chapter")?)
-            .rev()
-            .map(|div: ElementRef| {
+            .find(Name("li").and(Class("wp-manga-chapter")))
+            .map(|div: Node| {
                 let chapter_url: String = div
-                    .select(&Selector::parse("a").unwrap())
+                    .find(Name("a"))
                     .next()
                     .unwrap()
-                    .value()
                     .attr("href")
                     .unwrap()
                     .split('/')
@@ -172,7 +149,7 @@ impl Module for Toonily {
                     ("name".to_string(), self.rename_chapter(chapter_url)),
                 ])
             })
-            .collect::<Vec<_>>();
+            .collect();
         Ok(chapters)
     }
 
@@ -182,21 +159,22 @@ impl Module for Toonily {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/{}/", manga, chapter);
-        let resp: Response = self.send_simple_request(&url).await?;
-        let body: String = resp.text().await?;
-        let document: Html = Html::parse_document(&body);
+        let response: Response = self.send_simple_request(&url).await?;
+        let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .select(&Selector::parse("div.reading-content img")?)
-            .map(|img| img.value().attr("data-src").unwrap().trim().to_string())
-            .collect::<Vec<_>>();
+            .find(Name("div").and(Class("reading-content")))
+            .next()
+            .unwrap()
+            .find(Name("img"))
+            .map(|img| img.attr("data-src").unwrap().trim().to_string())
+            .collect();
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
             .map(|(i, img)| format!("{:03}.{}", i + 1, img.split('.').last().unwrap()))
-            .collect::<Vec<_>>();
+            .collect();
         Ok((images, to_value(save_names).unwrap_or_default()))
     }
-
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -210,45 +188,39 @@ impl Module for Toonily {
         search_headers.insert(COOKIE, HeaderValue::from_static("toonily-mature=1"));
         while page <= page_limit {
             let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
-            let resp: Response = self
+            let response: Response = self
                 .send_request(&url, Method::GET, search_headers.clone(), Some(true))
                 .await?;
-            let body: String = resp.text().await?;
-            let document: Html = Html::parse_document(&body);
-            let manga_selector: Selector = Selector::parse("div.col-6 col-sm-3 col-lg-2")?;
-            let mangas: Select = document.select(&manga_selector);
+            if !response.status().is_success() {
+                break;
+            }
+            let document: Document = Document::from(response.text().await?.as_str());
+            let mangas: Vec<Node> = document
+                .find(Name("div").and(Attr("class", "col-6 col-sm-3 col-lg-2")))
+                .collect();
             for manga in mangas {
-                let details: ElementRef = manga
-                    .select(&Selector::parse("div.post-title font-title")?)
+                let details = manga
+                    .find(Name("div").and(Attr("class", "post-title font-title")))
                     .next()
                     .unwrap();
-                let title: String = details
-                    .text()
-                    .collect::<Vec<_>>()
-                    .join("")
-                    .trim()
-                    .to_string();
+                let title: String = details.text().trim().to_string();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                let url_selector: Selector = Selector::parse("a")?;
                 let url: String = details
-                    .select(&url_selector)
+                    .find(Name("a"))
                     .next()
                     .unwrap()
-                    .value()
                     .attr("href")
                     .unwrap()
                     .split('/')
                     .nth_back(1)
                     .unwrap()
                     .to_string();
-                let thumbnail_selector: Selector = Selector::parse("img")?;
-                let thumbnail: String = details
-                    .select(&thumbnail_selector)
+                let thumbnail: String = manga
+                    .find(Name("img"))
                     .next()
                     .unwrap()
-                    .value()
                     .attr("data-src")
                     .unwrap_or("")
                     .to_string();

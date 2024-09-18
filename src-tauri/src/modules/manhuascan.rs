@@ -1,6 +1,10 @@
 use async_trait::async_trait;
 use reqwest::Response;
-use scraper::{html::Select, ElementRef, Html, Selector};
+use select::{
+    document::Document,
+    node::Node,
+    predicate::{Attr, Class, Name, Predicate},
+};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
 
@@ -18,62 +22,46 @@ impl Module for Manhuascan {
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Html = Html::parse_document(&response.text().await?);
+        let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
         let mut dates: HashMap<&str, Value> = HashMap::new();
-        let info_box: Option<scraper::ElementRef> = document
-            .select(&Selector::parse("div.tsinfo.bixbox")?)
-            .next();
         if let Some(element) = document
-            .select(&Selector::parse("img.wp-post-image")?)
+            .find(Name("img").and(Attr("class", "attachment- size- wp-post-image")))
             .next()
         {
             info.insert(
                 "Cover".to_owned(),
-                to_value(element.value().attr("src").unwrap_or("")).unwrap_or_default(),
+                to_value(element.attr("src").unwrap_or("")).unwrap_or_default(),
             );
         }
-        if let Some(element) = document.select(&Selector::parse("h1.entry-title")?).next() {
+        if let Some(element) = document.find(Name("h1").and(Class("entry-title"))).next() {
             info.insert(
                 "Title".to_owned(),
-                to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
+                to_value(element.text().trim()).unwrap_or_default(),
             );
         }
-        if let Some(element) = document
-            .select(&Selector::parse("span.alternative")?)
-            .next()
-        {
+        if let Some(element) = document.find(Name("span").and(Class("alternative"))).next() {
             info.insert(
                 "Alternative".to_owned(),
-                to_value(
-                    element
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                        .trim()
-                        .replace("Other Name: ", ""),
-                )
-                .unwrap_or_default(),
+                to_value(element.text().trim().replace("Other Name: ", "")).unwrap_or_default(),
             );
         }
         if let Some(element) = document
-            .select(&Selector::parse("div.entry-content.entry-content-single")?)
+            .find(Name("div").and(Attr("class", "entry-content entry-content-single")))
             .next()
         {
             info.insert(
                 "Summary".to_owned(),
-                to_value(element.text().collect::<Vec<_>>().join(" ").trim()).unwrap_or_default(),
+                to_value(element.text().trim()).unwrap_or_default(),
             );
         }
-        if let Some(element) = document.select(&Selector::parse("div.detail_rate")?).next() {
+        if let Some(element) = document.find(Name("div").and(Class("detail_rate"))).next() {
             let rating_text: String = element
-                .select(&Selector::parse("span")?)
+                .find(Name("span"))
                 .next()
                 .unwrap()
                 .text()
-                .collect::<Vec<_>>()
-                .join(" ")
                 .trim()
                 .replace("/5", "");
             let rating_text: f32 = match rating_text.parse() {
@@ -85,38 +73,72 @@ impl Module for Manhuascan {
                 to_value(rating_text).unwrap_or_default(),
             );
         }
-        if let Some(info_box) = info_box {
-            if let Some(element) = info_box.select(&Selector::parse("i")?).next() {
+        if let Some(box_node) = document
+            .find(Name("div").and(Attr("class", "tsinfo bixbox")))
+            .next()
+        {
+            if let Some(element) = box_node
+                .find(|n: &select::node::Node| n.text().contains("Status"))
+                .next()
+                .and_then(|n| n.find(Name("i")).next())
+            {
                 info.insert(
                     "Status".to_owned(),
-                    to_value(element.text().collect::<Vec<_>>().join(" ").trim())
-                        .unwrap_or_default(),
+                    to_value(element.text().trim()).unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("a")?).next() {
+            if let Some(element) = box_node
+                .find(|n: &select::node::Node| n.text().contains("Author"))
+                .next()
+                .and_then(|n| n.find(Name("a")).next())
+            {
                 extras.insert(
                     "Authors",
-                    to_value(element.text().collect::<Vec<_>>().join(" ").trim())
-                        .unwrap_or_default(),
+                    to_value(element.text().trim()).unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("a")?).next() {
+            if let Some(element) = box_node
+                .find(|n: &select::node::Node| n.text().contains("Artist"))
+                .next()
+                .and_then(|n| n.find(Name("a")).next())
+            {
                 extras.insert(
                     "Artists",
-                    to_value(element.text().collect::<Vec<_>>().join(" ").trim())
-                        .unwrap_or_default(),
+                    to_value(element.text().trim()).unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("time")?).next() {
+            if let Some(element) = box_node
+                .find(|n: &select::node::Node| n.text().contains("Posted"))
+                .next()
+            {
                 dates.insert(
                     "Posted On",
-                    to_value(element.value().attr("datetime").unwrap_or("")).unwrap_or_default(),
+                    to_value(
+                        element
+                            .find(Name("time"))
+                            .next()
+                            .unwrap()
+                            .attr("datetime")
+                            .unwrap_or(""),
+                    )
+                    .unwrap_or_default(),
                 );
             }
-            if let Some(element) = info_box.select(&Selector::parse("time")?).next() {
+            if let Some(element) = box_node
+                .find(|n: &select::node::Node| n.text().contains("Updated"))
+                .next()
+            {
                 dates.insert(
                     "Updated On",
-                    to_value(element.value().attr("datetime").unwrap_or("")).unwrap_or_default(),
+                    to_value(
+                        element
+                            .find(Name("time"))
+                            .next()
+                            .unwrap()
+                            .attr("datetime")
+                            .unwrap_or(""),
+                    )
+                    .unwrap_or_default(),
                 );
             }
         }
@@ -132,10 +154,13 @@ impl Module for Manhuascan {
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Html = Html::parse_document(&response.text().await?);
+        let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .select(&Selector::parse("div#readerarea img")?)
-            .filter_map(|img| img.value().attr("src"))
+            .find(Name("div").and(Attr("id", "readerarea")))
+            .next()
+            .unwrap()
+            .find(Name("img"))
+            .filter_map(|img| img.attr("src"))
             .map(|src| src.to_string())
             .collect::<Vec<String>>();
         Ok((images, Value::Bool(false)))
@@ -147,25 +172,26 @@ impl Module for Manhuascan {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Html = Html::parse_document(&response.text().await?);
-        let binding: Selector = Selector::parse("div.eph-num")?;
-        let divs: Select = document.select(&binding);
+        let document: Document = Document::from(response.text().await?.as_str());
+        let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
-        for div in divs.rev() {
-            if let Some(a) = div.select(&Selector::parse("a")?).next() {
-                let chapter_url = a
-                    .value()
-                    .attr("href")
-                    .unwrap_or("")
-                    .split('/')
-                    .last()
-                    .unwrap_or("")
-                    .to_string();
-                let mut chapter_info: HashMap<String, String> = HashMap::new();
-                chapter_info.insert("url".to_owned(), chapter_url.clone());
-                chapter_info.insert("name".to_owned(), self.rename_chapter(chapter_url));
-                chapters.push(chapter_info);
-            }
+        for div in divs {
+            let chapter_url = div
+                .find(Name("a"))
+                .next()
+                .unwrap()
+                .attr("href")
+                .unwrap()
+                .split("/")
+                .last()
+                .unwrap();
+            chapters.push(HashMap::from([
+                ("url".to_string(), chapter_url.to_string()),
+                (
+                    "name".to_string(),
+                    self.rename_chapter(chapter_url.to_string()),
+                ),
+            ]));
         }
         Ok(chapters)
     }
@@ -181,73 +207,63 @@ impl Module for Manhuascan {
         let mut page: u32 = 1;
         while page <= page_limit {
             let response: Response = self
-                .send_simple_request(
-                    &format!(
-                        "https://manhuascan.us/manga-list?search={}&page={}",
-                        keyword, page
-                    )
-                )
+                .send_simple_request(&format!(
+                    "https://manhuascan.us/manga-list?search={}&page={}",
+                    keyword, page
+                ))
                 .await?;
-            if response.status().is_success() {
-                let body: String = response.text().await?;
-                let document: Html = Html::parse_document(&body);
-                let manga_selector: Selector = Selector::parse("div.bsx")?;
-                let mangas: Select = document.select(&manga_selector);
-                if mangas.clone().count() == 0 {
-                    break;
+            if !response.status().is_success() {
+                break;
+            }
+            let document: Document = Document::from(response.text().await?.as_str());
+            let mangas: Vec<Node> = document.find(Name("div").and(Class("bsx"))).collect();
+            if mangas.len() == 0 {
+                break;
+            }
+            for manga in mangas {
+                let title_element = manga.find(Name("a")).next().unwrap();
+                let title = title_element.attr("title").unwrap();
+                if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
+                    continue;
                 }
-                for manga in mangas {
-                    let title_selector: Selector = Selector::parse("a")?;
-                    let title_element: ElementRef = manga.select(&title_selector).next().unwrap();
-                    let title: String = title_element
-                        .value()
-                        .attr("title")
-                        .unwrap_or_default()
-                        .to_string();
-                    if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
-                        continue;
-                    }
-                    let latest_chapter_selector: Selector = Selector::parse("div.adds a")?;
-                    let latest_chapter: String = manga
-                        .select(&latest_chapter_selector)
-                        .next()
-                        .map_or(String::new(), |a| {
-                            a.value()
-                                .attr("href")
-                                .unwrap_or("")
-                                .split('/')
-                                .last()
-                                .unwrap_or("")
-                                .to_string()
-                        });
-                    let url: String = title_element
-                        .value()
+                let mut latest_chapter: String = String::default();
+                if let Some(chapter) = manga
+                    .find(Name("div").and(Class("adds")))
+                    .next()
+                    .unwrap()
+                    .find(Name("a"))
+                    .next()
+                {
+                    latest_chapter = chapter
                         .attr("href")
                         .unwrap_or("")
                         .split('/')
                         .last()
                         .unwrap_or("")
                         .to_string();
-                    let thumbnail_selector: Selector = Selector::parse("img")?;
-                    let thumbnail: String = manga
-                        .select(&thumbnail_selector)
-                        .next()
-                        .unwrap()
-                        .value()
-                        .attr("src")
-                        .unwrap_or("")
-                        .to_string();
-                    results.push(HashMap::from([
-                        ("name".to_string(), title),
-                        ("domain".to_string(), "manhuascan.us".to_string()),
-                        ("url".to_string(), url),
-                        ("latest_chapter".to_string(), latest_chapter),
-                        ("thumbnail".to_string(), thumbnail),
-                        ("page".to_string(), page.to_string()),
-                    ]));
                 }
-            } else {
-                break;
+                let url: String = title_element
+                    .attr("href")
+                    .unwrap_or("")
+                    .split('/')
+                    .last()
+                    .unwrap_or("")
+                    .to_string();
+                let thumbnail: String = manga
+                    .find(Name("img"))
+                    .next()
+                    .unwrap()
+                    .attr("src")
+                    .unwrap_or("")
+                    .to_string();
+                results.push(HashMap::from([
+                    ("name".to_string(), title.to_string()),
+                    ("domain".to_string(), "manhuascan.us".to_string()),
+                    ("url".to_string(), url),
+                    ("latest_chapter".to_string(), latest_chapter),
+                    ("thumbnail".to_string(), thumbnail),
+                    ("page".to_string(), page.to_string()),
+                ]));
             }
             page += 1;
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));

@@ -7,7 +7,6 @@ use select::{
 };
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
-use tokio_util::bytes::Buf;
 
 use crate::models::{BaseModule, Module};
 
@@ -24,7 +23,7 @@ impl Module for Nhentai {
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://nhentai.net/g/{}/", code);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Document = Document::from_read(response.bytes().await?.reader())?;
+        let document: Document = Document::from(response.text().await?.as_str());
         let mut cover: String = String::new();
         let mut title: String = String::new();
         let mut alternative: String = String::new();
@@ -103,7 +102,7 @@ impl Module for Nhentai {
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://nhentai.net/g/{}/", code);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Document = Document::from_read(response.bytes().await?.reader())?;
+        let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
             .filter_map(|node| node.attr("data-src"))
@@ -133,7 +132,7 @@ impl Module for Nhentai {
                     keyword, page
                 ))
                 .await?;
-            let document: Document = Document::from_read(response.bytes().await?.reader())?;
+            let document: Document = Document::from(response.text().await?.as_str());
             let doujins: Vec<Node> = document
                 .find(Name("div").and(Attr("class", "gallery")))
                 .collect();

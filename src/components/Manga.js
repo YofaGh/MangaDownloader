@@ -32,7 +32,7 @@ export default function Manga({ url, module }) {
   const notifySuccess = useNotificationStore((state) => state.notifySuccess);
   (async () => {
     setWebtoon(await getInfo(module, url));
-    setChapters((await getChapters(module, url)).reverse());
+    setChapters(await getChapters(module, url));
   })();
 
   const addChapter = (chapter, status) => {

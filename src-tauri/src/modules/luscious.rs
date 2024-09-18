@@ -1,11 +1,13 @@
+use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDate;
 use reqwest::Response;
-use scraper::{Html, Selector};
+use select::{
+    document::Document,
+    predicate::{Attr, Class, Name, Predicate},
+};
 use serde_json::{to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
-
-use crate::models::{BaseModule, Module};
 
 pub struct Luscious {
     base: BaseModule,
@@ -16,132 +18,112 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url = format!("https://www.luscious.net/albums/{}", manga);
+        let url: String = format!("https://www.luscious.net/albums/{}", manga);
         let response: Response = self.send_simple_request(&url).await?;
-        let document: Html = Html::parse_document(&response.text().await?);
-        let cover_selector = Selector::parse("div.picture-card-outer img")?;
-        let title_selector = Selector::parse("h1.o-h1.album-heading")?;
-        let alternative_selector = Selector::parse("div.album-info-wrapper h2")?;
-        let info_box_selector = Selector::parse("div.album-info-wrapper")?;
-        let album_info_item_selector = Selector::parse("span.album-info-item")?;
-        let tag_secondary_selector = Selector::parse("div.o-tag--secondary")?;
-        let album_description_selector = Selector::parse("div.album-description")?;
-        let language_selector = Selector::parse("a.language_flags-module__link--dp0Rr")?;
-
-        let mut cover = String::new();
-        let mut title = String::new();
-        let mut alternative = String::new();
-        let mut pages = String::new();
-        let mut extras: HashMap<&str, Value> = HashMap::new();
-        let mut dates = HashMap::new();
-        let mut tags = Vec::new();
-
-        if let Some(cover_element) = document.select(&cover_selector).next() {
-            cover = cover_element.value().attr("src").unwrap_or("").to_string();
-        }
-
-        if let Some(title_element) = document.select(&title_selector).next() {
-            title = title_element
-                .text()
-                .collect::<Vec<_>>()
-                .join("")
-                .trim()
-                .to_string();
-        }
-
-        if let Some(alternative_element) = document.select(&alternative_selector).next() {
-            alternative = alternative_element
-                .text()
-                .collect::<Vec<_>>()
-                .join("")
-                .trim()
-                .to_string();
-        }
-
-        if let Some(info_box) = document.select(&info_box_selector).next() {
-            if let Some(language_element) = info_box.select(&language_selector).next() {
-                extras.insert(
-                    "Language",
-                    to_value(language_element.text().collect::<Vec<_>>().join("").trim())
-                        .unwrap_or_default(),
+        let document: Document = Document::from(response.text().await?.as_str());
+        let mut info: HashMap<String, Value> = HashMap::new();
+        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut dates: HashMap<String, Value> = HashMap::new();
+        if let Some(element) = document
+            .find(Name("div").and(Class("picture-card-outer")))
+            .next()
+        {
+            if let Some(image) = element.find(Name("img")).next() {
+                info.insert(
+                    "Cover".to_string(),
+                    to_value(image.attr("src").unwrap()).unwrap_or_default(),
                 );
             }
-
-            for box_element in info_box.select(&album_info_item_selector) {
-                let text = box_element
-                    .text()
-                    .collect::<Vec<_>>()
-                    .join("")
-                    .trim()
-                    .to_string();
-                if text.contains("pictures") {
-                    pages = text.replace(" pictures", "");
-                } else {
-                    let strong_text = box_element
-                        .select(&Selector::parse("strong")?)
-                        .next()
-                        .unwrap()
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join("")
-                        .trim()
-                        .to_string();
-                    let date_text = box_element
-                        .text()
-                        .collect::<Vec<_>>()
-                        .last()
-                        .unwrap()
-                        .trim()
-                        .to_string();
-                    let cleaned_input = date_text
-                        .replace("th", "")
-                        .replace("st", "")
-                        .replace("nd", "")
-                        .replace("rd", "");
-                    let date = NaiveDate::parse_from_str(&cleaned_input, "%B %d, %Y")?;
-                    let datetime =
-                        NaiveDateTime::new(date, chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                    dates.insert(strong_text, datetime.to_string());
+        }
+        if let Some(element) = document
+            .find(Name("h1").and(Attr("class", "o-h1 album-heading")))
+            .next()
+        {
+            info.insert(
+                "Title".to_string(),
+                to_value(element.text()).unwrap_or_default(),
+            );
+        }
+        let info_box = document
+            .find(Name("div").and(Class("album-info-wrapper")))
+            .next()
+            .unwrap();
+        if let Some(alternative_element) = info_box.find(Name("h2")).next() {
+            info.insert(
+                "Alternative".to_string(),
+                to_value(alternative_element.text().trim().to_string()).unwrap_or_default(),
+            );
+        }
+        if let Some(language_element) = info_box
+            .find(Name("a").and(Class("language_flags-module__link--dp0Rr")))
+            .next()
+        {
+            extras.insert(
+                "Language".to_string(),
+                to_value(language_element.text().trim()).unwrap_or_default(),
+            );
+        }
+        for box_element in info_box.find(Name("span").and(Class("album-info-item"))) {
+            let text: String = box_element.text().trim().to_string();
+            if text.contains("pictures") {
+                info.insert(
+                    "Pages".to_string(),
+                    to_value(text.replace(" pictures", "")).unwrap_or_default(),
+                );
+            } else {
+                if let (Some(strong), Some(date_str)) = (
+                    box_element.find(Name("strong")).next(),
+                    box_element.last_child(),
+                ) {
+                    println!("{} {}", strong.text().trim(), date_str.text().trim());
+                    if let Ok(date) =
+                        NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
+                    {
+                        let datetime = date.and_hms_opt(0, 0, 0).unwrap();
+                        dates.insert(
+                            strong.text().trim_end_matches(':').to_string(),
+                            to_value(datetime.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
+                        );
+                    }
                 }
             }
-            for box_element in info_box.select(&tag_secondary_selector) {
-                tags.push(
-                    box_element
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join("")
-                        .trim()
-                        .to_string(),
-                );
-            }
-            if let Some(description_element) = info_box.select(&album_description_selector).next() {
+        }
+        for box_element in
+            document.find(Name("div").and(Class("album-info-item").or(Class("o-tag--category"))))
+        {
+            if let Some(strong) = box_element.find(Name("strong")).next() {
                 extras.insert(
-                    "Album Description",
+                    strong.text().trim().trim_end_matches(':').to_string(),
                     to_value(
-                        description_element
-                            .text()
-                            .collect::<Vec<_>>()
-                            .join("")
-                            .trim(),
+                        box_element
+                            .find(Name("a"))
+                            .map(|a| a.text().trim().to_string())
+                            .collect::<Vec<String>>(),
                     )
-                    .unwrap_or_default(),
+                    .unwrap(),
                 );
             }
         }
-        extras.insert("Tags", to_value(tags).unwrap_or_default());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        info.insert("Cover".to_string(), to_value(cover).unwrap_or_default());
-        info.insert("Title".to_string(), to_value(title).unwrap_or_default());
-        info.insert("Pages".to_string(), to_value(pages).unwrap_or_default());
-        info.insert(
-            "Alternative".to_string(),
-            to_value(alternative).unwrap_or_default(),
-        );
+        for box_element in document.find(Name("div").and(Class("o-tag--secondary"))) {
+            if let Some(element) = box_element.first_child() {
+                extras.insert(
+                    "Tags".to_string(),
+                    to_value(element.text().trim().to_string()).unwrap(),
+                );
+            }
+        }
+        if let Some(description) = document
+            .find(Name("div").and(Class("album-description")))
+            .next()
+        {
+            extras.insert(
+                "Album Description".to_string(),
+                to_value(description.text().trim().to_string()).unwrap_or_default(),
+            );
+        }
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         info.insert("Dates".to_string(), to_value(dates).unwrap_or_default());
-        println!("{:?}", info);
         Ok(info)
     }
 
@@ -155,7 +137,7 @@ impl Module for Luscious {
             .replace("__album__id__", &manga)
             .replace("__page__number__", "1");
         let response: Response = self.send_simple_request(&url).await?;
-        let response: Value = Value::from(response.json().await?);
+        let response: Value = response.json().await?;
         let total_pages = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
             .unwrap_or(1);
@@ -170,7 +152,7 @@ impl Module for Luscious {
                 .replace("__album__id__", &manga)
                 .replace("__page__number__", &page.to_string());
             let response: Response = self.send_simple_request(&url).await?;
-            let response: Value = Value::from(response.json().await?);
+            let response: Value = response.json().await?;
             let new_images = response["data"]["picture"]["list"]["items"]
                 .as_array()
                 .unwrap_or(&vec![])
@@ -195,13 +177,16 @@ impl Module for Luscious {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         while page <= page_limit {
             if page > total_pages {
-                return Ok(results);
+                break;
             }
             let url = data
                 .replace("__keyword__", &keyword)
                 .replace("__page__number__", &page.to_string());
             let response: Response = self.send_simple_request(&url).await?;
-            let response: Value = Value::from(response.json().await?);
+            if !response.status().is_success() {
+                break;
+            }
+            let response: Value = response.json().await?;
             total_pages = response["data"]["album"]["list"]["info"]["total_pages"]
                 .as_i64()
                 .unwrap_or(1000) as u32;
@@ -246,7 +231,6 @@ impl Module for Luscious {
             page += 1;
             thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
         }
-        println!("{:?}", results);
         Ok(results)
     }
 }

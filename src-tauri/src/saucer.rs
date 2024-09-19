@@ -1,9 +1,14 @@
+use indexmap::IndexMap;
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     multipart::{Form, Part},
     Client, RequestBuilder,
 };
-use scraper::{element_ref::Select, Html, Selector};
+use select::{
+    document::Document,
+    node::Node,
+    predicate::{Attr, Class, Name, Predicate},
+};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error, path::Path};
 use tokio::fs::read;
@@ -14,39 +19,33 @@ async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error
         "https://yandex.com/images/search?rpt=imageview&url={}",
         url
     ));
-    let response = request.send();
-    let document = Html::parse_document(&response.await?.text().await?);
-    let selector = Selector::parse("div.cbir-section.cbir-section_name_sites div.Root")?;
-    let data_raw = document
-        .select(&selector)
+    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    let data_raw: &str = document
+        .find(Name("div").and(Attr("class", "cbir-section cbir-section_name_sites")))
         .next()
-        .ok_or("Failed to find cbir-section")?
-        .value()
+        .unwrap()
+        .find(Name("div").and(Class("Root")))
+        .next()
+        .unwrap()
         .attr("data-state")
-        .ok_or("Failed to find data-state attribute")?;
-    let data: Value = Value::String(data_raw.to_string());
-    let sites: &Vec<Value> = data["sites"]
-        .as_array()
-        .ok_or("Failed to get sites array")?;
+        .unwrap();
+    let data: IndexMap<String, Value> = serde_json::from_str(&data_raw)?;
+    let sites: &Vec<Value> = data["sites"].as_array().unwrap();
     sites
         .iter()
-        .map(|site| {
-            let url = site["url"].as_str().ok_or("Failed to get url")?.to_string();
-            let image = site["originalImage"]["url"]
-                .as_str()
-                .ok_or("Failed to get originalImage url")?
-                .to_string();
-            let mut map = HashMap::new();
-            map.insert("url".to_string(), url);
-            map.insert("image".to_string(), image);
-            Ok(map)
+        .map(|site: &Value| {
+            let url: String = site["url"].as_str().ok_or("Failed to get url")?.to_string();
+            let image: String = site["originalImage"]["url"].to_string();
+            Ok(HashMap::from([
+                ("url".to_string(), url),
+                ("image".to_string(), image),
+            ]))
         })
         .collect::<Result<Vec<_>, _>>()
 }
 
 async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
-    // let client: Client = Client::new();
     let mut headers: HeaderMap = HeaderMap::new();
     headers.append(
         "content-type",
@@ -99,40 +98,33 @@ async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error
 async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={}", url));
-    let response = request.send();
-    let document: Html = Html::parse_document(&response.await?.text().await?);
-    let pages_selector: Selector = Selector::parse("div#pages")?;
-    let div_selector: Selector = Selector::parse("div")?;
-    let divs = document
-        .select(&pages_selector)
+    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    let mut results: Vec<HashMap<String, String>> = Vec::new();
+    let divs: Vec<Node> = document
+        .find(Name("div").and(Attr("id", "pages")))
         .next()
         .unwrap()
-        .select(&div_selector)
-        .filter(|div| {
-            !div.text()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .contains("Your image")
-        });
-    let mut results: Vec<HashMap<String, String>> = Vec::new();
+        .find(Name("div"))
+        .filter(|div: &Node| !div.text().contains("Your image"))
+        .collect();
     for div in divs {
-        let td_selector = Selector::parse("td.image")?;
-        let a_selector = Selector::parse("a")?;
-        let img_selector = Selector::parse("img")?;
-        if let Some(td) = div.select(&td_selector).next() {
-            if let Some(td_url) = td
-                .select(&a_selector)
-                .next()
-                .and_then(|a| a.value().attr("href"))
-            {
-                let td_image = td
-                    .select(&img_selector)
-                    .next()
-                    .and_then(|img| img.value().attr("src"));
-                let mut map = HashMap::new();
-                map.insert("url".to_string(), format!("https:{}", td_url));
-                if let Some(image) = td_image {
-                    map.insert("image".to_string(), format!("https://iqdb.org{}", image));
+        if let Some(td) = div.find(Name("td").and(Class("image"))).next() {
+            if let Some(td_a) = td.find(Name("a")).next() {
+                let mut td_url: String = td_a.attr("href").unwrap().to_string();
+                if !td_url.contains("https:") {
+                    td_url = format!("https:{}", td_url);
+                }
+                let mut map: HashMap<String, String> = HashMap::new();
+                map.insert("url".to_string(), td_url);
+                if let Some(image) = td.find(Name("img")).next() {
+                    let mut image_src = image.attr("src").unwrap().to_string();
+                    if !image_src.contains("https:") {
+                        image_src = format!("https://iqdb.org{}", image_src);
+                    }
+                    map.insert(
+                        "image".to_string(),
+                        format!("https://iqdb.org{}", image_src),
+                    );
                 }
                 results.push(map);
             }
@@ -147,38 +139,25 @@ async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Err
         "https://saucenao.com/search.php?db=999&url={}",
         url
     ));
-    let response = request.send();
-    let document: Html = Html::parse_document(&response.await?.text().await?);
-    let middle_selector: Selector = Selector::parse("div#middle")?;
-    let result_selector: Selector = Selector::parse("div.result")?;
-    let resultimage_selector: Selector = Selector::parse("div.resultimage")?;
-    let a_selector: Selector = Selector::parse("a")?;
-    let divs: Select = document
-        .select(&middle_selector)
+    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    let divs: Vec<Node> = document
+        .find(Name("div").and(Attr("id", "middle")))
         .next()
         .unwrap()
-        .select(&result_selector);
+        .find(Name("div").and(Class("result")))
+        .collect();
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     for div in divs {
-        if div
-            .text()
-            .collect::<Vec<_>>()
-            .join(" ")
-            .contains("Low similarity results have been hidden")
-        {
+        if div.text().contains("Low similarity results have been") {
             break;
         }
-        if let Some(a) = div
-            .select(&resultimage_selector)
-            .next()
-            .and_then(|div| div.select(&a_selector).next())
-        {
-            let mut map = HashMap::new();
-            map.insert(
-                "url".to_string(),
-                a.value().attr("href").unwrap().to_string(),
-            );
-            results.push(map);
+        if let Some(result) = div.find(Name("div").and(Class("resultimage"))).next() {
+            if let Some(a) = result.find(Name("a")).next() {
+                results.push(HashMap::from([(
+                    "url".to_string(),
+                    a.attr("href").unwrap().to_string(),
+                )]));
+            }
         }
     }
     Ok(results)
@@ -209,24 +188,18 @@ async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
                 .to_string(),
         ),
     );
-    let response: String = client
+    let response = client
         .post("https://imgops.com/store")
         .multipart(form)
-        .send()
-        .await?
-        .text()
-        .await?;
-    let document: Html = Html::parse_document(&response);
-    let content_selector: Selector = Selector::parse("div#content")?;
-    let a_selector: Selector = Selector::parse("a")?;
+        .send();
+    let document: Document = Document::from(response.await?.text().await?.as_str());
     let link: &str = document
-        .select(&content_selector)
+        .find(Name("div").and(Attr("id", "content")))
         .next()
         .unwrap()
-        .select(&a_selector)
+        .find(Name("a"))
         .next()
         .unwrap()
-        .value()
         .attr("href")
         .unwrap();
     Ok(format!("https:{}", link))

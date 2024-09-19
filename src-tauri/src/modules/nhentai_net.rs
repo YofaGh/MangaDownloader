@@ -24,38 +24,48 @@ impl Module for Nhentai {
         let url: String = format!("https://nhentai.net/g/{}/", code);
         let response: Response = self.send_simple_request(&url).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut cover: String = String::new();
-        let mut title: String = String::new();
-        let mut alternative: String = String::new();
-        let mut pages: String = String::new();
-        let mut uploaded: String = String::new();
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         if let Some(cover_element) = document.find(Attr("id", "cover")).next() {
             if let Some(img) = cover_element.find(Name("img")).next() {
-                cover = img.attr("data-src").unwrap_or("").to_string();
+                info.insert(
+                    "Cover".to_string(),
+                    to_value(img.attr("data-src").unwrap_or_default()).unwrap_or_default(),
+                );
             }
         }
         if let Some(info_box) = document.find(Attr("id", "info")).next() {
-            title = info_box.find(Name("h1")).next().unwrap().text();
-            alternative = info_box.find(Name("h2")).next().unwrap().text();
+            if let Some(title_element) = info_box.find(Name("h1")).next() {
+                info.insert(
+                    "Title".to_string(),
+                    to_value(title_element.text().trim()).unwrap_or_default(),
+                );
+            }
+            if let Some(alternative_element) = info_box.find(Name("h2")).next() {
+                info.insert(
+                    "Alternative".to_string(),
+                    to_value(alternative_element.text().trim()).unwrap_or_default(),
+                );
+            }
         }
         if let Some(uploaded_element) = document.find(Name("time")).next() {
-            uploaded = uploaded_element.attr("datetime").unwrap_or("").to_string();
+            info.insert(
+                "Uploaded".to_string(),
+                to_value(uploaded_element.attr("datetime").unwrap_or_default()).unwrap_or_default(),
+            );
         }
         if let Some(tags_section) = document
             .find(Name("section").and(Attr("id", "tags")))
             .next()
         {
             if let Some(pages_element) = tags_section
-                .find(|tag: &select::node::Node<'_>| tag.text().contains("Pages:"))
+                .find(|tag: &Node| tag.text().contains("Pages:"))
                 .next()
             {
-                pages = pages_element
-                    .text()
-                    .replace("Pages:", "")
-                    .trim()
-                    .to_string();
+                info.insert(
+                    "Pages".to_string(),
+                    to_value(pages_element.text().replace("Pages:", "").trim()).unwrap_or_default(),
+                );
             }
         }
         for tag_box in document
@@ -70,27 +80,15 @@ impl Module for Nhentai {
             let key: String = tag_box.first_child().unwrap().text().trim().to_string();
             let values: Vec<String> = tag_box
                 .find(Name("a"))
-                .map(|link| {
+                .map(|link: Node| {
                     link.find(Name("span").and(Class("name")))
                         .next()
                         .unwrap()
                         .text()
-                        .to_string()
                 })
                 .collect();
             extras.insert(key, to_value(values).unwrap_or_default());
         }
-        info.insert("Title".to_string(), to_value(title).unwrap_or_default());
-        info.insert(
-            "Alternative".to_string(),
-            to_value(alternative).unwrap_or_default(),
-        );
-        info.insert(
-            "Uploaded".to_string(),
-            to_value(uploaded).unwrap_or_default(),
-        );
-        info.insert("Pages".to_string(), to_value(pages).unwrap_or_default());
-        info.insert("Cover".to_string(), to_value(cover).unwrap_or_default());
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         Ok(info)
     }
@@ -105,8 +103,8 @@ impl Module for Nhentai {
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
-            .filter_map(|node| node.attr("data-src"))
-            .map(|image| {
+            .filter_map(|node: Node| node.attr("data-src"))
+            .map(|image: &str| {
                 format!(
                     "{}/{}",
                     image.replace("//t", "//i").rsplit_once("/").unwrap().0,

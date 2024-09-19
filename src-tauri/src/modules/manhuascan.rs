@@ -78,9 +78,9 @@ impl Module for Manhuascan {
             .next()
         {
             if let Some(element) = box_node
-                .find(|n: &select::node::Node| n.text().contains("Status"))
+                .find(|n: &Node| n.text().contains("Status"))
                 .next()
-                .and_then(|n| n.find(Name("i")).next())
+                .and_then(|n: Node| n.find(Name("i")).next())
             {
                 info.insert(
                     "Status".to_owned(),
@@ -88,9 +88,9 @@ impl Module for Manhuascan {
                 );
             }
             if let Some(element) = box_node
-                .find(|n: &select::node::Node| n.text().contains("Author"))
+                .find(|n: &Node| n.text().contains("Author"))
                 .next()
-                .and_then(|n| n.find(Name("a")).next())
+                .and_then(|n: Node| n.find(Name("a")).next())
             {
                 extras.insert(
                     "Authors",
@@ -98,19 +98,16 @@ impl Module for Manhuascan {
                 );
             }
             if let Some(element) = box_node
-                .find(|n: &select::node::Node| n.text().contains("Artist"))
+                .find(|n: &Node| n.text().contains("Artist"))
                 .next()
-                .and_then(|n| n.find(Name("a")).next())
+                .and_then(|n: Node| n.find(Name("a")).next())
             {
                 extras.insert(
                     "Artists",
                     to_value(element.text().trim()).unwrap_or_default(),
                 );
             }
-            if let Some(element) = box_node
-                .find(|n: &select::node::Node| n.text().contains("Posted"))
-                .next()
-            {
+            if let Some(element) = box_node.find(|n: &Node| n.text().contains("Posted")).next() {
                 dates.insert(
                     "Posted On",
                     to_value(
@@ -125,7 +122,7 @@ impl Module for Manhuascan {
                 );
             }
             if let Some(element) = box_node
-                .find(|n: &select::node::Node| n.text().contains("Updated"))
+                .find(|n: &Node| n.text().contains("Updated"))
                 .next()
             {
                 dates.insert(
@@ -160,9 +157,8 @@ impl Module for Manhuascan {
             .next()
             .unwrap()
             .find(Name("img"))
-            .filter_map(|img| img.attr("src"))
-            .map(|src| src.to_string())
-            .collect::<Vec<String>>();
+            .filter_map(|img: Node| Some(img.attr("src").unwrap().to_string()))
+            .collect();
         Ok((images, Value::Bool(false)))
     }
 
@@ -176,7 +172,7 @@ impl Module for Manhuascan {
         let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
         for div in divs {
-            let chapter_url = div
+            let chapter_url: String = div
                 .find(Name("a"))
                 .next()
                 .unwrap()
@@ -184,13 +180,11 @@ impl Module for Manhuascan {
                 .unwrap()
                 .split("/")
                 .last()
-                .unwrap();
+                .unwrap()
+                .to_string();
             chapters.push(HashMap::from([
-                ("url".to_string(), chapter_url.to_string()),
-                (
-                    "name".to_string(),
-                    self.rename_chapter(chapter_url.to_string()),
-                ),
+                ("url".to_string(), chapter_url.clone()),
+                ("name".to_string(), self.rename_chapter(chapter_url)),
             ]));
         }
         Ok(chapters)
@@ -221,8 +215,8 @@ impl Module for Manhuascan {
                 break;
             }
             for manga in mangas {
-                let title_element = manga.find(Name("a")).next().unwrap();
-                let title = title_element.attr("title").unwrap();
+                let title_element: Node = manga.find(Name("a")).next().unwrap();
+                let title: &str = title_element.attr("title").unwrap();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
@@ -258,7 +252,7 @@ impl Module for Manhuascan {
                     .to_string();
                 results.push(HashMap::from([
                     ("name".to_string(), title.to_string()),
-                    ("domain".to_string(), "manhuascan.us".to_string()),
+                    ("domain".to_string(), self.base.domain.to_string()),
                     ("url".to_string(), url),
                     ("latest_chapter".to_string(), latest_chapter),
                     ("thumbnail".to_string(), thumbnail),

@@ -1,9 +1,10 @@
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 use reqwest::Response;
 use select::{
     document::Document,
+    node::Node,
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
@@ -76,11 +77,10 @@ impl Module for Luscious {
                     box_element.find(Name("strong")).next(),
                     box_element.last_child(),
                 ) {
-                    println!("{} {}", strong.text().trim(), date_str.text().trim());
                     if let Ok(date) =
                         NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
                     {
-                        let datetime = date.and_hms_opt(0, 0, 0).unwrap();
+                        let datetime: NaiveDateTime = date.and_hms_opt(0, 0, 0).unwrap();
                         dates.insert(
                             strong.text().trim_end_matches(':').to_string(),
                             to_value(datetime.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
@@ -98,7 +98,7 @@ impl Module for Luscious {
                     to_value(
                         box_element
                             .find(Name("a"))
-                            .map(|a| a.text().trim().to_string())
+                            .map(|a: Node| a.text().trim().to_string())
                             .collect::<Vec<String>>(),
                     )
                     .unwrap(),
@@ -132,33 +132,33 @@ impl Module for Luscious {
         manga: String,
         _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let data = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query%2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520url_to_original%2520position%2520%257B%2520category%2520text%2520url%2520%257D%2520thumbnails%2520%257B%2520width%2520height%2520size%2520url%2520%257D%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520page%2520total_pages%2520%257D%2520&variables=%7B%22input%22%3A%7B%22filters%22%3A%5B%7B%22name%22%3A%22album_id%22%2C%22value%22%3A%22__album__id__%22%7D%5D%2C%22display%22%3A%22position%22%2C%22items_per_page%22%3A50%2C%22page%22%3A__page__number__%7D%7D";
-        let url = data
+        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query%2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520url_to_original%2520position%2520%257B%2520category%2520text%2520url%2520%257D%2520thumbnails%2520%257B%2520width%2520height%2520size%2520url%2520%257D%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520page%2520total_pages%2520%257D%2520&variables=%7B%22input%22%3A%7B%22filters%22%3A%5B%7B%22name%22%3A%22album_id%22%2C%22value%22%3A%22__album__id__%22%7D%5D%2C%22display%22%3A%22position%22%2C%22items_per_page%22%3A50%2C%22page%22%3A__page__number__%7D%7D";
+        let url: String = data
             .replace("__album__id__", &manga)
             .replace("__page__number__", "1");
         let response: Response = self.send_simple_request(&url).await?;
         let response: Value = response.json().await?;
-        let total_pages = response["data"]["picture"]["list"]["info"]["total_pages"]
+        let total_pages: i64 = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
             .unwrap_or(1);
-        let mut images = response["data"]["picture"]["list"]["items"]
+        let mut images: Vec<String> = response["data"]["picture"]["list"]["items"]
             .as_array()
             .unwrap_or(&vec![])
             .iter()
-            .map(|item| item["url_to_original"].as_str().unwrap_or("").to_string())
-            .collect::<Vec<_>>();
+            .map(|item: &Value| item["url_to_original"].as_str().unwrap_or("").to_string())
+            .collect();
         for page in 2..=total_pages {
-            let url = data
+            let url: String = data
                 .replace("__album__id__", &manga)
                 .replace("__page__number__", &page.to_string());
             let response: Response = self.send_simple_request(&url).await?;
             let response: Value = response.json().await?;
-            let new_images = response["data"]["picture"]["list"]["items"]
+            let new_images: Vec<String> = response["data"]["picture"]["list"]["items"]
                 .as_array()
                 .unwrap_or(&vec![])
                 .iter()
-                .map(|item| item["url_to_original"].as_str().unwrap_or("").to_string())
-                .collect::<Vec<_>>();
+                .map(|item: &Value| item["url_to_original"].as_str().unwrap_or("").to_string())
+                .collect();
             images.extend(new_images);
         }
         Ok((images, to_value(false).unwrap_or_default()))
@@ -171,15 +171,15 @@ impl Module for Luscious {
         sleep_time: f64,
         page_limit: u32,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let data = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520...AlbumInSearchList%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520total_pages%2520%257D%2520fragment%2520AlbumInSearchList%2520on%2520Album%2520%257B%2520__typename%2520id%2520title%2520%257D%2520&variables=%7B%22input%22%3A%7B%22items_per_page%22%3A30%2C%22display%22%3A%22search_score%22%2C%22filters%22%3A%5B%7B%22name%22%3A%22album_type%22%2C%22value%22%3A%22manga%22%7D%2C%7B%22name%22%3A%22audience_ids%22%2C%22value%22%3A%22%2B1%2B3%2B5%22%7D%2C%7B%22name%22%3A%22language_ids%22%2C%22value%22%3A%22%2B1%2B100%2B101%2B2%2B3%2B4%2B5%2B6%2B8%2B9%2B99%22%7D%2C%7B%22name%22%3A%22search_query%22%2C%22value%22%3A%22__keyword__%22%7D%5D%2C%22page%22%3A__page__number__%7D%7D";
-        let mut total_pages = 1000;
-        let mut page = 1;
+        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520...AlbumInSearchList%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520total_pages%2520%257D%2520fragment%2520AlbumInSearchList%2520on%2520Album%2520%257B%2520__typename%2520id%2520title%2520%257D%2520&variables=%7B%22input%22%3A%7B%22items_per_page%22%3A30%2C%22display%22%3A%22search_score%22%2C%22filters%22%3A%5B%7B%22name%22%3A%22album_type%22%2C%22value%22%3A%22manga%22%7D%2C%7B%22name%22%3A%22audience_ids%22%2C%22value%22%3A%22%2B1%2B3%2B5%22%7D%2C%7B%22name%22%3A%22language_ids%22%2C%22value%22%3A%22%2B1%2B100%2B101%2B2%2B3%2B4%2B5%2B6%2B8%2B9%2B99%22%7D%2C%7B%22name%22%3A%22search_query%22%2C%22value%22%3A%22__keyword__%22%7D%5D%2C%22page%22%3A__page__number__%7D%7D";
+        let mut total_pages: u32 = 1000;
+        let mut page: u32 = 1;
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         while page <= page_limit {
             if page > total_pages {
                 break;
             }
-            let url = data
+            let url: String = data
                 .replace("__keyword__", &keyword)
                 .replace("__page__number__", &page.to_string());
             let response: Response = self.send_simple_request(&url).await?;
@@ -190,25 +190,25 @@ impl Module for Luscious {
             total_pages = response["data"]["album"]["list"]["info"]["total_pages"]
                 .as_i64()
                 .unwrap_or(1000) as u32;
-            let doujins = response["data"]["album"]["list"]["items"]
+            let doujins: &Vec<Value> = response["data"]["album"]["list"]["items"]
                 .as_array()
                 .unwrap();
             for doujin in doujins {
-                let tags = doujin["tags"]
+                let tags: String = doujin["tags"]
                     .as_array()
                     .unwrap_or(&vec![])
                     .iter()
-                    .map(|tag| tag["text"].as_str().unwrap_or("").to_string())
+                    .map(|tag: &Value| tag["text"].as_str().unwrap_or("").to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
-                let genres = doujin["genres"]
+                let genres: String = doujin["genres"]
                     .as_array()
                     .unwrap_or(&vec![])
                     .iter()
-                    .map(|genre| genre["title"].as_str().unwrap_or("").to_string())
+                    .map(|genre: &Value| genre["title"].as_str().unwrap_or("").to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
-                let title = doujin["title"].as_str().unwrap_or("").to_string();
+                let title: String = doujin["title"].as_str().unwrap_or("").to_string();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }

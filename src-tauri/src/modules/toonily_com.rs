@@ -27,7 +27,7 @@ impl Module for Toonily {
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
-        let info_box = document
+        let info_box: Node = document
             .find(Name("div").and(Class("tab-summary")))
             .next()
             .unwrap();
@@ -41,8 +41,7 @@ impl Module for Toonily {
             if let Some(element) = element.find(Name("h1")).next() {
                 info.insert(
                     "Title".to_owned(),
-                    to_value(element.descendants().next().unwrap().text().trim())
-                        .unwrap_or_default(),
+                    to_value(element.first_child().unwrap().text().trim()).unwrap_or_default(),
                 );
             }
         }
@@ -81,7 +80,7 @@ impl Module for Toonily {
         {
             let tags: Vec<String> = tags
                 .find(Name("a"))
-                .map(|a| a.text().trim().replace('#', "").to_string())
+                .map(|a: Node| a.text().trim().replace('#', "").to_string())
                 .collect();
             extras.insert("Tags".to_string(), to_value(tags).unwrap_or_default());
         }
@@ -113,7 +112,7 @@ impl Module for Toonily {
                     to_value(
                         box_elem
                             .find(Name("a"))
-                            .map(|a| a.text())
+                            .map(|a: Node| a.text())
                             .collect::<Vec<_>>(),
                     )
                     .unwrap_or_default(),
@@ -166,7 +165,7 @@ impl Module for Toonily {
             .next()
             .unwrap()
             .find(Name("img"))
-            .map(|img| img.attr("data-src").unwrap().trim().to_string())
+            .map(|img: Node| img.attr("data-src").unwrap().trim().to_string())
             .collect();
         let save_names: Vec<String> = images
             .iter()
@@ -199,7 +198,7 @@ impl Module for Toonily {
                 .find(Name("div").and(Attr("class", "col-6 col-sm-3 col-lg-2")))
                 .collect();
             for manga in mangas {
-                let details = manga
+                let details: Node = manga
                     .find(Name("div").and(Attr("class", "post-title font-title")))
                     .next()
                     .unwrap();

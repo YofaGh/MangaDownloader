@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use reqwest::Response;
 use select::{
     document::Document,
+    node::Node,
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
@@ -78,7 +79,7 @@ impl Module for Readonepiece {
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
             .find(Name("div").and(Attr("class", "bg-bg-secondary p-3 rounded mb-3 shadow")))
-            .map(|div| {
+            .map(|div: Node| {
                 let group: Vec<&str> = div
                     .find(Name("a"))
                     .next()

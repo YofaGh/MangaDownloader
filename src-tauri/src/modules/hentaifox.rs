@@ -36,22 +36,18 @@ impl Module for Hentaifox {
             .find(Name("div").and(Class("info")))
             .next()
             .unwrap();
-        info.insert(
-            "Title".to_string(),
-            to_value(info_box.find(Name("h1")).next().unwrap().text()).unwrap_or_default(),
-        );
-        info.insert(
-            "Pages".to_string(),
-            to_value(
-                info_box
-                    .find(|n: &Node| n.text().contains("Pages"))
-                    .next()
-                    .unwrap()
-                    .text()
-                    .replace("Pages: ", ""),
-            )
-            .unwrap_or_default(),
-        );
+        if let Some(title_element) = info_box.find(Name("h1")).next() {
+            info.insert(
+                "Title".to_string(),
+                to_value(title_element.text().trim()).unwrap_or_default(),
+            );
+        }
+        if let Some(pages_element) = info_box.find(|n: &Node| n.text().contains("Pages")).next() {
+            info.insert(
+                "Pages".to_string(),
+                to_value(pages_element.text().replace("Pages: ", "")).unwrap_or_default(),
+            );
+        }
         let mut extras: HashMap<String, Value> = HashMap::new();
         if let Some(posted) = info_box.find(|n: &Node| n.text().contains("Posted")).next() {
             extras.insert(
@@ -72,7 +68,7 @@ impl Module for Hentaifox {
                 .to_string();
             let values: Vec<String> = box_item
                 .find(Name("a"))
-                .map(|a: Node| a.descendants().next().unwrap().text().trim().to_string())
+                .map(|a: Node| a.first_child().unwrap().text().trim().to_string())
                 .collect();
             extras.insert(key, to_value(values).unwrap_or_default());
         }
@@ -125,7 +121,7 @@ impl Module for Hentaifox {
             .collect();
         Ok((image_urls, Value::Bool(false)))
     }
-    //                 'thumbnail': doujin.find('img')['src'],
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -153,7 +149,7 @@ impl Module for Hentaifox {
                 break;
             }
             for doujin in doujins {
-                let caption = doujin
+                let caption: Node = doujin
                     .find(Name("div").and(Attr("class", "caption")))
                     .next()
                     .unwrap();

@@ -1,7 +1,7 @@
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime};
-use reqwest::Response;
+use reqwest::Client;
 use select::{
     document::Document,
     node::Node,
@@ -21,7 +21,7 @@ impl Module for Luscious {
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://www.luscious.net/albums/{}", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
@@ -136,7 +136,9 @@ impl Module for Luscious {
         let url: String = data
             .replace("__album__id__", &manga)
             .replace("__page__number__", "1");
-        let response: Response = self.send_simple_request(&url).await?;
+        let mut client: Option<Client> = None;
+        let (response, new_client) = self.send_simple_request(&url, client).await?;
+        client = Some(new_client);
         let response: Value = response.json().await?;
         let total_pages: i64 = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
@@ -151,7 +153,8 @@ impl Module for Luscious {
             let url: String = data
                 .replace("__album__id__", &manga)
                 .replace("__page__number__", &page.to_string());
-            let response: Response = self.send_simple_request(&url).await?;
+            let (response, new_client) = self.send_simple_request(&url, client).await?;
+            client = Some(new_client);
             let response: Value = response.json().await?;
             let new_images: Vec<String> = response["data"]["picture"]["list"]["items"]
                 .as_array()
@@ -175,6 +178,7 @@ impl Module for Luscious {
         let mut total_pages: u32 = 1000;
         let mut page: u32 = 1;
         let mut results: Vec<HashMap<String, String>> = Vec::new();
+        let mut client: Option<Client> = None;
         while page <= page_limit {
             if page > total_pages {
                 break;
@@ -182,7 +186,8 @@ impl Module for Luscious {
             let url: String = data
                 .replace("__keyword__", &keyword)
                 .replace("__page__number__", &page.to_string());
-            let response: Response = self.send_simple_request(&url).await?;
+            let (response, new_client) = self.send_simple_request(&url, client).await?;
+            client = Some(new_client);
             if !response.status().is_success() {
                 break;
             }

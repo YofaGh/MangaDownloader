@@ -7,7 +7,6 @@ use crate::{
 use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
-use reqwest::Response;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
     collections::HashMap,
@@ -203,7 +202,7 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 }
 
 async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
-    let response: Response = get_module(domain).retrieve_image(url).await?;
+    let (response, _) = get_module(domain).retrieve_image(url).await?;
     let image: Bytes = response.bytes().await.unwrap();
     let encoded_image: String = general_purpose::STANDARD.encode(image);
     Ok(format!("data:image/png;base64, {}", encoded_image))

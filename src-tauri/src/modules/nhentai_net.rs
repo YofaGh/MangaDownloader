@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use reqwest::Response;
+use reqwest::Client;
 use select::{
     document::Document,
     node::Node,
@@ -22,7 +22,7 @@ impl Module for Nhentai {
 
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://nhentai.net/g/{}/", code);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
@@ -99,7 +99,7 @@ impl Module for Nhentai {
         _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://nhentai.net/g/{}/", code);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
@@ -123,13 +123,15 @@ impl Module for Nhentai {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
+        let mut client: Option<Client> = None;
         while page <= page_limit {
-            let response: Response = self
-                .send_simple_request(&format!(
-                    "https://nhentai.net/search?q={}&page={}",
-                    keyword, page
-                ))
+            let (response, new_client) = self
+                .send_simple_request(
+                    &format!("https://nhentai.net/search?q={}&page={}", keyword, page),
+                    client,
+                )
                 .await?;
+            client = Some(new_client);
             let document: Document = Document::from(response.text().await?.as_str());
             let doujins: Vec<Node> = document
                 .find(Name("div").and(Attr("class", "gallery")))

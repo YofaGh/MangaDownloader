@@ -1,6 +1,5 @@
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
-use reqwest::Response;
 use select::{
     document::Document,
     node::Node,
@@ -20,7 +19,7 @@ impl Module for Readonepiece {
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         if let Some(element) = document
@@ -61,7 +60,7 @@ impl Module for Readonepiece {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("img").and(Attr("class", "mb-3 mx-auto js-page")))
@@ -75,7 +74,7 @@ impl Module for Readonepiece {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
             .find(Name("div").and(Attr("class", "bg-bg-secondary p-3 rounded mb-3 shadow")))

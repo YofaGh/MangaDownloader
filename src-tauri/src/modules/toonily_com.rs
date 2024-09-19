@@ -2,7 +2,7 @@ use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderValue, COOKIE, REFERER},
-    Method, Response,
+    Client, Method,
 };
 use select::{
     document::Document,
@@ -23,7 +23,7 @@ impl Module for Toonily {
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
@@ -128,7 +128,7 @@ impl Module for Toonily {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
             .find(Name("li").and(Class("wp-manga-chapter")))
@@ -158,7 +158,7 @@ impl Module for Toonily {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://toonily.com/webtoon/{}/{}/", manga, chapter);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("div").and(Class("reading-content")))
@@ -185,11 +185,19 @@ impl Module for Toonily {
         let mut page: u32 = 1;
         let mut search_headers: HeaderMap = HeaderMap::new();
         search_headers.insert(COOKIE, HeaderValue::from_static("toonily-mature=1"));
+        let mut client: Option<Client> = None;
         while page <= page_limit {
             let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
-            let response: Response = self
-                .send_request(&url, Method::GET, search_headers.clone(), Some(true))
+            let (response, new_client) = self
+                .send_request(
+                    &url,
+                    Method::GET,
+                    search_headers.clone(),
+                    Some(true),
+                    client,
+                )
                 .await?;
+            client = Some(new_client);
             if !response.status().is_success() {
                 break;
             }

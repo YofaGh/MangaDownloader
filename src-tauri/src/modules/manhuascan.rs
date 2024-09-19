@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use reqwest::Response;
+use reqwest::Client;
 use select::{
     document::Document,
     node::Node,
@@ -21,7 +21,7 @@ impl Module for Manhuascan {
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
@@ -150,7 +150,7 @@ impl Module for Manhuascan {
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("div").and(Attr("id", "readerarea")))
@@ -167,7 +167,7 @@ impl Module for Manhuascan {
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let url: String = format!("https://manhuascan.us/manga/{}", manga);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
@@ -199,13 +199,18 @@ impl Module for Manhuascan {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
+        let mut client: Option<Client> = None;
         while page <= page_limit {
-            let response: Response = self
-                .send_simple_request(&format!(
-                    "https://manhuascan.us/manga-list?search={}&page={}",
-                    keyword, page
-                ))
+            let (response, new_client) = self
+                .send_simple_request(
+                    &format!(
+                        "https://manhuascan.us/manga-list?search={}&page={}",
+                        keyword, page
+                    ),
+                    client,
+                )
                 .await?;
+            client = Some(new_client);
             if !response.status().is_success() {
                 break;
             }

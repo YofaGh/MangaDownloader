@@ -1,7 +1,7 @@
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use indexmap::IndexMap;
-use reqwest::Response;
+use reqwest::Client;
 use select::{
     document::Document,
     node::Node,
@@ -21,7 +21,7 @@ impl Module for Hentaifox {
     }
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         if let Some(cover_e) = document.find(Name("div").and(Class("cover"))).next() {
@@ -84,7 +84,7 @@ impl Module for Hentaifox {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
         let url: String = format!("https://hentaifox.com/gallery/{}", code);
-        let response: Response = self.send_simple_request(&url).await?;
+        let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let path: &str = document
             .find(Name("div").and(Class("gallery_thumb")))
@@ -131,13 +131,15 @@ impl Module for Hentaifox {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
+        let mut client: Option<Client> = None;
         while page <= page_limit {
-            let response: Response = self
-                .send_simple_request(&format!(
-                    "https://hentaifox.com/search/?q={}&page={}",
-                    keyword, page
-                ))
+            let (response, new_client) = self
+                .send_simple_request(
+                    &format!("https://hentaifox.com/search/?q={}&page={}", keyword, page),
+                    client,
+                )
                 .await?;
+            client = Some(new_client);
             if !response.status().is_success() {
                 break;
             }

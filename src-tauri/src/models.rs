@@ -1,9 +1,6 @@
 use async_trait::async_trait;
 use futures::TryStreamExt;
-use reqwest::{
-    header::HeaderMap,
-    Client, Method, RequestBuilder, Response,
-};
+use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -69,12 +66,13 @@ pub trait Module: Send + Sync {
         url: String,
         image_name: String,
     ) -> Result<Option<String>, Box<dyn Error>> {
-        let response: Response = self
+        let (response, _) = self
             .send_request(
                 &url,
                 Method::GET,
                 self.get_download_image_headers(),
                 Some(true),
+                None,
             )
             .await?;
         let stream = response
@@ -86,13 +84,14 @@ pub trait Module: Send + Sync {
         file.flush().await?;
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: String) -> Result<Response, Box<dyn Error>> {
+    async fn retrieve_image(&self, url: String) -> Result<(Response, Client), Box<dyn Error>> {
         Ok(self
             .send_request(
                 &url,
                 Method::GET,
                 self.get_download_image_headers(),
                 Some(true),
+                None,
             )
             .await?)
     }
@@ -157,10 +156,14 @@ pub trait Module: Send + Sync {
         method: Method,
         headers: HeaderMap,
         verify: Option<bool>,
-    ) -> Result<Response, Box<dyn Error>> {
-        let client: Client = Client::builder()
-            .danger_accept_invalid_certs(verify.unwrap_or(true))
-            .build()?;
+        client: Option<Client>,
+    ) -> Result<(Response, Client), Box<dyn Error>> {
+        let client: Client = match client {
+            Some(c) => c,
+            None => Client::builder()
+                .danger_accept_invalid_certs(verify.unwrap_or(true))
+                .build()?,
+        };
         let request: RequestBuilder = client.request(method, url).headers(headers);
         let response: Response = request.send().await?;
         if !response.status().is_success() {
@@ -169,10 +172,15 @@ pub trait Module: Send + Sync {
                 format!("Received non-200 status code: {}", response.status()),
             )));
         }
-        Ok(response)
+        Ok((response, client))
     }
-    async fn send_simple_request(&self, url: &str) -> Result<Response, Box<dyn Error>> {
-        self.send_request(url, Method::GET, HeaderMap::new(), Some(true)).await
+    async fn send_simple_request(
+        &self,
+        url: &str,
+        client: Option<Client>,
+    ) -> Result<(Response, Client), Box<dyn Error>> {
+        self.send_request(url, Method::GET, HeaderMap::new(), Some(true), client)
+            .await
     }
 }
 

@@ -3,6 +3,7 @@ pub mod luscious;
 pub mod manhuascan;
 pub mod nhentai_net;
 pub mod nhentai_xxx;
+pub mod nyahentai;
 pub mod readonepiece;
 pub mod toonily_com;
 pub mod truemanga;
@@ -17,4 +18,3 @@ pub mod truemanga;
 // manga18.club
 // mangapark.to
 // manytoon.com
-// nhentai.xxx

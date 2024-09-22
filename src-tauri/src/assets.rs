@@ -251,6 +251,7 @@ fn get_module(domain: String) -> Box<dyn Module> {
         "nhentai.xxx" => Box::new(nhentai_xxx::Nhentai::new()),
         "nyahentai.red" => Box::new(nyahentai::Nyahentai::new()),
         "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
+        "simplyhentai.org" => Box::new(simplyhentai::Simplyhentai::new()),
         "toonily.com" => Box::new(toonily_com::Toonily::new()),
         "truemanga.com" => Box::new(truemanga::Truemanga::new()),
         _ => Box::new(DefaultModule::new()),
@@ -266,6 +267,7 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
         Box::new(nhentai_xxx::Nhentai::new()),
         Box::new(nyahentai::Nyahentai::new()),
         Box::new(readonepiece::Readonepiece::new()),
+        Box::new(simplyhentai::Simplyhentai::new()),
         Box::new(toonily_com::Toonily::new()),
         Box::new(truemanga::Truemanga::new()),
     ]

@@ -1,28 +1,25 @@
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
-use reqwest::{
-    header::{HeaderMap, HeaderValue, COOKIE, REFERER},
-    Client, Method,
-};
+use reqwest::{header::HeaderMap, Client, Method};
 use select::{
     document::Document,
     node::Node,
     predicate::{Attr, Class, Name, Predicate},
 };
-use serde_json::{to_value, Value};
+use serde_json::{json, to_value, Value};
 use std::{collections::HashMap, error::Error, thread, time::Duration};
 
-pub struct Toonily {
+pub struct Manytoon {
     base: BaseModule,
 }
 
 #[async_trait]
-impl Module for Toonily {
+impl Module for Manytoon {
     fn base(&self) -> &BaseModule {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/", manga);
+        let url: String = format!("https://manytoon.com/comic/{}", manga);
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -34,14 +31,14 @@ impl Module for Toonily {
         if let Some(element) = info_box.find(Name("img")).next() {
             info.insert(
                 "Cover".to_owned(),
-                to_value(element.attr("data-src").unwrap_or("")).unwrap_or_default(),
+                to_value(element.attr("src").unwrap_or("")).unwrap_or_default(),
             );
         }
-        if let Some(element) = info_box.find(Name("div").and(Class("post-title"))).next() {
+        if let Some(element) = document.find(Name("div").or(Class("post-title"))).next() {
             if let Some(element) = element.find(Name("h1")).next() {
                 info.insert(
                     "Title".to_owned(),
-                    to_value(element.first_child().unwrap().text().trim()).unwrap_or_default(),
+                    to_value(element.last_child().unwrap().text().trim()).unwrap_or_default(),
                 );
             }
         }
@@ -49,13 +46,15 @@ impl Module for Toonily {
             .find(Name("div").and(Class("summary__content")))
             .next()
         {
-            info.insert(
-                "Summary".to_owned(),
-                to_value(element.text().trim()).unwrap_or_default(),
-            );
+            if let Some(element) = element.find(Name("p")).next() {
+                info.insert(
+                    "Summary".to_owned(),
+                    to_value(element.first_child().unwrap().text().trim()).unwrap_or_default(),
+                );
+            }
         }
         if let Some(element) = document
-            .find(Name("span").and(Attr("id", "averagerate")))
+            .find(Name("span").and(Attr("class", "score font-meta total_votes")))
             .next()
         {
             info.insert(
@@ -66,6 +65,15 @@ impl Module for Toonily {
         if let Some(element) = info_box.find(Name("div").and(Class("post-status"))).next() {
             if let Some(element) = element
                 .find(Name("div").and(Class("summary-content")))
+                .next()
+            {
+                extras.insert(
+                    "Release".to_owned(),
+                    to_value(element.text().trim()).unwrap_or_default(),
+                );
+            }
+            if let Some(element) = element
+                .find(Name("div").and(Class("summary-content")))
                 .nth(1)
             {
                 info.insert(
@@ -74,26 +82,17 @@ impl Module for Toonily {
                 );
             }
         }
-        if let Some(tags) = document
-            .find(Name("div").and(Class("wp-manga-tags-list")))
-            .next()
-        {
-            let tags: Vec<String> = tags
-                .find(Name("a"))
-                .map(|a: Node| a.text().trim().replace('#', "").to_string())
-                .collect();
-            extras.insert("Tags".to_string(), to_value(tags).unwrap_or_default());
-        }
         let boxes: Vec<Node> = document
-            .find(Name("div").and(Class("manga-info-row")))
+            .find(Name("div").and(Class("post-content")))
             .next()
             .unwrap()
             .find(Name("div").and(Class("post-content_item")))
             .collect();
         for box_elem in boxes {
-            let box_str: String = box_elem.find(Name("h5")).next().unwrap().text();
-            let content: &str = box_str.trim();
-            if content.contains("Alt Name") {
+            if box_elem.text().contains("Rating") {
+                continue;
+            }
+            if box_elem.text().contains("Alternative") {
                 info.insert(
                     "Alternative".to_string(),
                     to_value(
@@ -107,16 +106,35 @@ impl Module for Toonily {
                     .unwrap_or_default(),
                 );
             } else {
-                extras.insert(
-                    box_str.replace("(s)", "s").to_string(),
-                    to_value(
-                        box_elem
-                            .find(Name("a"))
-                            .map(|a: Node| a.text())
-                            .collect::<Vec<_>>(),
-                    )
-                    .unwrap_or_default(),
-                );
+                let box_str: String = box_elem
+                    .find(Name("div").and(Class("summary-heading")))
+                    .next()
+                    .unwrap()
+                    .text()
+                    .replace("(s)", "s")
+                    .trim()
+                    .to_string();
+                let info_key = box_elem
+                    .find(Name("div").and(Class("summary-content")))
+                    .next()
+                    .unwrap();
+                if info_key.find(Name("a")).next().is_some() {
+                    extras.insert(
+                        box_str,
+                        to_value(
+                            info_key
+                                .find(Name("a"))
+                                .map(|a: Node| a.text())
+                                .collect::<Vec<_>>(),
+                        )
+                        .unwrap_or_default(),
+                    );
+                } else {
+                    extras.insert(
+                        box_str,
+                        to_value(info_key.text().trim()).unwrap_or_default(),
+                    );
+                }
             }
         }
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
@@ -127,8 +145,34 @@ impl Module for Toonily {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/", manga);
-        let (response, _) = self.send_simple_request(&url, None).await?;
+        let url: String = format!("https://manytoon.com/comic/{}", manga);
+        let (response, client) = self.send_simple_request(&url, None).await?;
+        let data: Value = {
+            let document: Document = Document::from(response.text().await?.as_str());
+            let post_id: String = document
+                .find(Name("a").and(Class("wp-manga-action-button")))
+                .next()
+                .unwrap()
+                .attr("data-post")
+                .unwrap()
+                .to_string();
+            json!({
+                "action": "ajax_chap",
+                "post_id": post_id
+            })
+        };
+        let (response, _) = self
+            .send_request(
+                "https://manytoon.com/wp-admin/admin-ajax.php",
+                Method::POST,
+                HeaderMap::default(),
+                Some(true),
+                Some(data),
+                None,
+                None,
+                Some(client),
+            )
+            .await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
             .find(Name("li").and(Class("wp-manga-chapter")))
@@ -157,7 +201,7 @@ impl Module for Toonily {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/{}/", manga, chapter);
+        let url: String = format!("https://manytoon.com/comic/{}/{}/", manga, chapter);
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -165,15 +209,11 @@ impl Module for Toonily {
             .next()
             .unwrap()
             .find(Name("img"))
-            .map(|img: Node| img.attr("data-src").unwrap().trim().to_string())
+            .map(|img: Node| img.attr("src").unwrap().trim().to_string())
             .collect();
-        let save_names: Vec<String> = images
-            .iter()
-            .enumerate()
-            .map(|(i, img)| format!("{:03}.{}", i + 1, img.split('.').last().unwrap()))
-            .collect();
-        Ok((images, to_value(save_names).unwrap_or_default()))
+        Ok((images, Value::from(false)))
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -183,34 +223,27 @@ impl Module for Toonily {
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
-        let mut search_headers: HeaderMap = HeaderMap::new();
-        search_headers.insert(COOKIE, HeaderValue::from_static("toonily-mature=1"));
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
-            let (response, new_client) = self
-                .send_request(
-                    &url,
-                    Method::GET,
-                    search_headers.clone(),
-                    Some(true),
-                    None,
-                    None,
-                    None,
-                    client,
-                )
-                .await?;
+            let url: String = format!(
+                "https://manytoon.com/page/{}/?s={}&post_type=wp-manga",
+                page, keyword
+            );
+            let (response, new_client) = self.send_simple_request(&url, client).await?;
             client = Some(new_client);
             if !response.status().is_success() {
                 break;
             }
             let document: Document = Document::from(response.text().await?.as_str());
             let mangas: Vec<Node> = document
-                .find(Name("div").and(Attr("class", "col-6 col-sm-3 col-lg-2")))
+                .find(Name("div").and(Attr("class", "col-6 col-md-3 badge-pos-1")))
                 .collect();
             for manga in mangas {
                 let details: Node = manga
-                    .find(Name("div").and(Attr("class", "post-title font-title")))
+                    .find(Name("div").and(Class("post-title")))
+                    .next()
+                    .unwrap()
+                    .find(Name("a"))
                     .next()
                     .unwrap();
                 let title: String = details.text().trim().to_string();
@@ -218,9 +251,6 @@ impl Module for Toonily {
                     continue;
                 }
                 let url: String = details
-                    .find(Name("a"))
-                    .next()
-                    .unwrap()
                     .attr("href")
                     .unwrap()
                     .split('/')
@@ -231,14 +261,30 @@ impl Module for Toonily {
                     .find(Name("img"))
                     .next()
                     .unwrap()
-                    .attr("data-src")
+                    .attr("src")
                     .unwrap_or("")
                     .to_string();
+                let mut latest_chapter: String = String::default();
+                if let Some(element) = manga
+                    .find(Name("span").and(Attr("class", "chapter font-meta")))
+                    .next()
+                {
+                    if let Some(element) = element.find(Name("a")).next() {
+                        latest_chapter = element
+                            .attr("href")
+                            .unwrap()
+                            .split('/')
+                            .nth_back(1)
+                            .unwrap()
+                            .to_string();
+                    }
+                }
                 results.push(HashMap::from([
                     ("name".to_string(), title),
-                    ("domain".to_string(), "toonily.com".to_string()),
+                    ("domain".to_string(), self.base.domain.to_string()),
                     ("url".to_string(), url),
                     ("thumbnail".to_string(), thumbnail),
+                    ("latest_chapter".to_string(), latest_chapter),
                     ("page".to_string(), page.to_string()),
                 ]));
             }
@@ -248,17 +294,14 @@ impl Module for Toonily {
         Ok(results)
     }
 }
-impl Toonily {
+impl Manytoon {
     pub fn new() -> Self {
-        let mut download_image_headers: HeaderMap = HeaderMap::new();
-        download_image_headers.insert(REFERER, HeaderValue::from_static("https://toonily.com/"));
         Self {
             base: BaseModule {
                 type_: "Manga",
-                domain: "toonily.com",
-                logo: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
-                download_image_headers,
-                sample: HashMap::from([("manga", "peerless-dad")]),
+                domain: "manytoon.com",
+                logo: "https://manytoon.com/favicon.ico",
+                sample: HashMap::from([("manga", "my-illustrator")]),
                 searchable: true,
                 ..BaseModule::default()
             },

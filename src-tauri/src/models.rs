@@ -73,6 +73,9 @@ pub trait Module: Send + Sync {
                 self.get_download_image_headers(),
                 Some(true),
                 None,
+                None,
+                None,
+                None,
             )
             .await?;
         let stream = response
@@ -91,6 +94,9 @@ pub trait Module: Send + Sync {
                 Method::GET,
                 self.get_download_image_headers(),
                 Some(true),
+                None,
+                None,
+                None,
                 None,
             )
             .await?)
@@ -156,6 +162,9 @@ pub trait Module: Send + Sync {
         method: Method,
         headers: HeaderMap,
         verify: Option<bool>,
+        data: Option<Value>,
+        json: Option<Value>,
+        params: Option<Value>,
         client: Option<Client>,
     ) -> Result<(Response, Client), Box<dyn Error>> {
         let client: Client = match client {
@@ -164,7 +173,16 @@ pub trait Module: Send + Sync {
                 .danger_accept_invalid_certs(verify.unwrap_or(true))
                 .build()?,
         };
-        let request: RequestBuilder = client.request(method, url).headers(headers);
+        let mut request: RequestBuilder = client.request(method, url).headers(headers);
+        if let Some(p) = params {
+            request = request.query(&p);
+        }
+        if let Some(d) = data {
+            request = request.form(&d);
+        }
+        if let Some(j) = json {
+            request = request.json(&j);
+        }
         let response: Response = request.send().await?;
         if !response.status().is_success() {
             return Err(Box::new(IoError::new(
@@ -179,8 +197,17 @@ pub trait Module: Send + Sync {
         url: &str,
         client: Option<Client>,
     ) -> Result<(Response, Client), Box<dyn Error>> {
-        self.send_request(url, Method::GET, HeaderMap::new(), Some(true), client)
-            .await
+        self.send_request(
+            url,
+            Method::GET,
+            HeaderMap::new(),
+            Some(true),
+            None,
+            None,
+            None,
+            client,
+        )
+        .await
     }
 }
 

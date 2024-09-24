@@ -12,7 +12,7 @@ pub fn convert_folder(path: String, pdf_name: String) -> Result<(), Box<dyn Erro
         images.len(),
     )
     .unwrap();
-    images.into_iter().enumerate().for_each(|(_, (image, _))| {
+    images.into_iter().for_each(|(image, _)| {
         let config: PageConfig = PageConfig::new()
             .size(PageSize::Custom(image.width(), image.height()))
             .quality(100);

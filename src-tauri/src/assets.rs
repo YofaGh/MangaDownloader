@@ -58,7 +58,7 @@ pub fn load_up_checks(data_dir: String) {
         format!("{}/settings.json", data_dir),
         to_value(&default_settings).unwrap(),
     );
-    file_array.into_iter().enumerate().for_each(|(_, file)| {
+    file_array.into_iter().for_each(|file: &str| {
         save_file(format!("{}/{}", data_dir, file), Value::Array(Vec::new()));
     })
 }
@@ -226,8 +226,7 @@ pub async fn search_by_keyword(
 pub fn get_modules() -> Vec<HashMap<String, Value>> {
     get_all_modules()
         .into_iter()
-        .enumerate()
-        .map(|(_, module)| {
+        .map(|module: Box<dyn Module>| {
             HashMap::from([
                 ("type".to_string(), Value::String(module.get_type())),
                 ("domain".to_string(), Value::String(module.get_domain())),

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::TryStreamExt;
-use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
+use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response, Error as reqError};
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -80,7 +80,7 @@ pub trait Module: Send + Sync {
             .await?;
         let stream = response
             .bytes_stream()
-            .map_err(|e| IoError::new(Other, e.to_string()));
+            .map_err(|e: reqError| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(&image_name).await?;
         io::copy(&mut reader, &mut file).await?;

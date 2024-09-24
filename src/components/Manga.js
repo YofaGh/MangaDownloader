@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
@@ -30,10 +30,13 @@ export default function Manga({ url, module }) {
   const { library, removeFromLibrary } = useLibraryStore();
   const isInLibrary = library.some((webtoon) => webtoon.id === id);
   const notifySuccess = useNotificationStore((state) => state.notifySuccess);
-  (async () => {
-    setWebtoon(await getInfo(module, url));
-    setChapters(await getChapters(module, url));
-  })();
+
+  useEffect(() => {
+    (async () => {
+      setWebtoon(await getInfo(module, url));
+      setChapters(await getChapters(module, url));
+    })();
+  }, [module, url]);
 
   const addChapter = (chapter, status) => {
     addToQueue({

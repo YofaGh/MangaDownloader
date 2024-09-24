@@ -2,7 +2,7 @@
 
 use assets::*;
 use saucer::{get_saucers_list, sauce, upload_image};
-use tauri::Manager;
+use tauri::{generate_context, generate_handler, App, Builder, Manager};
 mod assets;
 mod image_merger;
 mod models;
@@ -12,11 +12,11 @@ mod saucer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    Builder::default()
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![
+        .invoke_handler(generate_handler![
             open_folder,
             remove_directory,
             get_info,
@@ -36,7 +36,7 @@ pub fn run() {
             create_directory,
             read_directory,
         ])
-        .setup(|app: &mut tauri::App| {
+        .setup(|app: &mut App| {
             let data_dir_path: String = app
                 .path()
                 .app_data_dir()
@@ -48,6 +48,6 @@ pub fn run() {
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(generate_context!())
         .expect("error while running tauri application");
 }

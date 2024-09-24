@@ -98,16 +98,18 @@ pub fn remove_directory(path: String, recursive: bool) {
 
 #[tauri::command]
 pub async fn create_directory(path: String) -> Result<(), String> {
-    create_dir_all(&path).map_err(|e| e.to_string())
+    create_dir_all(&path).map_err(|e: DirError| e.to_string())
 }
 
 #[tauri::command]
 pub fn read_directory(path: String) -> Result<Vec<String>, String> {
     read_dir(&path)
-        .map_err(|e| e.to_string())?
-        .map(|entry| entry.map(|e| e.path().to_str().unwrap().to_string()))
+        .map_err(|e: DirError| e.to_string())?
+        .map(|entry: Result<DirEntry, DirError>| {
+            entry.map(|e: DirEntry| e.path().to_str().unwrap().to_string())
+        })
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| e.to_string())
+        .map_err(|e: DirError| e.to_string())
 }
 
 #[tauri::command]

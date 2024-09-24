@@ -246,6 +246,7 @@ fn get_module(domain: String) -> Box<dyn Module> {
     match domain.as_str() {
         "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
         "luscious.net" => Box::new(luscious::Luscious::new()),
+        "mangapark.to" => Box::new(mangapark::Mangapark::new()),
         "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
         "manytoon.com" => Box::new(manytoon::Manytoon::new()),
         "nhentai.net" => Box::new(nhentai_net::Nhentai::new()),
@@ -263,6 +264,7 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
     vec![
         Box::new(hentaifox::Hentaifox::new()),
         Box::new(luscious::Luscious::new()),
+        Box::new(mangapark::Mangapark::new()),
         Box::new(manhuascan::Manhuascan::new()),
         Box::new(manytoon::Manytoon::new()),
         Box::new(nhentai_net::Nhentai::new()),

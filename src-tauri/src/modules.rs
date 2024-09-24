@@ -1,5 +1,6 @@
 pub mod hentaifox;
 pub mod luscious;
+pub mod mangapark;
 pub mod manhuascan;
 pub mod manytoon;
 pub mod nhentai_net;
@@ -18,4 +19,3 @@ pub mod truemanga;
 // imhentai.xxx
 // magzino.top
 // manga18.club
-// mangapark.to

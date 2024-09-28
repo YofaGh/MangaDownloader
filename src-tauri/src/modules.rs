@@ -1,4 +1,5 @@
 pub mod hentaifox;
+pub mod imhentai;
 pub mod luscious;
 pub mod mangapark;
 pub mod manhuascan;

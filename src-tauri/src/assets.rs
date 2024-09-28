@@ -239,6 +239,7 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
 fn get_module(domain: String) -> Box<dyn Module> {
     match domain.as_str() {
         "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
+        "imhentai.xxx" => Box::new(imhentai::Imhentai::new()),
         "luscious.net" => Box::new(luscious::Luscious::new()),
         "mangapark.to" => Box::new(mangapark::Mangapark::new()),
         "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
@@ -257,6 +258,7 @@ fn get_module(domain: String) -> Box<dyn Module> {
 fn get_all_modules() -> Vec<Box<dyn Module>> {
     vec![
         Box::new(hentaifox::Hentaifox::new()),
+        Box::new(imhentai::Imhentai::new()),
         Box::new(luscious::Luscious::new()),
         Box::new(mangapark::Mangapark::new()),
         Box::new(manhuascan::Manhuascan::new()),

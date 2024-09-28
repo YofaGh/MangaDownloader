@@ -4,19 +4,16 @@ use crate::{
     modules::*,
     pdf_converter,
 };
-use base64::{engine::general_purpose, Engine};
 use image::{open, DynamicImage};
 use rayon::prelude::*;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
     collections::HashMap,
-    error::Error as StdError,
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
     io::{Error as DirError, Seek, Write},
     path::{Path, PathBuf},
     process::Command,
 };
-use tokio_util::bytes::Bytes;
 
 #[derive(Clone, serde::Serialize)]
 struct DefaultSettings {
@@ -200,14 +197,10 @@ pub async fn download_image(domain: String, url: String, image_name: String) -> 
 
 #[tauri::command]
 pub async fn retrieve_image(domain: String, url: String) -> String {
-    retrieve(domain, url).await.unwrap_or_default()
-}
-
-async fn retrieve(domain: String, url: String) -> Result<String, Box<dyn StdError>> {
-    let (response, _) = get_module(domain).retrieve_image(url).await?;
-    let image: Bytes = response.bytes().await.unwrap();
-    let encoded_image: String = general_purpose::STANDARD.encode(image);
-    Ok(format!("data:image/png;base64, {}", encoded_image))
+    get_module(domain)
+        .retrieve_image(url)
+        .await
+        .unwrap_or_default()
 }
 
 #[tauri::command]

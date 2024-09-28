@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response, Error as reqError};
 use serde_json::Value;
+use base64::{engine::general_purpose, Engine};
 use std::{
     collections::HashMap,
     error::Error,
@@ -11,7 +12,7 @@ use tokio::{
     fs::File,
     io::{self, AsyncWriteExt},
 };
-use tokio_util::io::StreamReader;
+use tokio_util::{bytes::Bytes, io::StreamReader};
 
 pub struct BaseModule {
     pub(crate) type_: &'static str,
@@ -87,8 +88,8 @@ pub trait Module: Send + Sync {
         file.flush().await?;
         Ok(Some(image_name.to_string()))
     }
-    async fn retrieve_image(&self, url: String) -> Result<(Response, Client), Box<dyn Error>> {
-        Ok(self
+    async fn retrieve_image(&self, url: String) -> Result<String, Box<dyn Error>> {
+        let (response, _) = self
             .send_request(
                 &url,
                 Method::GET,
@@ -99,7 +100,10 @@ pub trait Module: Send + Sync {
                 None,
                 None,
             )
-            .await?)
+            .await?;
+        let image: Bytes = response.bytes().await?;
+        let encoded_image: String = general_purpose::STANDARD.encode(image);
+        Ok(format!("data:image/png;base64, {}", encoded_image))
     }
     async fn get_images(
         &self,

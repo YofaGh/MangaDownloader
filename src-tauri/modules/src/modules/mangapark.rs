@@ -213,7 +213,7 @@ impl Module for Mangapark {
                     .to_string();
                 let mut result: HashMap<String, String> = HashMap::from([
                     ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
+                    ("domain".to_string(), "toonily.com".to_string()),
                     ("url".to_string(), url),
                     ("thumbnail".to_string(), thumbnail),
                     ("page".to_string(), page.to_string()),
@@ -279,7 +279,7 @@ impl Mangapark {
             base: BaseModule {
                 type_: "Manga",
                 domain: "mangapark.to",
-                logo: "https://mangapark.to/static-assets/img/favicon.gif",
+                logo: "https://mangapark.to/public-assets/img/favicon.ico",
                 sample: HashMap::from([("manga", "77478-en-sakamoto-days")]),
                 searchable: true,
                 ..BaseModule::default()

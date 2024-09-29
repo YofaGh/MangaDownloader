@@ -2,11 +2,9 @@
 
 use assets::*;
 use saucer::{get_saucers_list, sauce, upload_image};
-use tauri::{generate_context, generate_handler, App, Builder, Manager};
+use tauri::{generate_context, generate_handler, async_runtime::spawn, App, Builder, Manager};
 mod assets;
 mod image_merger;
-mod models;
-mod modules;
 mod pdf_converter;
 mod saucer;
 
@@ -37,13 +35,7 @@ pub fn run() {
             read_directory,
         ])
         .setup(|app: &mut App| {
-            let data_dir_path: String = app
-                .path()
-                .app_data_dir()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .to_string();
-            load_up_checks(data_dir_path);
+            spawn(load_up_checks(app.handle().clone()));
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())

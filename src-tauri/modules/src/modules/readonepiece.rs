@@ -1,5 +1,7 @@
+//modules/readonepiece.rs
 use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
+use reqwest::header::HeaderMap;
 use select::{
     document::Document,
     node::Node,
@@ -105,8 +107,10 @@ impl Readonepiece {
                 type_: "Manga",
                 domain: "readonepiece.com",
                 logo: "https://ww9.readonepiece.com/apple-touch-icon.png",
+                download_image_headers: HeaderMap::new(),
                 sample: HashMap::from([("manga", "one-piece-digital-colored-comics")]),
-                ..BaseModule::default()
+                searchable: true,
+                is_coded: true,
             },
         }
     }

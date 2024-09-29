@@ -236,7 +236,7 @@ impl Module for Toonily {
                     .to_string();
                 results.push(HashMap::from([
                     ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
+                    ("domain".to_string(), "toonily.com".to_string()),
                     ("url".to_string(), url),
                     ("thumbnail".to_string(), thumbnail),
                     ("page".to_string(), page.to_string()),

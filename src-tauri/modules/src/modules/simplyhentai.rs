@@ -77,7 +77,7 @@ impl Module for Simplyhentai {
             if tag_box.text().contains("Pages:") || tag_box.text().contains("Uploaded:") {
                 continue;
             }
-            let key: String = tag_box.first_child().unwrap().text().trim().replace(":", "");
+            let key: String = tag_box.first_child().unwrap().text().trim().to_string();
             let values: Vec<String> = tag_box
                 .find(Name("a"))
                 .map(|link: Node| {

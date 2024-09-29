@@ -219,7 +219,7 @@ impl Module for Luscious {
                 }
                 results.push(HashMap::from([
                     ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
+                    ("domain".to_string(), "luscious.net".to_string()),
                     (
                         "code".to_string(),
                         doujin["id"].as_str().unwrap_or("").to_string(),

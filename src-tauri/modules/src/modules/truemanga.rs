@@ -128,15 +128,15 @@ impl Module for Truemanga {
             let script: Node = document
                 .find(|tag: &Node| tag.name() == Some("script") && tag.text().contains("bookId"))
                 .next()
-                .unwrap();
+                .ok_or("Script with bookId not found")?;
             script
                 .text()
                 .split("bookId = ")
                 .nth(1)
-                .unwrap()
+                .ok_or("bookId not found in script")?
                 .split(';')
                 .next()
-                .unwrap()
+                .ok_or("Invalid bookId format")?
                 .trim()
                 .to_string()
         };

@@ -28,20 +28,17 @@ reqwest = { version = "0.12", default-features = false, features = [
     "macos-system-configuration",
 ] }
 serde_json = "1.0.114"
-tokio-util = { version = "0.7", features = ["codec", "io"] }
-futures = "0.3"
 image = "0.24.5"
 rayon = "1.10.0"
 scannedpdf = "0.1.0"
-base64 = "0.22.1"
 natord = "1.0.9"
 tauri-plugin-dialog = "2.0.0-rc.0"
 tauri-plugin-fs = "2.0.0-rc.0"
 tauri-plugin-http = "2.0.0-rc.0"
-async-trait = "0.1.80"
-chrono = "0.4.38"
 select = "0.6.0"
 indexmap = { version = "1.9.3", features = ["serde"] }
+libc = "0.2.159"
+libloading = "0.8.5"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

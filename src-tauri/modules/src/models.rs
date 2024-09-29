@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use futures::TryStreamExt;
-use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response, Error as reqError};
-use serde_json::Value;
 use base64::{engine::general_purpose, Engine};
+use futures::TryStreamExt;
+use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
+use serde_json::Value;
 use std::{
     collections::HashMap,
     error::Error,
@@ -14,6 +14,7 @@ use tokio::{
 };
 use tokio_util::{bytes::Bytes, io::StreamReader};
 
+#[derive(Clone)]
 pub struct BaseModule {
     pub(crate) type_: &'static str,
     pub(crate) domain: &'static str,
@@ -30,7 +31,7 @@ impl Default for BaseModule {
             type_: "",
             domain: "",
             logo: "",
-            download_image_headers: HeaderMap::default(),
+            download_image_headers: HeaderMap::new(),
             sample: HashMap::new(),
             searchable: false,
             is_coded: false,
@@ -81,7 +82,7 @@ pub trait Module: Send + Sync {
             .await?;
         let stream = response
             .bytes_stream()
-            .map_err(|e: reqError| IoError::new(Other, e.to_string()));
+            .map_err(|e| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(&image_name).await?;
         io::copy(&mut reader, &mut file).await?;
@@ -181,9 +182,11 @@ pub trait Module: Send + Sync {
         if let Some(p) = params {
             request = request.query(&p);
         }
+
         if let Some(d) = data {
             request = request.form(&d);
         }
+
         if let Some(j) = json {
             request = request.json(&j);
         }

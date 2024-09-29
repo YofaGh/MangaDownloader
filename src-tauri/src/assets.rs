@@ -1,21 +1,32 @@
-use crate::{
-    image_merger,
-    models::{DefaultModule, Module},
-    modules::*,
-    pdf_converter,
-};
+use crate::{image_merger, pdf_converter};
 use image::{open, DynamicImage};
+use libc::{self, c_char};
+use libloading::{Library, Symbol};
 use rayon::prelude::*;
-use serde_json::{to_string_pretty, to_value, Value};
+use serde::Serialize;
+use serde_json::{from_str, to_string_pretty, to_value, Value};
 use std::{
     collections::HashMap,
+    ffi::{CStr, CString},
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
     io::{Error as DirError, Seek, Write},
     path::{Path, PathBuf},
     process::Command,
 };
+use tauri::{path::BaseDirectory::Resource, AppHandle, Manager};
 
-#[derive(Clone, serde::Serialize)]
+type GetModulesFn = unsafe fn() -> *mut c_char;
+type GetInfoFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
+type GetChaptersFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
+type GetImagesFn = unsafe fn(*const c_char, *const c_char, *const c_char) -> *mut c_char;
+type SearchByKeywordFn = unsafe fn(*const c_char, *const c_char, bool, f64, u32) -> *mut c_char;
+type DownloadImageFn = unsafe fn(*const c_char, *const c_char, *const c_char) -> *mut c_char;
+type RetrieveImageFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
+type GetModuleSampleFn = unsafe fn(*const c_char) -> *mut c_char;
+type FreeStringFn = unsafe fn(*mut c_char);
+static mut LIB: Option<Library> = None;
+
+#[derive(Clone, Serialize)]
 struct DefaultSettings {
     auto_merge: bool,
     auto_convert: bool,
@@ -42,9 +53,31 @@ impl DefaultSettings {
     }
 }
 
-pub fn load_up_checks(data_dir: String) {
-    create_dir_all(&data_dir).ok();
-    let default_settings: DefaultSettings = DefaultSettings::new(data_dir.clone());
+fn free_string(ptr: *mut c_char) {
+    unsafe {
+        let _free_string: Symbol<FreeStringFn> = LIB.as_ref().unwrap().get(b"free_string").unwrap();
+        _free_string(ptr);
+    }
+}
+
+pub async fn load_up_checks(app: AppHandle) {
+    unsafe {
+        LIB = Some(
+            Library::new(
+                app.path()
+                    .resolve("resources/modules.dll", Resource)
+                    .unwrap(),
+            )
+            .unwrap(),
+        );
+    }
+    let data_dir_path: String = app
+        .path()
+        .app_data_dir()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let default_settings: DefaultSettings = DefaultSettings::new(data_dir_path.clone());
     let file_array: [&str; 4] = [
         "library.json",
         "downloaded.json",
@@ -52,12 +85,15 @@ pub fn load_up_checks(data_dir: String) {
         "favorites.json",
     ];
     save_file(
-        format!("{}/settings.json", data_dir),
+        format!("{}/settings.json", data_dir_path),
         to_value(&default_settings).unwrap(),
     );
     file_array.into_iter().for_each(|file: &str| {
-        save_file(format!("{}/{}", data_dir, file), Value::Array(Vec::new()));
-    })
+        save_file(
+            format!("{}/{}", data_dir_path, file),
+            Value::Array(Vec::new()),
+        );
+    });
 }
 
 fn save_file(path: String, data: Value) {
@@ -105,7 +141,7 @@ pub fn read_directory(path: String) -> Result<Vec<String>, String> {
         .map(|entry: Result<DirEntry, DirError>| {
             entry.map(|e: DirEntry| e.path().to_str().unwrap().to_string())
         })
-        .collect::<Result<Vec<_>, _>>()
+        .collect::<Result<Vec<String>, DirError>>()
         .map_err(|e: DirError| e.to_string())
 }
 
@@ -162,45 +198,76 @@ pub fn validate_image(path: String) -> bool {
 }
 
 #[tauri::command]
+pub async fn get_modules() -> Vec<HashMap<String, Value>> {
+    unsafe {
+        let _get_modules: Symbol<GetModulesFn> = LIB.as_ref().unwrap().get(b"get_modules").unwrap();
+        let modules_ptr: *mut i8 = _get_modules();
+        let modules: &str = CStr::from_ptr(modules_ptr).to_str().unwrap();
+        let modules: Vec<HashMap<String, Value>> = from_str(modules).unwrap_or_default();
+        free_string(modules_ptr);
+        modules
+    }
+}
+
+#[tauri::command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    get_module(domain).get_info(url).await.unwrap_or_default()
+    let domain: CString = CString::new(domain).unwrap();
+    let url: CString = CString::new(url).unwrap();
+    unsafe {
+        let _get_info: Symbol<GetInfoFn> = LIB.as_ref().unwrap().get(b"get_info").unwrap();
+        let info_ptr: *mut i8 = _get_info(domain.as_ptr(), url.as_ptr());
+        let info: &str = CStr::from_ptr(info_ptr).to_str().unwrap();
+        let info: HashMap<String, Value> = from_str(info).unwrap_or_default();
+        free_string(info_ptr);
+        info
+    }
 }
 
 #[tauri::command]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
-    get_module(domain)
-        .get_chapters(url)
-        .await
-        .unwrap_or_default()
-}
-
-#[tauri::command]
-pub fn get_module_sample(domain: String) -> HashMap<&'static str, &'static str> {
-    get_module(domain).get_module_sample()
+    let domain: CString = CString::new(domain).unwrap();
+    let url: CString = CString::new(url).unwrap();
+    unsafe {
+        let _get_chapters: Symbol<GetChaptersFn> =
+            LIB.as_ref().unwrap().get(b"get_chapters").unwrap();
+        let chapters_ptr: *mut i8 = _get_chapters(domain.as_ptr(), url.as_ptr());
+        let chapters: &str = CStr::from_ptr(chapters_ptr).to_str().unwrap();
+        let chapters: Vec<HashMap<String, String>> = from_str(chapters).unwrap_or_default();
+        free_string(chapters_ptr);
+        chapters
+    }
 }
 
 #[tauri::command]
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
-    get_module(domain)
-        .get_images(manga, chapter)
-        .await
-        .unwrap_or_default()
+    let domain: CString = CString::new(domain).unwrap();
+    let manga: CString = CString::new(manga).unwrap();
+    let chapter: CString = CString::new(chapter).unwrap();
+    unsafe {
+        let _get_images: Symbol<GetImagesFn> = LIB.as_ref().unwrap().get(b"get_images").unwrap();
+        let images_ptr: *mut i8 = _get_images(domain.as_ptr(), manga.as_ptr(), chapter.as_ptr());
+        let images: &str = CStr::from_ptr(images_ptr).to_str().unwrap();
+        let images: (Vec<String>, Value) = from_str(images).unwrap_or_default();
+        free_string(images_ptr);
+        images
+    }
 }
 
 #[tauri::command]
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
-    get_module(domain)
-        .download_image(url, image_name)
-        .await
-        .unwrap_or_default()
-}
-
-#[tauri::command]
-pub async fn retrieve_image(domain: String, url: String) -> String {
-    get_module(domain)
-        .retrieve_image(url)
-        .await
-        .unwrap_or_default()
+    let domain: CString = CString::new(domain).unwrap();
+    let url: CString = CString::new(url).unwrap();
+    let image_name: CString = CString::new(image_name).unwrap();
+    unsafe {
+        let _download_image: Symbol<DownloadImageFn> =
+            LIB.as_ref().unwrap().get(b"download_image").unwrap();
+        let image_ptr: *mut i8 =
+            _download_image(domain.as_ptr(), url.as_ptr(), image_name.as_ptr());
+        let image: &str = CStr::from_ptr(image_ptr).to_str().unwrap();
+        let image: String = image.to_string();
+        free_string(image_ptr);
+        Some(image)
+    }
 }
 
 #[tauri::command]
@@ -211,64 +278,50 @@ pub async fn search_by_keyword(
     page_limit: u32,
     absolute: bool,
 ) -> Vec<HashMap<String, String>> {
-    get_module(domain)
-        .search_by_keyword(keyword, absolute, sleep_time, page_limit)
-        .await
-        .unwrap_or_default()
-}
-
-#[tauri::command]
-pub fn get_modules() -> Vec<HashMap<String, Value>> {
-    get_all_modules()
-        .into_iter()
-        .map(|module: Box<dyn Module>| {
-            HashMap::from([
-                ("type".to_string(), Value::String(module.get_type())),
-                ("domain".to_string(), Value::String(module.get_domain())),
-                ("logo".to_string(), Value::String(module.get_logo())),
-                (
-                    "searchable".to_string(),
-                    Value::Bool(module.is_searchable()),
-                ),
-                ("is_coded".to_string(), Value::Bool(module.is_coded())),
-            ])
-        })
-        .collect()
-}
-
-fn get_module(domain: String) -> Box<dyn Module> {
-    match domain.as_str() {
-        "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
-        "imhentai.xxx" => Box::new(imhentai::Imhentai::new()),
-        "luscious.net" => Box::new(luscious::Luscious::new()),
-        "mangapark.to" => Box::new(mangapark::Mangapark::new()),
-        "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
-        "manytoon.com" => Box::new(manytoon::Manytoon::new()),
-        "nhentai.net" => Box::new(nhentai_net::Nhentai::new()),
-        "nhentai.xxx" => Box::new(nhentai_xxx::Nhentai::new()),
-        "nyahentai.red" => Box::new(nyahentai::Nyahentai::new()),
-        "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
-        "simplyhentai.org" => Box::new(simplyhentai::Simplyhentai::new()),
-        "toonily.com" => Box::new(toonily_com::Toonily::new()),
-        "truemanga.com" => Box::new(truemanga::Truemanga::new()),
-        _ => Box::new(DefaultModule::new()),
+    let domain: CString = CString::new(domain).unwrap();
+    let keyword: CString = CString::new(keyword).unwrap();
+    unsafe {
+        let _search_by_keyword: Symbol<SearchByKeywordFn> =
+            LIB.as_ref().unwrap().get(b"search_by_keyword").unwrap();
+        let results_ptr: *mut i8 = _search_by_keyword(
+            domain.as_ptr(),
+            keyword.as_ptr(),
+            absolute,
+            sleep_time,
+            page_limit,
+        );
+        let results: &str = CStr::from_ptr(results_ptr).to_str().unwrap();
+        let results: Vec<HashMap<String, String>> = from_str(results).unwrap_or_default();
+        free_string(results_ptr);
+        results
     }
 }
 
-fn get_all_modules() -> Vec<Box<dyn Module>> {
-    vec![
-        Box::new(hentaifox::Hentaifox::new()),
-        Box::new(imhentai::Imhentai::new()),
-        Box::new(luscious::Luscious::new()),
-        Box::new(mangapark::Mangapark::new()),
-        Box::new(manhuascan::Manhuascan::new()),
-        Box::new(manytoon::Manytoon::new()),
-        Box::new(nhentai_net::Nhentai::new()),
-        Box::new(nhentai_xxx::Nhentai::new()),
-        Box::new(nyahentai::Nyahentai::new()),
-        Box::new(readonepiece::Readonepiece::new()),
-        Box::new(simplyhentai::Simplyhentai::new()),
-        Box::new(toonily_com::Toonily::new()),
-        Box::new(truemanga::Truemanga::new()),
-    ]
+#[tauri::command]
+pub async fn retrieve_image(domain: String, url: String) -> String {
+    let domain: CString = CString::new(domain).unwrap();
+    let url: CString = CString::new(url).unwrap();
+    unsafe {
+        let _retrieve_image: Symbol<RetrieveImageFn> =
+            LIB.as_ref().unwrap().get(b"retrieve_image").unwrap();
+        let image_ptr: *mut i8 = _retrieve_image(domain.as_ptr(), url.as_ptr());
+        let image: &str = CStr::from_ptr(image_ptr).to_str().unwrap();
+        let image: String = image.to_string();
+        free_string(image_ptr);
+        image
+    }
+}
+
+#[tauri::command]
+pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
+    let domain: CString = CString::new(domain).unwrap();
+    unsafe {
+        let _get_module_sample: Symbol<GetModuleSampleFn> =
+            LIB.as_ref().unwrap().get(b"get_module_sample").unwrap();
+        let sample_ptr: *mut i8 = _get_module_sample(domain.as_ptr());
+        let sample: &str = CStr::from_ptr(sample_ptr).to_str().unwrap();
+        let sample: HashMap<String, String> = from_str(sample).unwrap_or_default();
+        free_string(sample_ptr);
+        sample
+    }
 }

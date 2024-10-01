@@ -2,7 +2,7 @@
 
 use assets::*;
 use saucer::{get_saucers_list, sauce, upload_image};
-use tauri::{generate_context, generate_handler, async_runtime::spawn, App, Builder, Manager};
+use tauri::{generate_context, generate_handler, App, Builder, Manager};
 mod assets;
 mod image_merger;
 mod pdf_converter;
@@ -33,9 +33,9 @@ pub fn run() {
             validate_image,
             create_directory,
             read_directory,
+            update_checker,
         ])
         .setup(|app: &mut App| {
-            spawn(load_up_checks(app.handle().clone()));
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())

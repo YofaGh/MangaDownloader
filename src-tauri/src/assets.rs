@@ -3,18 +3,24 @@ use image::{open, DynamicImage};
 use libc::{self, c_char};
 use libloading::{Library, Symbol};
 use rayon::prelude::*;
+use reqwest::get;
+use semver::Version;
 use serde::Serialize;
 use serde_json::{from_str, to_string_pretty, to_value, Value};
 use std::{
     collections::HashMap,
     ffi::{CStr, CString},
-    fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, DirEntry, File, OpenOptions},
+    fs::{
+        create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File, OpenOptions,
+    },
     io::{Error as DirError, Seek, Write},
     path::{Path, PathBuf},
     process::Command,
 };
-use tauri::{path::BaseDirectory::Resource, AppHandle, Manager};
+use tauri::{path::BaseDirectory::Resource, AppHandle, Emitter, Manager, WebviewWindow};
+use tokio::time::{sleep, Duration};
 
+type GetVersionFn = unsafe fn() -> *mut c_char;
 type GetModulesFn = unsafe fn() -> *mut c_char;
 type GetInfoFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
 type GetChaptersFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
@@ -25,6 +31,7 @@ type RetrieveImageFn = unsafe fn(*const c_char, *const c_char) -> *mut c_char;
 type GetModuleSampleFn = unsafe fn(*const c_char) -> *mut c_char;
 type FreeStringFn = unsafe fn(*mut c_char);
 static mut LIB: Option<Library> = None;
+const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
 
 #[derive(Clone, Serialize)]
 struct DefaultSettings {
@@ -60,17 +67,20 @@ fn free_string(ptr: *mut c_char) {
     }
 }
 
-pub async fn load_up_checks(app: AppHandle) {
-    unsafe {
-        LIB = Some(
-            Library::new(
-                app.path()
-                    .resolve("resources/modules.dll", Resource)
-                    .unwrap(),
-            )
-            .unwrap(),
-        );
-    }
+#[tauri::command]
+pub async fn update_checker(app: AppHandle) {
+    let modules_path: PathBuf = app
+        .path()
+        .resolve("resources/modules.dll", Resource)
+        .unwrap();
+    load_modules(modules_path.clone());
+    let window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
+    window.emit("updateStatus", "Checking for updates").unwrap();
+    check_and_update_dll(window, modules_path).await;
+    load_up_checks(app);
+}
+
+pub fn load_up_checks(app: AppHandle) {
     let data_dir_path: String = app
         .path()
         .app_data_dir()
@@ -94,6 +104,54 @@ pub async fn load_up_checks(app: AppHandle) {
             Value::Array(Vec::new()),
         );
     });
+    app.get_webview_window("splashscreen")
+        .unwrap()
+        .close()
+        .unwrap();
+    app.get_webview_window("main").unwrap().show().unwrap();
+}
+
+fn load_modules(modules_path: PathBuf) {
+    unsafe { LIB = Some(Library::new(modules_path).unwrap()) };
+}
+
+fn unload_modules() {
+    unsafe {
+        let _ = LIB.take().unwrap().close();
+    }
+}
+
+async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) {
+    let current_version: Version = Version::parse(&get_modules_version()).unwrap();
+    match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
+        Ok(response) => {
+            let version_str: String = response.text().await.unwrap();
+            let latest_version: Version = Version::parse(version_str.trim()).unwrap();
+            if latest_version > current_version {
+                window.emit("updateStatus", "Updating Modules").unwrap();
+                unload_modules();
+                match get(GITHUB_URL.to_owned() + "src-tauri/resources/modules.dll").await {
+                    Ok(response) => {
+                        let new_dll_content: Vec<u8> = response.bytes().await.unwrap().to_vec();
+                        write(&modules_path, new_dll_content).unwrap();
+                    }
+                    Err(_) => {
+                        window
+                            .emit("updateStatus", "Failed to update modules")
+                            .unwrap();
+                        sleep(Duration::from_secs(1)).await;
+                    }
+                }
+            }
+        }
+        Err(_) => {
+            window
+                .emit("updateStatus", "Failed to check for updates")
+                .unwrap();
+            sleep(Duration::from_secs(1)).await;
+        }
+    }
+    load_modules(modules_path);
 }
 
 fn save_file(path: String, data: Value) {
@@ -194,6 +252,18 @@ pub fn validate_image(path: String) -> bool {
     match open(path) {
         Ok(_) => true,
         Err(_) => false,
+    }
+}
+
+pub fn get_modules_version() -> String {
+    unsafe {
+        let _get_modules_version: Symbol<GetVersionFn> =
+            LIB.as_ref().unwrap().get(b"get_version").unwrap();
+        let version_ptr: *mut i8 = _get_modules_version();
+        let version: &str = CStr::from_ptr(version_ptr).to_str().unwrap();
+        let version: String = version.to_string();
+        free_string(version_ptr);
+        version
     }
 }
 

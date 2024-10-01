@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./splash.css" />
+    <title>Loader</title>
+  </head>
+  <body data-tauri-drag-region>
+    <script>
+      (async () => {
+        await window.__TAURI__.event.listen("updateStatus", (event) => {
+          document.getElementById("splash-status").innerText = event.payload;
+        });
+        await window.__TAURI__.core.invoke("update_checker");
+      })();
+    </script>
+    <div data-tauri-drag-region class="first-loader">
+      <h3 data-tauri-drag-region id="splash-status">Preparing...</h3>
+      <div data-tauri-drag-region class="newtons-cradle">
+        <div data-tauri-drag-region class="newtons-cradle__dot"></div>
+        <div data-tauri-drag-region class="newtons-cradle__dot"></div>
+        <div data-tauri-drag-region class="newtons-cradle__dot"></div>
+        <div data-tauri-drag-region class="newtons-cradle__dot"></div>
+      </div>
+    </div>
+  </body>
+</html>

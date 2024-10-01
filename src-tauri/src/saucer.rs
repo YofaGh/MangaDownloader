@@ -13,7 +13,7 @@ use serde_json::Value;
 use std::{collections::HashMap, error::Error, path::Path};
 use tokio::fs::read;
 
-async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={}",
@@ -44,7 +44,7 @@ async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error
         .collect::<Result<Vec<_>, _>>()
 }
 
-async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
     let mut headers: HeaderMap = HeaderMap::new();
     headers.append(
@@ -95,7 +95,7 @@ async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error
     Ok(results)
 }
 
-async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={}", url));
     let document: Document = Document::from(request.send().await?.text().await?.as_str());
@@ -133,7 +133,7 @@ async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>
     Ok(results)
 }
 
-async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!(
         "https://saucenao.com/search.php?db=999&url={}",
@@ -163,18 +163,7 @@ async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Err
     Ok(results)
 }
 
-#[tauri::command]
-pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
-    match saucer.as_str() {
-        "yandex" => yandex(url.as_str()).await.unwrap_or_default(),
-        "tineye" => tineye(url.as_str()).await.unwrap_or_default(),
-        "iqdb" => iqdb(url.as_str()).await.unwrap_or_default(),
-        "saucenao" => saucenao(url.as_str()).await.unwrap_or_default(),
-        _ => Vec::new(),
-    }
-}
-
-async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
+pub async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let bytes: Vec<u8> = read(path).await?;
     let form: Form = Form::new().part(
@@ -203,19 +192,4 @@ async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
         .attr("href")
         .unwrap();
     Ok(format!("https:{}", link))
-}
-
-#[tauri::command]
-pub async fn upload_image(path: String) -> String {
-    upload(path.as_str()).await.unwrap_or_default()
-}
-
-#[tauri::command]
-pub fn get_saucers_list() -> Vec<String> {
-    vec![
-        "yandex".to_string(),
-        "tineye".to_string(),
-        "iqdb".to_string(),
-        "saucenao".to_string(),
-    ]
 }

@@ -1,12 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use assets::*;
-use saucer::{get_saucers_list, sauce, upload_image};
-use tauri::{generate_context, generate_handler, App, Builder, Manager};
 mod assets;
+mod commands;
 mod image_merger;
 mod pdf_converter;
 mod saucer;
+use commands::*;
+use tauri::{generate_context, generate_handler, App, Builder, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,25 +15,25 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(generate_handler![
-            open_folder,
-            remove_directory,
-            get_info,
-            get_chapters,
-            get_modules,
-            get_images,
-            get_module_sample,
-            download_image,
             merge,
-            convert,
-            retrieve_image,
-            search_by_keyword,
-            get_saucers_list,
-            upload_image,
             sauce,
+            convert,
+            get_info,
+            get_images,
+            get_modules,
+            open_folder,
+            get_chapters,
+            upload_image,
+            download_image,
+            retrieve_image,
             validate_image,
-            create_directory,
             read_directory,
             update_checker,
+            create_directory,
+            get_saucers_list,
+            remove_directory,
+            get_module_sample,
+            search_by_keyword,
         ])
         .setup(|app: &mut App| {
             #[cfg(debug_assertions)]

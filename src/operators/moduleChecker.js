@@ -1,4 +1,3 @@
-import { useSettingsStore } from "../store";
 import {
   getImages,
   removeFile,
@@ -6,12 +5,13 @@ import {
   getChapters,
   showHideModal,
   downloadImage,
+  getDataDirPath,
   searchByKeyword,
   getModuleSample,
 } from "../utils";
 
 export default async function moduleChecker(module, setStepStatuses) {
-  const { data_dir_path } = useSettingsStore.getState().settings;
+  const data_dir_path = await getDataDirPath();
   const updateStepStatus = (stepIndex, status) => {
     setStepStatuses((prev) => {
       const newStatuses = [...prev];

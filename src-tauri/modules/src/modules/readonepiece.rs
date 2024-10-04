@@ -109,8 +109,7 @@ impl Readonepiece {
                 logo: "https://ww9.readonepiece.com/apple-touch-icon.png",
                 download_image_headers: HeaderMap::new(),
                 sample: HashMap::from([("manga", "one-piece-digital-colored-comics")]),
-                searchable: true,
-                is_coded: true,
+                ..BaseModule::default()
             },
         }
     }

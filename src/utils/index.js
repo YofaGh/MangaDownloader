@@ -9,6 +9,7 @@ export {
   downloadImage,
   readDirectory,
   validateImage,
+  getDataDirPath,
   getSaucersList,
   getModuleSample,
   searchByKeyword,

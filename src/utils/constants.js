@@ -9,5 +9,5 @@ export const WebtoonType = Object.freeze({
   DOUJIN: "Doujin",
 });
 
-export const DefaultWebtoonCover = "./assets/default-cover.svg";
 export const DefaultModuleCover = "./assets/module-cyan.svg";
+export const DefaultWebtoonCover = "./assets/default-cover.svg";

@@ -3,9 +3,11 @@
 mod assets;
 mod commands;
 mod image_merger;
+mod lib_utils;
 mod pdf_converter;
 mod saucer;
 use commands::*;
+use assets::load_up_checks;
 use tauri::{generate_context, generate_handler, App, Builder, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,10 +34,18 @@ pub fn run() {
             create_directory,
             get_saucers_list,
             remove_directory,
+            get_data_dir_path,
             get_module_sample,
             search_by_keyword,
         ])
         .setup(|app: &mut App| {
+            let data_dir_path: String = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
+            load_up_checks(data_dir_path);
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())

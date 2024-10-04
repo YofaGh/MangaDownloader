@@ -7,13 +7,13 @@ import {
   BaseDirectory,
 } from "@tauri-apps/plugin-fs";
 
-export const chooseFile = async () => await open();
+export const getAppWindow = () => getCurrent();
 
-export const chooseFolder = async () => await open({ directory: true });
+export const chooseFile = async () => await open();
 
 export const removeFile = async (path) => await remove(path);
 
-export const getAppWindow = () => getCurrent();
+export const chooseFolder = async () => await open({ directory: true });
 
 export const readFile = async (path) =>
   JSON.parse(

@@ -6,8 +6,8 @@ mod image_merger;
 mod lib_utils;
 mod pdf_converter;
 mod saucer;
-use commands::*;
 use assets::load_up_checks;
+use commands::*;
 use tauri::{generate_context, generate_handler, App, Builder, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -39,13 +39,7 @@ pub fn run() {
             search_by_keyword,
         ])
         .setup(|app: &mut App| {
-            let data_dir_path: String = app
-                .path()
-                .app_data_dir()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .to_string();
-            load_up_checks(data_dir_path);
+            load_up_checks(app.path().app_data_dir().unwrap_or_default());
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())

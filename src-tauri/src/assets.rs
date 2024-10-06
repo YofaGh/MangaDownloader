@@ -8,7 +8,7 @@ use serde_json::{to_string_pretty, to_value, Value};
 use std::{
     fs::{read_dir, write, DirEntry, File, OpenOptions},
     io::Write,
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use tauri::{Emitter, WebviewWindow};
 use tokio::time::{sleep, Duration};
@@ -40,10 +40,10 @@ impl Default for Settings {
     }
 }
 
-pub fn load_up_checks(data_dir_path: String) {
+pub fn load_up_checks(data_dir_path: PathBuf) {
     let default_settings: Settings = Settings::default();
     save_file(
-        format!("{}/settings.json", data_dir_path),
+        data_dir_path.join("settings.json"),
         to_value(&default_settings).unwrap(),
     );
     let file_array: [&str; 4] = [
@@ -53,14 +53,12 @@ pub fn load_up_checks(data_dir_path: String) {
         "favorites.json",
     ];
     file_array.into_iter().for_each(|file: &str| {
-        save_file(
-            format!("{}/{}", data_dir_path, file),
-            Value::Array(Vec::new()),
-        );
+        save_file(data_dir_path.join(file), Value::Array(Vec::new()));
     });
 }
 
 pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) {
+    emit_status(&window, "Checking for updates");
     let current_version: Version = Version::parse(&get_modules_version()).unwrap();
     match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
         Ok(response) => {
@@ -68,6 +66,7 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
             let latest_version: Version = Version::parse(version_str.trim()).unwrap();
             if latest_version > current_version {
                 window.emit("updateStatus", "Updating Modules").unwrap();
+                emit_status(&window, "Updating Modules");
                 unload_modules();
                 match get(GITHUB_URL.to_owned() + "src-tauri/resources/modules.dll").await {
                     Ok(response) => {
@@ -75,26 +74,22 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
                         write(&modules_path, new_dll_content).unwrap();
                     }
                     Err(_) => {
-                        window
-                            .emit("updateStatus", "Failed to update modules")
-                            .unwrap();
+                        emit_status(&window, "Failed to update modules");
                         sleep(Duration::from_secs(1)).await;
                     }
                 }
+                load_modules(modules_path);
             }
         }
         Err(_) => {
-            window
-                .emit("updateStatus", "Failed to check for updates")
-                .unwrap();
+            emit_status(&window, "Failed to check for updates");
             sleep(Duration::from_secs(1)).await;
         }
     }
-    load_modules(modules_path);
 }
 
-fn save_file(path: String, data: Value) {
-    if !Path::new(&path).exists() {
+fn save_file(path: PathBuf, data: Value) {
+    if !path.exists() {
         let mut file: File = OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -104,6 +99,10 @@ fn save_file(path: String, data: Value) {
             .unwrap();
         file.flush().unwrap();
     }
+}
+
+fn emit_status(window: &WebviewWindow, message: &str) {
+    window.emit("updateStatus", message).unwrap();
 }
 
 pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {

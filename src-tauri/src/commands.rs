@@ -14,7 +14,7 @@ use std::{
     path::PathBuf,
     process::Command,
 };
-use tauri::{command, path::BaseDirectory::Resource, AppHandle, Emitter, Manager, WebviewWindow};
+use tauri::{command, path::BaseDirectory::Resource, AppHandle, Manager, WebviewWindow};
 
 #[command]
 pub async fn get_data_dir_path(app: AppHandle) -> String {
@@ -33,7 +33,6 @@ pub async fn update_checker(app: AppHandle) {
         .unwrap();
     lib_utils::load_modules(modules_path.clone());
     let window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
-    window.emit("updateStatus", "Checking for updates").unwrap();
     check_and_update_dll(window, modules_path).await;
     app.get_webview_window("splashscreen")
         .unwrap()

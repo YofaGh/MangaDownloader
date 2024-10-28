@@ -24,7 +24,7 @@ export default function AddToLibraryModal({
               type="number"
               value={depth}
               className="input-depth"
-              onChange={(e) => setDepth(e.target.value)}
+              onChange={(e) => setDepth(Number(e.target.value))}
             ></input>
             &nbsp;&nbsp;
           </div>

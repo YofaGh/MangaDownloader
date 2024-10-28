@@ -59,7 +59,7 @@ pub fn load_up_checks(data_dir_path: PathBuf) {
 
 pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) {
     emit_status(&window, "Checking for updates");
-    let current_version: Version = Version::parse(&get_modules_version()).unwrap();
+    let current_version: Version = Version::parse(&get_modules_version().unwrap()).unwrap();
     match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
         Ok(response) => {
             let version_str: String = response.text().await.unwrap();
@@ -67,7 +67,7 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
             if latest_version > current_version {
                 window.emit("updateStatus", "Updating Modules").unwrap();
                 emit_status(&window, "Updating Modules");
-                unload_modules();
+                unload_modules().unwrap();
                 match get(GITHUB_URL.to_owned() + "src-tauri/resources/modules.dll").await {
                     Ok(response) => {
                         let new_dll_content: Vec<u8> = response.bytes().await.unwrap().to_vec();
@@ -78,7 +78,7 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
                         sleep(Duration::from_secs(1)).await;
                     }
                 }
-                load_modules(modules_path);
+                load_modules(modules_path).unwrap();
             }
         }
         Err(_) => {
@@ -105,7 +105,7 @@ fn emit_status(window: &WebviewWindow, message: &str) {
     window.emit("updateStatus", message).unwrap();
 }
 
-pub fn detect_images(path_to_source: String) -> Vec<(DynamicImage, PathBuf)> {
+pub fn detect_images(path_to_source: &str) -> Vec<(DynamicImage, PathBuf)> {
     let dirs: Vec<DirEntry> = read_dir(path_to_source)
         .unwrap()
         .filter_map(Result::ok)

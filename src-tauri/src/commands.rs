@@ -31,7 +31,7 @@ pub async fn update_checker(app: AppHandle) {
         .path()
         .resolve("resources/modules.dll", Resource)
         .unwrap();
-    lib_utils::load_modules(modules_path.clone());
+    lib_utils::load_modules(modules_path.clone()).unwrap();
     let window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
     check_and_update_dll(window, modules_path).await;
     app.get_webview_window("splashscreen")
@@ -77,7 +77,7 @@ pub fn read_directory(path: String) -> Result<Vec<String>, String> {
 }
 
 #[command]
-pub fn merge(path_to_source: String, path_to_destination: String, merge_method: String) -> String {
+pub fn merge(path_to_source: &str, path_to_destination: &str, merge_method: &str) -> String {
     match merge_folder(path_to_source, path_to_destination, merge_method) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
@@ -85,7 +85,7 @@ pub fn merge(path_to_source: String, path_to_destination: String, merge_method: 
 }
 
 #[command]
-pub fn convert(path: String, pdf_name: String) -> String {
+pub fn convert(path: &str, pdf_name: &str) -> String {
     match convert_folder(path, pdf_name) {
         Ok(_) => "".to_string(),
         Err(err) => err.to_string(),
@@ -102,27 +102,33 @@ pub fn validate_image(path: String) -> bool {
 
 #[command]
 pub async fn get_modules() -> Vec<HashMap<String, Value>> {
-    lib_utils::get_modules().await
+    lib_utils::get_modules().await.unwrap_or_default()
 }
 
 #[command]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    lib_utils::get_info(domain, url).await
+    lib_utils::get_info(domain, url).await.unwrap_or_default()
 }
 
 #[command]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
-    lib_utils::get_chapters(domain, url).await
+    lib_utils::get_chapters(domain, url)
+        .await
+        .unwrap_or_default()
 }
 
 #[command]
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
-    lib_utils::get_images(domain, manga, chapter).await
+    lib_utils::get_images(domain, manga, chapter)
+        .await
+        .unwrap_or_default()
 }
 
 #[command]
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
-    lib_utils::download_image(domain, url, image_name).await
+    lib_utils::download_image(domain, url, image_name)
+        .await
+        .unwrap_or_default()
 }
 
 #[command]
@@ -133,17 +139,21 @@ pub async fn search_by_keyword(
     page_limit: u32,
     absolute: bool,
 ) -> Vec<HashMap<String, String>> {
-    lib_utils::search_by_keyword(domain, keyword, sleep_time, page_limit, absolute).await
+    lib_utils::search_by_keyword(domain, keyword, sleep_time, page_limit, absolute)
+        .await
+        .unwrap_or_default()
 }
 
 #[command]
 pub async fn retrieve_image(domain: String, url: String) -> String {
-    lib_utils::retrieve_image(domain, url).await
+    lib_utils::retrieve_image(domain, url)
+        .await
+        .unwrap_or_default()
 }
 
 #[command]
 pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
-    lib_utils::get_module_sample(domain).await
+    lib_utils::get_module_sample(domain).await.unwrap_or_default()
 }
 
 #[command]

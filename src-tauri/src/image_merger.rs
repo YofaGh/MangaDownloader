@@ -13,15 +13,15 @@ use std::{
 use crate::assets::detect_images;
 
 pub fn merge_folder(
-    path_to_source: String,
-    path_to_destination: String,
-    merge_method: String,
+    path_to_source: &str,
+    path_to_destination: &str,
+    merge_method: &str,
 ) -> Result<(), Box<dyn Error>> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
     if !images.is_empty() {
-        create_dir_all(path_to_destination.clone()).unwrap();
+        create_dir_all(path_to_destination).unwrap();
         if merge_method == "Fit" {
-            merge_fit(images.clone(), path_to_destination.clone());
+            merge_fit(images.clone(), path_to_destination);
         } else {
             merge(images, path_to_destination);
         }
@@ -29,7 +29,7 @@ pub fn merge_folder(
     Ok(())
 }
 
-pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) {
+pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut temp_height: u32 = 0;
@@ -82,7 +82,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) 
     );
 }
 
-pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: String) {
+pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut current_height: u32 = 0;
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];

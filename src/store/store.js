@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
+import { v4 } from "uuid";
 
 export const useSearchStore = create((set) => ({
   searchStatus: { init: true },
@@ -64,14 +64,14 @@ export const useNotificationStore = create((set, get) => ({
     set((state) => ({
       notifications: [
         ...state.notifications,
-        { id: uuidv4(), type: "success", message },
+        { id: v4(), type: "success", message },
       ],
     })),
   notifyError: (message) =>
     set((state) => ({
       notifications: [
         ...state.notifications,
-        { id: uuidv4(), type: "error", message },
+        { id: v4(), type: "error", message },
       ],
     })),
 }));

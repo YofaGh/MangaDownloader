@@ -1,4 +1,4 @@
-use libc::{self, c_char};
+use libc::c_char;
 use libloading::{Error as LibError, Library, Symbol};
 use serde_json::{from_str, Value};
 use std::{
@@ -39,19 +39,13 @@ fn get_symbol<T>(name: &[u8]) -> Result<Symbol<T>, String> {
     }
 }
 
-macro_rules! get_fn {
-    ($name:expr, $type:ty) => {
-        get_symbol::<$type>($name.as_bytes()).unwrap()
-    };
-}
-
 fn free_string(ptr: *mut c_char) -> Result<(), Box<dyn StdError>> {
-    unsafe { get_fn!("free_string", FreeStringFn)(ptr) };
+    unsafe { get_symbol::<FreeStringFn>(b"free_string")?(ptr) };
     Ok(())
 }
 
 pub fn get_modules_version() -> Result<String, Box<dyn StdError>> {
-    let version_ptr: *mut i8 = unsafe { get_fn!("get_version", GetVersionFn)() };
+    let version_ptr: *mut i8 = unsafe { get_symbol::<GetVersionFn>(b"get_version")?() };
     let version: &str = unsafe { CStr::from_ptr(version_ptr) }.to_str()?;
     let version: String = version.to_string();
     free_string(version_ptr)?;
@@ -59,7 +53,7 @@ pub fn get_modules_version() -> Result<String, Box<dyn StdError>> {
 }
 
 pub async fn get_modules() -> Result<Vec<HashMap<String, Value>>, Box<dyn StdError>> {
-    let modules_ptr: *mut i8 = unsafe { get_fn!("get_modules", GetModulesFn)() };
+    let modules_ptr: *mut i8 = unsafe { get_symbol::<GetModulesFn>(b"get_modules")?() };
     let modules: &str = unsafe { CStr::from_ptr(modules_ptr) }.to_str()?;
     let modules: Vec<HashMap<String, Value>> = from_str(modules)?;
     free_string(modules_ptr)?;
@@ -73,7 +67,7 @@ pub async fn get_info(
     let domain: CString = CString::new(domain)?;
     let url: CString = CString::new(url)?;
     let info_ptr: *mut i8 =
-        unsafe { get_fn!("get_info", GetInfoFn)(domain.as_ptr(), url.as_ptr()) };
+        unsafe { get_symbol::<GetInfoFn>(b"get_info")?(domain.as_ptr(), url.as_ptr()) };
     let info: &str = unsafe { CStr::from_ptr(info_ptr) }.to_str()?;
     let info: HashMap<String, Value> = from_str(info)?;
     free_string(info_ptr)?;
@@ -87,7 +81,7 @@ pub async fn get_chapters(
     let domain: CString = CString::new(domain)?;
     let url: CString = CString::new(url)?;
     let chapters_ptr: *mut i8 =
-        unsafe { get_fn!("get_chapters", GetChaptersFn)(domain.as_ptr(), url.as_ptr()) };
+        unsafe { get_symbol::<GetChaptersFn>(b"get_chapters")?(domain.as_ptr(), url.as_ptr()) };
     let chapters: &str = unsafe { CStr::from_ptr(chapters_ptr) }.to_str()?;
     let chapters: Vec<HashMap<String, String>> = from_str(chapters)?;
     free_string(chapters_ptr)?;
@@ -103,7 +97,7 @@ pub async fn get_images(
     let manga: CString = CString::new(manga)?;
     let chapter: CString = CString::new(chapter)?;
     let images_ptr: *mut i8 = unsafe {
-        get_fn!("get_images", GetImagesFn)(domain.as_ptr(), manga.as_ptr(), chapter.as_ptr())
+        get_symbol::<GetImagesFn>(b"get_images")?(domain.as_ptr(), manga.as_ptr(), chapter.as_ptr())
     };
     let images: &str = unsafe { CStr::from_ptr(images_ptr) }.to_str()?;
     let images: (Vec<String>, Value) = from_str(images)?;
@@ -120,7 +114,7 @@ pub async fn download_image(
     let url: CString = CString::new(url)?;
     let image_name: CString = CString::new(image_name)?;
     let image_ptr: *mut i8 = unsafe {
-        get_fn!("download_image", DownloadImageFn)(
+        get_symbol::<DownloadImageFn>(b"download_image")?(
             domain.as_ptr(),
             url.as_ptr(),
             image_name.as_ptr(),
@@ -142,7 +136,7 @@ pub async fn search_by_keyword(
     let domain: CString = CString::new(domain)?;
     let keyword: CString = CString::new(keyword)?;
     let results_ptr: *mut i8 = unsafe {
-        get_fn!("search_by_keyword", SearchByKeywordFn)(
+        get_symbol::<SearchByKeywordFn>(b"search_by_keyword")?(
             domain.as_ptr(),
             keyword.as_ptr(),
             absolute,
@@ -160,7 +154,7 @@ pub async fn retrieve_image(domain: String, url: String) -> Result<String, Box<d
     let domain: CString = CString::new(domain)?;
     let url: CString = CString::new(url)?;
     let image_ptr: *mut i8 =
-        unsafe { get_fn!("retrieve_image", RetrieveImageFn)(domain.as_ptr(), url.as_ptr()) };
+        unsafe { get_symbol::<RetrieveImageFn>(b"retrieve_image")?(domain.as_ptr(), url.as_ptr()) };
     let image: &str = unsafe { CStr::from_ptr(image_ptr) }.to_str()?;
     let image: String = image.to_string();
     free_string(image_ptr)?;
@@ -172,7 +166,7 @@ pub async fn get_module_sample(
 ) -> Result<HashMap<String, String>, Box<dyn StdError>> {
     let domain: CString = CString::new(domain)?;
     let sample_ptr: *mut i8 =
-        unsafe { get_fn!("get_module_sample", GetModuleSampleFn)(domain.as_ptr()) };
+        unsafe { get_symbol::<GetModuleSampleFn>(b"get_module_sample")?(domain.as_ptr()) };
     let sample: &str = unsafe { CStr::from_ptr(sample_ptr) }.to_str()?;
     let sample: HashMap<String, String> = from_str(sample)?;
     free_string(sample_ptr)?;

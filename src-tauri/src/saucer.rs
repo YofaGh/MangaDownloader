@@ -13,7 +13,7 @@ use serde_json::Value;
 use std::{collections::HashMap, error::Error, path::Path};
 use tokio::fs::read;
 
-pub async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={}",
@@ -44,7 +44,7 @@ pub async fn yandex(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn E
         .collect::<Result<Vec<_>, _>>()
 }
 
-pub async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
     let mut headers: HeaderMap = HeaderMap::new();
     headers.append(
@@ -95,7 +95,7 @@ pub async fn tineye(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn E
     Ok(results)
 }
 
-pub async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={}", url));
     let document: Document = Document::from(request.send().await?.text().await?.as_str());
@@ -133,7 +133,7 @@ pub async fn iqdb(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Err
     Ok(results)
 }
 
-pub async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!(
         "https://saucenao.com/search.php?db=999&url={}",
@@ -163,13 +163,13 @@ pub async fn saucenao(url: &str) -> Result<Vec<HashMap<String, String>>, Box<dyn
     Ok(results)
 }
 
-pub async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
+pub async fn upload(path: String) -> Result<String, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
-    let bytes: Vec<u8> = read(path).await?;
+    let bytes: Vec<u8> = read(path.clone()).await?;
     let form: Form = Form::new().part(
         "photo",
         Part::stream(bytes).file_name(
-            Path::new(path)
+            Path::new(&path)
                 .file_name()
                 .unwrap()
                 .to_str()

@@ -65,10 +65,13 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
             let version_str: String = response.text().await.unwrap();
             let latest_version: Version = Version::parse(version_str.trim()).unwrap();
             if latest_version > current_version {
-                window.emit("updateStatus", "Updating Modules").unwrap();
                 emit_status(&window, "Updating Modules");
                 unload_modules().unwrap();
-                match get(GITHUB_URL.to_owned() + "src-tauri/resources/modules.dll").await {
+                let path: String = append_dynamic_lib_extension(format!(
+                    "{}src-tauri/resources/modules",
+                    GITHUB_URL
+                ));
+                match get(path).await {
                     Ok(response) => {
                         let new_dll_content: Vec<u8> = response.bytes().await.unwrap().to_vec();
                         write(&modules_path, new_dll_content).unwrap();
@@ -126,4 +129,12 @@ pub fn detect_images(path_to_source: &str) -> Vec<(DynamicImage, PathBuf)> {
     dirs.into_par_iter()
         .filter_map(|path: PathBuf| open(&path).ok().map(|img: DynamicImage| (img, path)))
         .collect()
+}
+
+pub fn append_dynamic_lib_extension(path: String) -> String {
+    if cfg!(target_family = "windows") {
+        format!("{}.dll", path)
+    } else {
+        format!("{}.so", path)
+    }
 }

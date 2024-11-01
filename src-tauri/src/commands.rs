@@ -1,5 +1,5 @@
 use crate::{
-    assets::check_and_update_dll,
+    assets::{append_dynamic_lib_extension, check_and_update_dll},
     image_merger::merge_folder,
     lib_utils,
     pdf_converter::convert_folder,
@@ -22,13 +22,8 @@ pub async fn get_data_dir_path(app: AppHandle) -> String {
 
 #[command(async)]
 pub async fn update_checker(app: AppHandle) {
-    let mut path: String = format!("resources/modules");
-    if cfg!(target_family = "windows") {
-        path += ".dll";
-    } else {
-        path += ".so";
-    }
-    let modules_path: PathBuf = app.path().resolve(&path, Resource).unwrap();
+    let path: String = append_dynamic_lib_extension("resources/modules".to_string());
+    let modules_path: PathBuf = app.path().resolve(path, Resource).unwrap();
     lib_utils::load_modules(modules_path.clone()).unwrap();
     let window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
     check_and_update_dll(window, modules_path).await;

@@ -41,7 +41,7 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
                 ("image".to_string(), image),
             ]))
         })
-        .collect::<Result<Vec<_>, _>>()
+        .collect::<Result<Vec<HashMap<String, String>>, Box<dyn Error>>>()
 }
 
 pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {

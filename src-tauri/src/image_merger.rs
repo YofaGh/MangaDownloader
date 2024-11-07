@@ -2,7 +2,10 @@ use image::{
     imageops::{overlay, FilterType::Lanczos3},
     DynamicImage, ImageBuffer, Rgb, RgbImage,
 };
-use rayon::prelude::*;
+use rayon::{
+    iter::{IndexedParallelIterator, ParallelIterator},
+    prelude::IntoParallelIterator,
+};
 use std::{
     cmp::max,
     error::Error,
@@ -17,14 +20,15 @@ pub fn merge_folder(
     path_to_destination: &str,
     merge_method: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source);
-    if !images.is_empty() {
-        create_dir_all(path_to_destination).unwrap();
-        if merge_method == "Fit" {
-            merge_fit(images.clone(), path_to_destination);
-        } else {
-            merge(images, path_to_destination);
-        }
+    let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source).unwrap_or_default();
+    if images.is_empty() {
+        return Err(Box::from("No images found"));
+    }
+    create_dir_all(path_to_destination)?;
+    if merge_method == "Normal" {
+        merge(images, path_to_destination);
+    } else {
+        merge_fit(images, path_to_destination);
     }
     Ok(())
 }

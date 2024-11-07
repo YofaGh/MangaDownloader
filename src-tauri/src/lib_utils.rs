@@ -20,7 +20,7 @@ type GetImagesFn = unsafe fn(*const c_char, *const c_char, *const c_char) -> *mu
 type DownloadImageFn = unsafe fn(*const c_char, *const c_char, *const c_char) -> *mut c_char;
 type SearchByKeywordFn = unsafe fn(*const c_char, *const c_char, bool, f64, u32) -> *mut c_char;
 
-pub fn load_modules(modules_path: PathBuf) -> Result<(), Box<dyn StdError>> {
+pub fn load_modules(modules_path: &PathBuf) -> Result<(), Box<dyn StdError>> {
     unsafe { LIB = Some(Library::new(modules_path)?) };
     Ok(())
 }

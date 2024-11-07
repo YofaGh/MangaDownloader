@@ -1,3 +1,9 @@
+use image::open;
+use serde_json::Value;
+use std::{collections::HashMap, io::Error, path::PathBuf, process::Command};
+use tauri::{command, path::BaseDirectory::Resource, AppHandle, Manager, WebviewWindow};
+use tokio::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, ReadDir};
+
 use crate::{
     assets::{append_dynamic_lib_extension, check_and_update_dll},
     image_merger::merge_folder,
@@ -5,11 +11,6 @@ use crate::{
     pdf_converter::convert_folder,
     saucer::{iqdb, saucenao, tineye, upload, yandex},
 };
-use image::open;
-use serde_json::Value;
-use std::{collections::HashMap, io::Error, path::PathBuf, process::Command};
-use tauri::{command, path::BaseDirectory::Resource, AppHandle, Manager, WebviewWindow};
-use tokio::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, ReadDir};
 
 #[command(async)]
 pub async fn get_data_dir_path(app: AppHandle) -> String {
@@ -24,9 +25,9 @@ pub async fn get_data_dir_path(app: AppHandle) -> String {
 pub async fn update_checker(app: AppHandle) {
     let path: String = append_dynamic_lib_extension("resources/modules".to_string());
     let modules_path: PathBuf = app.path().resolve(path, Resource).unwrap();
-    lib_utils::load_modules(modules_path.clone()).unwrap();
+    lib_utils::load_modules(&modules_path).unwrap();
     let window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
-    check_and_update_dll(window, modules_path).await;
+    check_and_update_dll(window, &modules_path).await.unwrap();
     app.get_webview_window("splashscreen")
         .unwrap()
         .close()

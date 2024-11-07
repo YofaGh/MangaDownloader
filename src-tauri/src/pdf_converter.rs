@@ -5,7 +5,10 @@ use std::{error::Error, fs::File, path::PathBuf};
 use crate::assets::detect_images;
 
 pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), Box<dyn Error>> {
-    let images: Vec<(DynamicImage, PathBuf)> = detect_images(path);
+    let images: Vec<(DynamicImage, PathBuf)> = detect_images(path).unwrap_or_default();
+    if images.is_empty() {
+        return Err(Box::from("No images found"));
+    }
     let default_config: PageConfig = PageConfig::new();
     let mut file: PDF<File> = create(
         format!("{}/{}", path, pdf_name),

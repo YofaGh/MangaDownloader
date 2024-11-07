@@ -60,7 +60,7 @@ pub fn get_modules() -> *mut c_char {
     let modules: Vec<HashMap<String, Value>> = get_all_modules()
         .into_iter()
         .map(|module: Box<dyn Module>| {
-            let res = HashMap::from([
+            HashMap::from([
                 ("type".to_string(), Value::String(module.get_type())),
                 ("domain".to_string(), Value::String(module.get_domain())),
                 ("logo".to_string(), Value::String(module.get_logo())),
@@ -69,9 +69,7 @@ pub fn get_modules() -> *mut c_char {
                     Value::Bool(module.is_searchable()),
                 ),
                 ("is_coded".to_string(), Value::Bool(module.is_coded())),
-            ]);
-            let _ = Box::new(module);
-            res
+            ])
         })
         .collect();
     let json: String = to_string(&modules).unwrap();

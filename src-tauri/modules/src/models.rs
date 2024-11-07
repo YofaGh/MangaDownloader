@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::{
     fs::File,
-    io::{self, AsyncWriteExt},
+    io::{AsyncWriteExt, copy},
 };
 use tokio_util::{bytes::Bytes, io::StreamReader};
 
@@ -85,7 +85,7 @@ pub trait Module: Send + Sync {
             .map_err(|e| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(&image_name).await?;
-        io::copy(&mut reader, &mut file).await?;
+        copy(&mut reader, &mut file).await?;
         file.flush().await?;
         Ok(Some(image_name.to_string()))
     }
@@ -182,11 +182,9 @@ pub trait Module: Send + Sync {
         if let Some(p) = params {
             request = request.query(&p);
         }
-
         if let Some(d) = data {
             request = request.form(&d);
         }
-
         if let Some(j) = json {
             request = request.json(&j);
         }

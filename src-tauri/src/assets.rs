@@ -1,4 +1,3 @@
-use crate::lib_utils::{get_modules_version, load_modules, unload_modules};
 use image::{open, DynamicImage};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use reqwest::get;
@@ -6,12 +5,15 @@ use semver::Version;
 use serde::Serialize;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
+    error::Error,
     fs::{read_dir, write, DirEntry, File, OpenOptions},
     io::Write,
     path::PathBuf,
 };
 use tauri::{Emitter, WebviewWindow};
 use tokio::time::{sleep, Duration};
+
+use crate::lib_utils::{get_modules_version, load_modules, unload_modules};
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
 
@@ -57,31 +59,34 @@ pub fn load_up_checks(data_dir_path: PathBuf) {
     });
 }
 
-pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) {
+pub async fn check_and_update_dll(
+    window: WebviewWindow,
+    modules_path: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
     emit_status(&window, "Checking for updates");
-    let current_version: Version = Version::parse(&get_modules_version().unwrap()).unwrap();
+    let current_version: Version = Version::parse(&get_modules_version()?)?;
     match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
         Ok(response) => {
-            let version_str: String = response.text().await.unwrap();
-            let latest_version: Version = Version::parse(version_str.trim()).unwrap();
+            let version_str: String = response.text().await?;
+            let latest_version: Version = Version::parse(version_str.trim())?;
             if latest_version > current_version {
                 emit_status(&window, "Updating Modules");
-                unload_modules().unwrap();
+                unload_modules()?;
                 let path: String = append_dynamic_lib_extension(format!(
                     "{}src-tauri/resources/modules",
                     GITHUB_URL
                 ));
                 match get(path).await {
                     Ok(response) => {
-                        let new_dll_content: Vec<u8> = response.bytes().await.unwrap().to_vec();
-                        write(&modules_path, new_dll_content).unwrap();
+                        let new_dll_content: Vec<u8> = response.bytes().await?.to_vec();
+                        write(&modules_path, new_dll_content)?;
                     }
                     Err(_) => {
                         emit_status(&window, "Failed to update modules");
                         sleep(Duration::from_secs(1)).await;
                     }
                 }
-                load_modules(modules_path).unwrap();
+                load_modules(modules_path)?;
             }
         }
         Err(_) => {
@@ -89,6 +94,7 @@ pub async fn check_and_update_dll(window: WebviewWindow, modules_path: PathBuf) 
             sleep(Duration::from_secs(1)).await;
         }
     }
+    Ok(())
 }
 
 fn save_file(path: PathBuf, data: Value) {
@@ -108,11 +114,8 @@ fn emit_status(window: &WebviewWindow, message: &str) {
     window.emit("updateStatus", message).unwrap();
 }
 
-pub fn detect_images(path_to_source: &str) -> Vec<(DynamicImage, PathBuf)> {
-    let dirs: Vec<DirEntry> = read_dir(path_to_source)
-        .unwrap()
-        .filter_map(Result::ok)
-        .collect();
+pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, Box<dyn Error>> {
+    let dirs: Vec<DirEntry> = read_dir(path_to_source)?.filter_map(Result::ok).collect();
     let mut dirs: Vec<PathBuf> = dirs
         .into_iter()
         .map(|entry: DirEntry| entry.path())
@@ -126,9 +129,10 @@ pub fn detect_images(path_to_source: &str) -> Vec<(DynamicImage, PathBuf)> {
     dirs.sort_by(|a: &PathBuf, b: &PathBuf| {
         natord::compare(a.to_str().unwrap_or(""), b.to_str().unwrap_or(""))
     });
-    dirs.into_par_iter()
+    Ok(dirs
+        .into_par_iter()
         .filter_map(|path: PathBuf| open(&path).ok().map(|img: DynamicImage| (img, path)))
-        .collect()
+        .collect())
 }
 
 pub fn append_dynamic_lib_extension(path: String) -> String {

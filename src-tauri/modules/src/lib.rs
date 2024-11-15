@@ -51,12 +51,12 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
 }
 
 #[no_mangle]
-pub fn get_version() -> *mut c_char {
+pub extern "C" fn get_version() -> *mut c_char {
     CString::new(VERSION).unwrap().into_raw()
 }
 
 #[no_mangle]
-pub fn get_modules() -> *mut c_char {
+pub extern "C" fn get_modules() -> *mut c_char {
     let modules: Vec<HashMap<String, Value>> = get_all_modules()
         .into_iter()
         .map(|module: Box<dyn Module>| {
@@ -77,7 +77,7 @@ pub fn get_modules() -> *mut c_char {
 }
 
 #[no_mangle]
-pub fn get_module_sample(domain: *const c_char) -> *mut c_char {
+pub extern "C" fn get_module_sample(domain: *const c_char) -> *mut c_char {
     let domain: String = unsafe { CStr::from_ptr(domain).to_str().unwrap_or("").to_string() };
     let module: Box<dyn Module> = get_module(domain);
     let sample: HashMap<&str, &str> = module.get_module_sample();

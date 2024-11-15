@@ -1,13 +1,13 @@
 use image::DynamicImage;
 use scannedpdf::{create, PageConfig, PageSize, PDF};
-use std::{error::Error, fs::File, path::PathBuf};
+use std::{fs::File, path::PathBuf};
 
-use crate::assets::detect_images;
+use crate::{assets::detect_images, errors::AppError};
 
-pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), Box<dyn Error>> {
+pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), AppError> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path).unwrap_or_default();
     if images.is_empty() {
-        return Err(Box::from("No images found"));
+        return Err(AppError::NoImages(format!("No images found in {}", path)));
     }
     let default_config: PageConfig = PageConfig::new();
     let mut file: PDF<File> = create(

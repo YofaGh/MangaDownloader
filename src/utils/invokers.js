@@ -1,4 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from ".";
+import { useNotificationStore } from "../store";
 
 export const getModules = async () => await invoke("get_modules");
 
@@ -38,9 +39,6 @@ export const getChapters = async (domain, url) =>
 export const retrieveImage = async (domain, url) =>
   await invoke("retrieve_image", { domain, url });
 
-export const removeDirectory = async (path, recursive) =>
-  await invoke("remove_directory", { path, recursive });
-
 export const getImages = async (domain, manga, chapter) =>
   await invoke("get_images", { domain, manga, chapter });
 
@@ -49,6 +47,14 @@ export const downloadImage = async (domain, url, imageName) =>
 
 export const merge = async (pathToSource, pathToDestination, mergeMethod) =>
   await invoke("merge", { pathToSource, pathToDestination, mergeMethod });
+
+export const removeDirectory = async (path, recursive) => {
+  try {
+    await invoke("remove_directory", { path, recursive });
+  } catch (error) {
+    useNotificationStore.getState().notifyError(Object.values(error)[0]);
+  }
+};
 
 export const searchByKeyword = async (
   domain,

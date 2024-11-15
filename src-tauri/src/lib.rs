@@ -2,6 +2,7 @@
 
 mod assets;
 mod commands;
+mod errors;
 mod image_merger;
 mod lib_utils;
 mod pdf_converter;

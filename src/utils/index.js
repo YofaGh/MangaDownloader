@@ -37,7 +37,8 @@ export {
   removeFile,
   chooseFolder,
   getAppWindow,
-} from "./etc";
+  _invoke as invoke,
+} from "./tauri-utils";
 
 export {
   WebtoonType,

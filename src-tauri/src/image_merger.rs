@@ -8,21 +8,23 @@ use rayon::{
 };
 use std::{
     cmp::max,
-    error::Error,
     fs::{copy, create_dir_all},
     path::PathBuf,
 };
 
-use crate::assets::detect_images;
+use crate::{assets::detect_images, errors::AppError};
 
 pub fn merge_folder(
     path_to_source: &str,
     path_to_destination: &str,
     merge_method: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), AppError> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source).unwrap_or_default();
     if images.is_empty() {
-        return Err(Box::from("No images found"));
+        return Err(AppError::NoImages(format!(
+            "No images found in {}",
+            path_to_source
+        )));
     }
     create_dir_all(path_to_destination)?;
     if merge_method == "Normal" {

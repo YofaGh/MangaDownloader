@@ -6,6 +6,7 @@ use tokio::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, ReadDir};
 
 use crate::{
     assets::{append_dynamic_lib_extension, check_and_update_dll},
+    errors::AppError,
     image_merger::merge_folder,
     lib_utils,
     pdf_converter::convert_folder,
@@ -44,18 +45,34 @@ pub async fn open_folder(path: String) {
 }
 
 #[command(async)]
-pub async fn remove_directory(path: String, recursive: bool) -> Result<(), String> {
+pub async fn remove_directory(path: String, recursive: bool) -> Result<(), AppError> {
     if !PathBuf::from(&path).exists() {
         return Ok(());
     }
     if recursive {
-        remove_dir_all(&path)
-            .await
-            .map_err(|e: Error| e.to_string())
+        remove_dir_all(&path).await.map_err(|e: Error| {
+            AppError::DirectoryRemoval(format!(
+                "Failed to remove the directory {}: {}",
+                path,
+                e.to_string()
+            ))
+        })
     } else {
-        let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| e.to_string())?;
+        let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
+            AppError::DirectoryRemoval(format!(
+                "Failed to remove the directory {}: {}",
+                path,
+                e.to_string()
+            ))
+        })?;
         if let Ok(None) = entries.next_entry().await {
-            remove_dir(&path).await.map_err(|e: Error| e.to_string())
+            remove_dir(&path).await.map_err(|e: Error| {
+                AppError::DirectoryRemoval(format!(
+                    "Failed to remove the directory {}: {}",
+                    path,
+                    e.to_string()
+                ))
+            })
         } else {
             Ok(())
         }
@@ -63,21 +80,33 @@ pub async fn remove_directory(path: String, recursive: bool) -> Result<(), Strin
 }
 
 #[command(async)]
-pub async fn create_directory(path: String) -> Result<(), String> {
-    create_dir_all(&path)
-        .await
-        .map_err(|e: Error| e.to_string())
+pub async fn create_directory(path: String) -> Result<(), AppError> {
+    create_dir_all(&path).await.map_err(|e: Error| {
+        AppError::DirectoryCreation(format!(
+            "Failed to create the directory {}: {}",
+            path,
+            e.to_string()
+        ))
+    })
 }
 
 #[command(async)]
-pub async fn read_directory(path: String) -> Result<Vec<String>, String> {
-    let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| e.to_string())?;
+pub async fn read_directory(path: String) -> Result<Vec<String>, AppError> {
+    let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
+        AppError::DirectoryReading(format!(
+            "Failed to read the directory {}: {}",
+            path,
+            e.to_string()
+        ))
+    })?;
     let mut paths: Vec<String> = Vec::new();
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|e: Error| e.to_string())?
-    {
+    while let Some(entry) = entries.next_entry().await.map_err(|e: Error| {
+        AppError::DirectoryReading(format!(
+            "Failed to read the directory {}: {}",
+            path,
+            e.to_string()
+        ))
+    })? {
         if let Some(path_str) = entry.path().to_str() {
             paths.push(path_str.to_string());
         }
@@ -86,19 +115,17 @@ pub async fn read_directory(path: String) -> Result<Vec<String>, String> {
 }
 
 #[command(async)]
-pub fn merge(path_to_source: &str, path_to_destination: &str, merge_method: &str) -> String {
-    match merge_folder(path_to_source, path_to_destination, merge_method) {
-        Ok(_) => "".to_string(),
-        Err(err) => err.to_string(),
-    }
+pub fn merge(
+    path_to_source: &str,
+    path_to_destination: &str,
+    merge_method: &str,
+) -> Result<(), AppError> {
+    merge_folder(path_to_source, path_to_destination, merge_method)
 }
 
 #[command(async)]
-pub fn convert(path: &str, pdf_name: &str) -> String {
-    match convert_folder(path, pdf_name) {
-        Ok(_) => "".to_string(),
-        Err(err) => err.to_string(),
-    }
+pub fn convert(path: &str, pdf_name: &str) -> Result<(), AppError> {
+    convert_folder(path, pdf_name)
 }
 
 #[command(async)]
@@ -185,10 +212,8 @@ pub async fn upload_image(path: String) -> String {
 
 #[command(async)]
 pub async fn get_saucers_list() -> Vec<String> {
-    vec![
-        "yandex".to_string(),
-        "tineye".to_string(),
-        "iqdb".to_string(),
-        "saucenao".to_string(),
-    ]
+    vec!["yandex", "tineye", "iqdb", "saucenao"]
+        .into_iter()
+        .map(|s: &str| s.to_string())
+        .collect()
 }

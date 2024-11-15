@@ -26,7 +26,9 @@ export default function attemptToDownload() {
   if (useDownloadingStore.getState().downloading || !webtoon) return;
   useDownloadingStore.getState().setDownloading(webtoon);
   useDownloadingStore.getState().setStopRequested(false);
-  downloader(webtoon);
+  downloader(webtoon).finally(() => {
+    setTimeout(attemptToDownload, 0);
+  });
 }
 
 async function downloader(webtoon) {
@@ -37,12 +39,19 @@ async function downloader(webtoon) {
     webtoon.manga || webtoon.doujin,
     webtoon.chapter || ""
   );
+  if (images.length === 0) return;
   let lastCorrupted = "";
   let downloadPath = `${settings.download_path}\\${fixFolderName(
     webtoon.title
   )}`;
   if (webtoon.type === WebtoonType.MANGA) downloadPath += `\\${webtoon.info}`;
-  await createDirectory(downloadPath);
+  try {
+    await createDirectory(downloadPath);
+  } catch (error) {
+    useDownloadingStore.getState().clearDownloading();
+    updateItemInQueue(webtoon.id, { status: DownloadStatus.STOPPED });
+    useNotificationStore.getState().notifyError(Object.values(error)[0]);
+  }
   updateItemInQueue(webtoon.id, { total: images.length });
   const existsImages = await readDirectory(downloadPath);
   let i = 0;
@@ -109,5 +118,4 @@ async function downloader(webtoon) {
   if (settings.auto_convert) convert(webtoon, false);
   useDownloadingStore.getState().clearDownloading();
   useQueueStore.getState().removeFromQueue(webtoon.id);
-  attemptToDownload();
 }

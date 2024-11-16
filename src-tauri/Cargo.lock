@@ -2121,7 +2121,6 @@ version = "1.0.0"
 dependencies = [
  "image",
  "indexmap 1.9.3",
- "libc",
  "libloading 0.8.5",
  "natord",
  "rayon",

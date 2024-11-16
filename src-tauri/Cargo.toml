@@ -37,7 +37,6 @@ tauri-plugin-fs = "2.0.0-rc.0"
 tauri-plugin-http = "2.0.0-rc.0"
 select = "0.6.0"
 indexmap = { version = "1.9.3", features = ["serde"] }
-libc = "0.2.159"
 libloading = "0.8.5"
 semver = "1.0.23"
 

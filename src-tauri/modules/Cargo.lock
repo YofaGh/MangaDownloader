@@ -636,7 +636,6 @@ dependencies = [
  "chrono",
  "futures",
  "indexmap",
- "libc",
  "reqwest",
  "select",
  "serde_json",

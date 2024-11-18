@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { writeFile, startUp } from "./utils";
+import { startUp } from "./utils";
 import { TopBar, NotificationProvider, DownloadPathModal } from "./components";
 import {
   Home,
@@ -15,39 +14,9 @@ import {
   Settings,
   Favorites,
 } from "./pages";
-import {
-  useQueueStore,
-  useLibraryStore,
-  useSettingsStore,
-  useFavoritesStore,
-  useDownloadedStore,
-} from "./store";
 
 export default function App() {
   startUp();
-  const useStateSubscriber = (useStore, data, delay) => {
-    const timerRef = useRef(null);
-    useEffect(() => {
-      const unsubscribe = useStore.subscribe((state) => {
-        if (timerRef.current) clearTimeout(timerRef.current);
-        if (state[data])
-          timerRef.current = setTimeout(
-            () => writeFile(`${data}.json`, state[data]),
-            delay
-          );
-      });
-      return () => {
-        clearTimeout(timerRef.current);
-        unsubscribe();
-      };
-    }, [useStore, data, delay]);
-  };
-
-  useStateSubscriber(useQueueStore, "queue", 2000);
-  useStateSubscriber(useLibraryStore, "library", 500);
-  useStateSubscriber(useSettingsStore, "settings", 500);
-  useStateSubscriber(useFavoritesStore, "favorites", 500);
-  useStateSubscriber(useDownloadedStore, "downloaded", 2000);
 
   return (
     <HashRouter>
@@ -64,7 +33,7 @@ export default function App() {
         <Route path="/download" element={<Download />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/favorites" element={<Favorites />} />
-        <Route path="/:module/webtoon/:url*" element={<Webtoon />} />
+        <Route path="/:module/webtoon/*" element={<Webtoon />} />
       </Routes>
       <DownloadPathModal />
     </HashRouter>

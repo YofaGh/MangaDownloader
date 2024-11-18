@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrent } from "@tauri-apps/api/window";
 import {
@@ -14,7 +14,7 @@ export const chooseFile = async () => await open();
 
 export const removeFile = async (path) => await remove(path);
 
-export const _invoke = async (fn, args) => await invoke(fn, args);
+export const invoke = async (fn, args) => await tauriInvoke(fn, args);
 
 export const chooseFolder = async () => await open({ directory: true });
 

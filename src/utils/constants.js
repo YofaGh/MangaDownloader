@@ -9,5 +9,10 @@ export const WebtoonType = Object.freeze({
   DOUJIN: "Doujin",
 });
 
+export const DelayTimes = Object.freeze({
+  LONG: 2000,
+  SHORT: 500,
+});
+
 export const DefaultModuleCover = "./assets/module-cyan.svg";
 export const DefaultWebtoonCover = "./assets/default-cover.svg";

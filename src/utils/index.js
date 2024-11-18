@@ -31,16 +31,17 @@ export {
 } from "./assets";
 
 export {
+  invoke,
   readFile,
   writeFile,
   chooseFile,
   removeFile,
   chooseFolder,
   getAppWindow,
-  _invoke as invoke,
 } from "./tauri-utils";
 
 export {
+  DelayTimes,
   WebtoonType,
   DownloadStatus,
   DefaultModuleCover,

@@ -11,6 +11,8 @@ import {
   _merge,
   _convert,
   readFile,
+  writeFile,
+  DelayTimes,
   getModules,
   openFolder,
   WebtoonType,
@@ -35,7 +37,9 @@ export const convert = async (webtoon, openPath) => {
       .notifySuccess(`Converted ${notifInfo} to PDF`);
     if (openPath) await openFolder(`${webtoon.path}\\${pdfName}`);
   } catch (error) {
-    useNotificationStore.getState().notifyError(`Failed to convert: ${Object.values(error)[0]}`);
+    useNotificationStore
+      .getState()
+      .notifyError(`Failed to convert: ${Object.values(error)[0]}`);
   }
 };
 
@@ -52,7 +56,9 @@ export const merge = async (webtoon, openPath) => {
     useNotificationStore.getState().notifySuccess(`Merged ${notifInfo}`);
     if (openPath) await openFolder(path);
   } catch (error) {
-    useNotificationStore.getState().notifyError(`Failed to merge: ${Object.values(error)[0]}`);
+    useNotificationStore
+      .getState()
+      .notifyError(`Failed to merge: ${Object.values(error)[0]}`);
   }
 };
 
@@ -60,19 +66,30 @@ export const retrieveImage = async (url, domain, defImage) => {
   if (!domain) return defImage;
   try {
     const response = await _retrieveImage(domain, url);
-    if (response) return response;
-  } catch (_) {}
-  return defImage;
+    return response || defImage;
+  } catch {
+    return defImage;
+  }
 };
 
 export const isUrlValid = (url) => {
   try {
-    const newUrl = new URL(url);
-    return newUrl.protocol === "http:" || newUrl.protocol === "https:";
-  } catch (_) {
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
     return false;
   }
 };
+
+function _setupSubscriber(store, data, delay) {
+  let timer = null;
+  return store.subscribe((state) => {
+    if (timer) clearTimeout(timer);
+    if (state[data]) {
+      timer = setTimeout(() => writeFile(`${data}.json`, state[data]), delay);
+    }
+  });
+}
 
 export const startUp = async () => {
   const datas = {
@@ -104,6 +121,16 @@ export const startUp = async () => {
   })();
   if (!useSettingsStore.getState().settings.download_path)
     showHideModal("browse-modal", true);
+  const storeConfigs = [
+    { store: useQueueStore, key: "queue", delay: DelayTimes.LONG },
+    { store: useLibraryStore, key: "library", delay: DelayTimes.SHORT },
+    { store: useSettingsStore, key: "settings", delay: DelayTimes.SHORT },
+    { store: useFavoritesStore, key: "favorites", delay: DelayTimes.SHORT },
+    { store: useDownloadedStore, key: "downloaded", delay: DelayTimes.LONG },
+  ];
+  storeConfigs.map(({ store, key, delay }) =>
+    _setupSubscriber(store, key, delay)
+  );
 };
 
 export const showHideModal = (id, show) =>

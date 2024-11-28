@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export const useSettingsStore = create((set) => ({
   settings: null,
+
   updateSettings: (newData) =>
     set((state) => ({
       settings: { ...state.settings, ...newData },
@@ -10,6 +11,7 @@ export const useSettingsStore = create((set) => ({
 
 export const useDownloadedStore = create((set) => ({
   downloaded: [],
+
   setDownloaded: (newDownloaded) => set({ downloaded: newDownloaded }),
   addToDownloaded: (newItem) =>
     set((state) => ({
@@ -24,6 +26,7 @@ export const useDownloadedStore = create((set) => ({
 
 export const useQueueStore = create((set) => ({
   queue: [],
+
   setQueue: (newQueue) => set({ queue: newQueue }),
   addToQueue: (newData) =>
     set((state) =>
@@ -45,25 +48,15 @@ export const useQueueStore = create((set) => ({
         return [...prevQueue, item];
       }, state.queue),
     })),
-  deleteItemKeysInQueue: (id, keys) =>
+  deleteImagesAndTotalFromQueue: () =>
+    set((state) => ({
+      queue: state.queue.map(({ image, total, ...rest }) => rest),
+    })),
+  deleteImagesAndTotalFromWebtoon: (id) =>
     set((state) => ({
       queue: state.queue.map((item) =>
-        item.id === id
-          ? (() => {
-              const newItem = { ...item };
-              keys.forEach((key) => delete newItem[key]);
-              return newItem;
-            })()
-          : item
+        item.id === id ? (({ image, total, ...rest }) => rest)(item) : item
       ),
-    })),
-  deleteKeysFromAllItemsInQueue: (keys) =>
-    set((state) => ({
-      queue: state.queue.map((item) => {
-        const newItem = { ...item };
-        keys.forEach((key) => delete newItem[key]);
-        return newItem;
-      }),
     })),
   updateItemInQueue: (id, chn) =>
     set((state) => ({
@@ -93,6 +86,7 @@ export const useQueueStore = create((set) => ({
 
 export const useFavoritesStore = create((set) => ({
   favorites: [],
+
   setFavorites: (newFavorites) => set({ favorites: newFavorites }),
   addToFavorites: (newData) =>
     set((state) => ({
@@ -106,6 +100,7 @@ export const useFavoritesStore = create((set) => ({
 
 export const useLibraryStore = create((set) => ({
   library: [],
+
   setLibrary: (newLibrary) => set({ library: newLibrary }),
   addToLibrary: (newData) =>
     set((state) => ({

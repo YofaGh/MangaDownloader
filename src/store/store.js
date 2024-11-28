@@ -2,13 +2,13 @@ import { create } from "zustand";
 import { v4 } from "uuid";
 
 export const useSearchStore = create((set) => ({
-  searchStatus: { init: true },
-  searchAbsolute: false,
-  stopRequested: false,
   searchDepth: 0,
-  searchKeyword: "",
   searchResults: [],
+  searchKeyword: "",
+  stopRequested: false,
+  searchAbsolute: false,
   selectedSearchModules: [],
+  searchStatus: { init: true },
   searchModuleTypes: [
     { name: "Manga", selected: true },
     { name: "Doujin", selected: true },
@@ -17,28 +17,24 @@ export const useSearchStore = create((set) => ({
   setSearching: (module) => set({ searchStatus: { searching: module } }),
   doneSearching: () =>
     set({ searchStatus: { searched: true }, stopRequested: false }),
-
   setSearchKeyword: (newSearchKeyword) =>
     set({ searchKeyword: newSearchKeyword }),
-
   addSearchResult: (newResult) =>
     set((state) => ({
       searchResults: [...state.searchResults, ...newResult],
     })),
-
   setSelectedSearchModules: (newSelectedSearchModules) =>
     set({ selectedSearchModules: newSelectedSearchModules }),
-
   clearSearch: () =>
     set({
       selectedSearchModules: [],
       searchResults: [],
       searchStatus: { init: true },
     }),
-  updateSearchModuleTypeByIndex: (index, selected) =>
+  updateSearchModuleType: (name, selected) =>
     set((state) => ({
-      searchModuleTypes: state.searchModuleTypes.map((moduleType, i) =>
-        i === index ? { ...moduleType, selected } : moduleType
+      searchModuleTypes: state.searchModuleTypes.map((moduleType) =>
+        moduleType.name === name ? { ...moduleType, selected } : moduleType
       ),
     })),
   setSearchAbsolute: (newAbsolute) => set({ searchAbsolute: newAbsolute }),
@@ -49,13 +45,15 @@ export const useSearchStore = create((set) => ({
 export const useDownloadingStore = create((set) => ({
   downloading: null,
   stopRequested: false,
+
   setDownloading: (newVal) => set({ downloading: newVal }),
   clearDownloading: () => set({ downloading: null }),
   setStopRequested: (newVal) => set({ stopRequested: newVal }),
 }));
 
-export const useNotificationStore = create((set, get) => ({
+export const useNotificationStore = create((set) => ({
   notifications: [],
+
   removeNotification: (id) =>
     set((state) => ({
       notifications: state.notifications.filter((note) => note.id !== id),
@@ -78,11 +76,13 @@ export const useNotificationStore = create((set, get) => ({
 
 export const useDownloadTabStore = create((set) => ({
   downloadTab: "queue",
+
   setDownloadTab: (newVal) => set({ downloadTab: newVal }),
 }));
 
 export const useModulesStore = create((set) => ({
   modules: [],
+
   setModules: (newVal) => set({ modules: newVal }),
   updateModuleSelected: (domain, selected) =>
     set((state) => ({
@@ -97,10 +97,10 @@ export const useModulesStore = create((set) => ({
 }));
 
 export const useSauceStore = create((set) => ({
-  sauceStatus: null,
+  saucers: [],
   sauceUrl: "",
   sauceResults: [],
-  saucers: [],
+  sauceStatus: null,
 
   setSauceStatus: (status) => set({ sauceStatus: status }),
   setSauceUrl: (newUrl) => set({ sauceUrl: newUrl }),

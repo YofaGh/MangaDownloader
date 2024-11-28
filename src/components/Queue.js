@@ -23,8 +23,8 @@ export default function Queue() {
     updateItemInQueue,
     removeAllFromQueue,
     updateAllItemsInQueue,
-    deleteItemKeysInQueue,
-    deleteKeysFromAllItemsInQueue,
+    deleteImagesAndTotalFromWebtoon,
+    deleteImagesAndTotalFromQueue,
   } = useQueueStore();
   const { downloading, clearDownloading, setStopRequested } =
     useDownloadingStore();
@@ -46,7 +46,7 @@ export default function Queue() {
     setQueu(queue);
   };
 
-  const stopDownloader = async () => {
+  const stopDownloader = () => {
     setStopRequested(true);
     clearDownloading();
   };
@@ -85,7 +85,7 @@ export default function Queue() {
     attemptToDownload();
   };
 
-  const handleWebtoonStatusChange = async (webtoon) => {
+  const handleWebtoonStatusChange = (webtoon) => {
     let fixedFolderName, folderName;
     fixedFolderName = folderName = fixFolderName(webtoon.title);
     if (webtoon.type === WebtoonType.MANGA) folderName += `/${webtoon.info}`;
@@ -98,7 +98,7 @@ export default function Queue() {
     if (status !== DownloadStatus.STARTED && downloading) stopDownloader();
     updateAllItemsInQueue({ status });
     if (status === DownloadStatus.STOPPED) {
-      deleteKeysFromAllItemsInQueue(["image", "total"]);
+      deleteImagesAndTotalFromQueue();
       queue.forEach((webtoon) => handleWebtoonStatusChange(webtoon));
     }
     if (status === DownloadStatus.STARTED) attemptToDownload();
@@ -112,7 +112,7 @@ export default function Queue() {
     )
       stopDownloader();
     if (status === DownloadStatus.STOPPED) {
-      deleteItemKeysInQueue(webtoon.id, ["image", "total"]);
+      deleteImagesAndTotalFromWebtoon(webtoon.id);
       handleWebtoonStatusChange(webtoon);
     }
     updateItemInQueue(webtoon.id, { status });

@@ -37,7 +37,7 @@ export default function Search() {
     toggleSortMenu();
   };
 
-  const toggleSortMenu = async () => {
+  const toggleSortMenu = () => {
     const sortMenu = document.getElementById("sort-menu");
     sortMenu.style.opacity = sortMenu.style.opacity === "1" ? "0" : "1";
   };

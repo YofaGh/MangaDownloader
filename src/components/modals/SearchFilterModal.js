@@ -11,7 +11,7 @@ export default function SearchFilterModal() {
     searchAbsolute,
     searchModuleTypes,
     setSearchAbsolute,
-    updateSearchModuleTypeByIndex,
+    updateSearchModuleType,
   } = useSearchStore();
 
   return (
@@ -25,13 +25,13 @@ export default function SearchFilterModal() {
         </button>
         <div className="filter-types">
           <h2>Type:&nbsp;</h2>
-          {searchModuleTypes.map((type, index) => (
+          {searchModuleTypes.map((type) => (
             <FilterToggleButton
               key={type.name}
               label={type.name}
               selected={type.selected}
               onChange={(e) =>
-                updateSearchModuleTypeByIndex(index, e.target.checked)
+                updateSearchModuleType(type.name, e.target.checked)
               }
             />
           ))}

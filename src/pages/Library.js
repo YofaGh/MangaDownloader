@@ -6,23 +6,23 @@ import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 export default function Library() {
   const { library } = useLibraryStore();
   const addToQueueBulk = useQueueStore((state) => state.addToQueueBulk);
-  const notifySuccess = useNotificationStore((state) => state.notifySuccess);
+  const { notifyError, notifySuccess } = useNotificationStore();
 
-  const updateSingle = async (webtoon) => {
+  const updateWebtoonLibrary = async (webtoon) => {
     const allChapters = await getChapters(webtoon.domain, webtoon.url);
-    let chaptersToDownload = [];
-    if (webtoon.last_downloaded_chapter) {
-      let reached_last_downloaded_chapter = false;
-      for (const chapter of allChapters) {
-        if (chapter.url === webtoon.last_downloaded_chapter.url) {
-          reached_last_downloaded_chapter = true;
-          continue;
-        }
-        if (reached_last_downloaded_chapter) chaptersToDownload.push(chapter);
-      }
-    } else chaptersToDownload = allChapters;
+    if (allChapters.length === 0) {
+      notifyError(`${webtoon.title} had zero chapters`);
+      return;
+    }
+    const chs = webtoon.last_downloaded_chapter
+      ? allChapters.slice(
+          allChapters.findIndex(
+            (chapter) => chapter.url === webtoon.last_downloaded_chapter.url
+          ) + 1
+        )
+      : allChapters;
     addToQueueBulk(
-      chaptersToDownload.map((chapter) => ({
+      chs.map((chapter) => ({
         type: WebtoonType.MANGA,
         id: `${webtoon.domain}_$_${webtoon.url}_$_${chapter.url}`,
         title: webtoon.title,
@@ -34,7 +34,7 @@ export default function Library() {
         status: DownloadStatus.STARTED,
       }))
     );
-    notifySuccess(`Added all chapters of ${webtoon.title} to queue`);
+    notifySuccess(`Added ${chs.length} chapters of ${webtoon.title} to queue`);
     attemptToDownload();
   };
 
@@ -46,7 +46,7 @@ export default function Library() {
           <HomeButton
             svgName="download"
             label="Update All"
-            onClick={() => library.forEach(updateSingle)}
+            onClick={() => library.forEach(updateWebtoonLibrary)}
           />
         </div>
         <div className="f-container">
@@ -54,7 +54,7 @@ export default function Library() {
             <Wcard
               webtoon={webtoon}
               key={webtoon.title}
-              update={updateSingle}
+              update={updateWebtoonLibrary}
             />
           ))}
         </div>

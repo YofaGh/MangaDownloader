@@ -56,17 +56,8 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, max_width, total_height))| {
             if list_to_merge.len() == 1 {
-                let path: &str = list_to_merge[0].1.to_str().unwrap();
-                copy(
-                    path,
-                    format!(
-                        "{}/{:03}.{}",
-                        path_to_destination,
-                        index + 1,
-                        path.split('.').last().unwrap()
-                    ),
-                )
-                .unwrap();
+                copy_image(path_to_destination, index, &list_to_merge);
+                return;
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
@@ -116,17 +107,8 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, min_width, total_height))| {
             if list_to_merge.len() == 1 {
-                let path: &str = list_to_merge[0].1.to_str().unwrap();
-                copy(
-                    path,
-                    format!(
-                        "{}/{:03}.{}",
-                        path_to_destination,
-                        index + 1,
-                        path.split('.').last().unwrap()
-                    ),
-                )
-                .unwrap();
+                copy_image(path_to_destination, index, &list_to_merge);
+                return;
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
@@ -144,4 +126,17 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
                 .expect("Failed to save image");
         },
     );
+}
+
+fn copy_image(path_to_destination: &str, index: usize, list_to_merge: &Vec<(DynamicImage, PathBuf)>) {
+    let path: &str = list_to_merge[0].1.to_str().unwrap();
+    copy(
+        path,
+        format!(
+            "{}/{:03}.{}",
+            path_to_destination,
+            index + 1,
+            path.split('.').last().unwrap()
+        ),
+    ).unwrap();
 }

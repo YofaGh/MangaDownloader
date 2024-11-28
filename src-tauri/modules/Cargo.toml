@@ -8,7 +8,7 @@ license = ""
 repository = ""
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [profile.release]
 opt-level = 'z'

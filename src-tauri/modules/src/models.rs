@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::{
     fs::File,
-    io::{AsyncWriteExt, copy},
+    io::{copy, AsyncWriteExt},
 };
 use tokio_util::{bytes::Bytes, io::StreamReader};
 
@@ -54,8 +54,13 @@ pub trait Module: Send + Sync {
     fn get_download_image_headers(&self) -> HeaderMap {
         self.base().download_image_headers.clone()
     }
-    fn get_module_sample(&self) -> HashMap<&'static str, &'static str> {
-        self.base().sample.clone()
+    fn get_module_sample(&self) -> HashMap<String, String> {
+        self.base()
+            .sample
+            .clone()
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect()
     }
     fn is_searchable(&self) -> bool {
         self.base().searchable

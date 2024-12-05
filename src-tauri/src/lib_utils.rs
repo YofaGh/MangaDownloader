@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use libloading::{Library, Symbol};
-use serde_json::{from_str, Value};
+use serde_json::Value;
 use std::{
     collections::HashMap,
     error::Error,
@@ -13,14 +13,15 @@ lazy_static! {
 }
 
 type GetVersionFn = fn() -> String;
-type GetModulesFn = fn() -> String;
-type GetModuleSampleFn = fn(String) -> String;
-type GetInfoFn = fn(String, String) -> String;
-type GetChaptersFn = fn(String, String) -> String;
-type RetrieveImageFn = fn(String, String) -> String;
-type GetImagesFn = fn(String, String, String) -> String;
-type DownloadImageFn = fn(String, String, String) -> String;
-type SearchByKeywordFn = fn(String, String, bool, f64, u32) -> String;
+type GetModulesFn = fn() -> Vec<HashMap<String, Value>>;
+type GetModuleSampleFn = fn(String) -> HashMap<String, String>;
+type GetInfoFn = fn(String, String) -> Result<HashMap<String, Value>, Box<dyn Error>>;
+type GetChaptersFn = fn(String, String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
+type RetrieveImageFn = fn(String, String) -> Result<String, Box<dyn Error>>;
+type GetImagesFn = fn(String, String, String) -> Result<(Vec<String>, Value), Box<dyn Error>>;
+type DownloadImageFn = fn(String, String, String) -> Result<Option<String>, Box<dyn Error>>;
+type SearchByKeywordFn =
+    fn(String, String, bool, f64, u32) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
 
 pub fn load_modules(modules_path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let lib: Library = unsafe { Library::new(modules_path) }?;
@@ -46,40 +47,39 @@ where
 }
 
 pub fn get_modules_version() -> Result<String, Box<dyn Error>> {
-    let version: String =
-        with_symbol::<GetVersionFn, _, _>(b"get_version", |f: Symbol<'_, fn() -> String>| f())?;
-    Ok(version)
+    with_symbol::<GetVersionFn, _, _>(b"get_version", |f: Symbol<'_, fn() -> String>| f())
 }
 
 pub async fn get_modules() -> Result<Vec<HashMap<String, Value>>, Box<dyn Error>> {
-    let modules_json: String =
-        with_symbol::<GetModulesFn, _, _>(b"get_modules", |f: Symbol<'_, fn() -> String>| f())?;
-    let modules: Vec<HashMap<String, Value>> = from_str(&modules_json)?;
-    Ok(modules)
+    with_symbol::<GetModulesFn, _, _>(
+        b"get_modules",
+        |f: Symbol<'_, fn() -> Vec<HashMap<String, Value>>>| f(),
+    )
 }
 
 pub async fn get_info(
     domain: String,
     url: String,
 ) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-    let info_json: String = with_symbol::<GetInfoFn, _, _>(
+    with_symbol::<GetInfoFn, _, _>(
         b"get_info",
-        |f: Symbol<'_, fn(String, String) -> String>| f(domain, url),
-    )?;
-    let info: HashMap<String, Value> = from_str(&info_json)?;
-    Ok(info)
+        |f: Symbol<'_, fn(String, String) -> Result<HashMap<String, Value>, Box<dyn Error>>>| {
+            f(domain, url)
+        },
+    )?
 }
 
 pub async fn get_chapters(
     domain: String,
     url: String,
 ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    let chapters_json: String = with_symbol::<GetChaptersFn, _, _>(
+    with_symbol::<GetChaptersFn, _, _>(
         b"get_chapters",
-        |f: Symbol<'_, fn(String, String) -> String>| f(domain, url),
-    )?;
-    let chapters: Vec<HashMap<String, String>> = from_str(&chapters_json)?;
-    Ok(chapters)
+        |f: Symbol<
+            '_,
+            fn(String, String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>,
+        >| f(domain, url),
+    )?
 }
 
 pub async fn get_images(
@@ -87,12 +87,13 @@ pub async fn get_images(
     manga: String,
     chapter: String,
 ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-    let images_json: String = with_symbol::<GetImagesFn, _, _>(
+    with_symbol::<GetImagesFn, _, _>(
         b"get_images",
-        |f: Symbol<'_, fn(String, String, String) -> String>| f(domain, manga, chapter),
-    )?;
-    let images: (Vec<String>, Value) = from_str(&images_json)?;
-    Ok(images)
+        |f: Symbol<
+            '_,
+            fn(String, String, String) -> Result<(Vec<String>, Value), Box<dyn Error>>,
+        >| { f(domain, manga, chapter) },
+    )?
 }
 
 pub async fn download_image(
@@ -100,15 +101,12 @@ pub async fn download_image(
     url: String,
     image_name: String,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    let image: String = with_symbol::<DownloadImageFn, _, _>(
+    with_symbol::<DownloadImageFn, _, _>(
         b"download_image",
-        |f: Symbol<'_, fn(String, String, String) -> String>| f(domain, url, image_name),
-    )?;
-    if image.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(image))
-    }
+        |f: Symbol<'_, fn(String, String, String) -> Result<Option<String>, Box<dyn Error>>>| {
+            f(domain, url, image_name)
+        },
+    )?
 }
 
 pub async fn search_by_keyword(
@@ -118,29 +116,31 @@ pub async fn search_by_keyword(
     page_limit: u32,
     absolute: bool,
 ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    let results_json: String = with_symbol::<SearchByKeywordFn, _, _>(
+    with_symbol::<SearchByKeywordFn, _, _>(
         b"search_by_keyword",
-        |f: Symbol<'_, fn(String, String, bool, f64, u32) -> String>| {
-            f(domain, keyword, absolute, sleep_time, page_limit)
-        },
-    )?;
-    let results: Vec<HashMap<String, String>> = from_str(&results_json)?;
-    Ok(results)
+        |f: Symbol<
+            '_,
+            fn(
+                String,
+                String,
+                bool,
+                f64,
+                u32,
+            ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>,
+        >| { f(domain, keyword, absolute, sleep_time, page_limit) },
+    )?
 }
 
 pub async fn retrieve_image(domain: String, url: String) -> Result<String, Box<dyn Error>> {
-    let image: String = with_symbol::<RetrieveImageFn, _, _>(
+    with_symbol::<RetrieveImageFn, _, _>(
         b"retrieve_image",
-        |f: Symbol<'_, fn(String, String) -> String>| f(domain, url),
-    )?;
-    Ok(image)
+        |f: Symbol<'_, fn(String, String) -> Result<String, Box<dyn Error>>>| f(domain, url),
+    )?
 }
 
 pub async fn get_module_sample(domain: String) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let sample_json: String = with_symbol::<GetModuleSampleFn, _, _>(
+    with_symbol::<GetModuleSampleFn, _, _>(
         b"get_module_sample",
-        |f: Symbol<'_, fn(String) -> String>| f(domain),
-    )?;
-    let sample: HashMap<String, String> = from_str(&sample_json)?;
-    Ok(sample)
+        |f: Symbol<'_, fn(String) -> HashMap<String, String>>| f(domain),
+    )
 }

@@ -138,7 +138,7 @@ pub fn validate_image(path: String) -> bool {
 
 #[command(async)]
 pub async fn get_modules() -> Vec<HashMap<String, Value>> {
-    lib_utils::get_modules().await.unwrap_or_default()
+    lib_utils::get_modules().await
 }
 
 #[command(async)]
@@ -189,9 +189,7 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 
 #[command(async)]
 pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
-    lib_utils::get_module_sample(domain)
-        .await
-        .unwrap_or_default()
+    lib_utils::get_module_sample(domain).await
 }
 
 #[command(async)]

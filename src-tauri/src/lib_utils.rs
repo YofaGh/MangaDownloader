@@ -46,15 +46,16 @@ where
     Ok(f(symbol))
 }
 
-pub fn get_modules_version() -> Result<String, Box<dyn Error>> {
-    with_symbol::<GetVersionFn, _, _>(b"get_version", |f: Symbol<'_, fn() -> String>| f())
+pub fn get_modules_version() -> String {
+    with_symbol::<GetVersionFn, _, _>(b"get_version", |f: Symbol<'_, fn() -> String>| f()).unwrap()
 }
 
-pub async fn get_modules() -> Result<Vec<HashMap<String, Value>>, Box<dyn Error>> {
+pub async fn get_modules() -> Vec<HashMap<String, Value>> {
     with_symbol::<GetModulesFn, _, _>(
         b"get_modules",
         |f: Symbol<'_, fn() -> Vec<HashMap<String, Value>>>| f(),
     )
+    .unwrap()
 }
 
 pub async fn get_info(
@@ -138,9 +139,10 @@ pub async fn retrieve_image(domain: String, url: String) -> Result<String, Box<d
     )?
 }
 
-pub async fn get_module_sample(domain: String) -> Result<HashMap<String, String>, Box<dyn Error>> {
+pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
     with_symbol::<GetModuleSampleFn, _, _>(
         b"get_module_sample",
         |f: Symbol<'_, fn(String) -> HashMap<String, String>>| f(domain),
     )
+    .unwrap()
 }

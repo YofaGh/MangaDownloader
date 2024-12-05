@@ -64,7 +64,7 @@ pub async fn check_and_update_dll(
     modules_path: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     emit_status(&window, "Checking for updates");
-    let current_version: Version = Version::parse(&get_modules_version()?)?;
+    let current_version: Version = Version::parse(&get_modules_version())?;
     match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
         Ok(response) => {
             let version_str: String = response.text().await?;

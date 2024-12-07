@@ -22,7 +22,7 @@ struct Settings {
     auto_merge: bool,
     auto_convert: bool,
     load_covers: bool,
-    sleep_time: f32,
+    sleep_time: f64,
     default_search_depth: i32,
     merge_method: String,
     download_path: Option<String>,

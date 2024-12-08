@@ -34,14 +34,14 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
     sites
         .iter()
         .map(|site: &Value| {
-            let url: String = site["url"].as_str().ok_or("Failed to get url")?.to_string();
+            let url: String = site["url"].to_string();
             let image: String = site["originalImage"]["url"].to_string();
             Ok(HashMap::from([
                 ("url".to_string(), url),
                 ("image".to_string(), image),
             ]))
         })
-        .collect::<Result<Vec<HashMap<String, String>>, Box<dyn Error>>>()
+        .collect()
 }
 
 pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
@@ -79,14 +79,14 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
     for match_ in matches {
         for domain in match_["domains"].as_array().unwrap() {
             for backlink in domain["backlinks"].as_array().unwrap() {
-                let mut map = HashMap::new();
+                let mut map: HashMap<String, String> = HashMap::new();
                 map.insert(
                     "url".to_string(),
-                    backlink["backlink"].as_str().unwrap().to_string(),
+                    backlink["backlink"].to_string(),
                 );
                 map.insert(
                     "image".to_string(),
-                    backlink["url"].as_str().unwrap().to_string(),
+                    backlink["url"].to_string(),
                 );
                 results.push(map);
             }
@@ -117,7 +117,7 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn E
                 let mut map: HashMap<String, String> = HashMap::new();
                 map.insert("url".to_string(), td_url);
                 if let Some(image) = td.find(Name("img")).next() {
-                    let mut image_src = image.attr("src").unwrap().to_string();
+                    let mut image_src: String = image.attr("src").unwrap().to_string();
                     if !image_src.contains("https:") {
                         image_src = format!("https://iqdb.org{}", image_src);
                     }

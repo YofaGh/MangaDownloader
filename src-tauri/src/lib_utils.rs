@@ -36,51 +36,38 @@ pub fn unload_modules() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn with_symbol<T, F, R>(name: &[u8], f: F) -> Result<R, Box<dyn Error>>
+fn with_symbol<T, F, R>(name: &str, f: F) -> Result<R, Box<dyn Error>>
 where
     F: FnOnce(Symbol<T>) -> R,
 {
     let guard: MutexGuard<'_, Option<Library>> = LIB.lock()?;
     let lib: &Library = guard.as_ref().ok_or("Library not loaded")?;
-    let symbol: Symbol<T> = unsafe { lib.get(name)? };
+    let symbol: Symbol<T> = unsafe { lib.get(name.as_bytes())? };
     Ok(f(symbol))
 }
 
 pub fn get_modules_version() -> String {
-    with_symbol::<GetVersionFn, _, _>(b"get_version", |f: Symbol<'_, fn() -> String>| f()).unwrap()
+    with_symbol::<GetVersionFn, _, _>("get_version", |f: Symbol<'_, GetVersionFn>| f()).unwrap()
 }
 
 pub async fn get_modules() -> Vec<HashMap<String, Value>> {
-    with_symbol::<GetModulesFn, _, _>(
-        b"get_modules",
-        |f: Symbol<'_, fn() -> Vec<HashMap<String, Value>>>| f(),
-    )
-    .unwrap()
+    with_symbol::<GetModulesFn, _, _>("get_modules", |f: Symbol<'_, GetModulesFn>| f()).unwrap()
 }
 
 pub async fn get_info(
     domain: String,
     url: String,
 ) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-    with_symbol::<GetInfoFn, _, _>(
-        b"get_info",
-        |f: Symbol<'_, fn(String, String) -> Result<HashMap<String, Value>, Box<dyn Error>>>| {
-            f(domain, url)
-        },
-    )?
+    with_symbol::<GetInfoFn, _, _>("get_info", |f: Symbol<'_, GetInfoFn>| f(domain, url))?
 }
 
 pub async fn get_chapters(
     domain: String,
     url: String,
 ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    with_symbol::<GetChaptersFn, _, _>(
-        b"get_chapters",
-        |f: Symbol<
-            '_,
-            fn(String, String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>,
-        >| f(domain, url),
-    )?
+    with_symbol::<GetChaptersFn, _, _>("get_chapters", |f: Symbol<'_, GetChaptersFn>| {
+        f(domain, url)
+    })?
 }
 
 pub async fn get_images(
@@ -88,13 +75,9 @@ pub async fn get_images(
     manga: String,
     chapter: String,
 ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-    with_symbol::<GetImagesFn, _, _>(
-        b"get_images",
-        |f: Symbol<
-            '_,
-            fn(String, String, String) -> Result<(Vec<String>, Value), Box<dyn Error>>,
-        >| { f(domain, manga, chapter) },
-    )?
+    with_symbol::<GetImagesFn, _, _>("get_images", |f: Symbol<'_, GetImagesFn>| {
+        f(domain, manga, chapter)
+    })?
 }
 
 pub async fn download_image(
@@ -102,12 +85,9 @@ pub async fn download_image(
     url: String,
     image_name: String,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    with_symbol::<DownloadImageFn, _, _>(
-        b"download_image",
-        |f: Symbol<'_, fn(String, String, String) -> Result<Option<String>, Box<dyn Error>>>| {
-            f(domain, url, image_name)
-        },
-    )?
+    with_symbol::<DownloadImageFn, _, _>("download_image", |f: Symbol<'_, DownloadImageFn>| {
+        f(domain, url, image_name)
+    })?
 }
 
 pub async fn search_by_keyword(
@@ -118,31 +98,21 @@ pub async fn search_by_keyword(
     absolute: bool,
 ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     with_symbol::<SearchByKeywordFn, _, _>(
-        b"search_by_keyword",
-        |f: Symbol<
-            '_,
-            fn(
-                String,
-                String,
-                bool,
-                f64,
-                u32,
-            ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>,
-        >| { f(domain, keyword, absolute, sleep_time, page_limit) },
+        "search_by_keyword",
+        |f: Symbol<'_, SearchByKeywordFn>| f(domain, keyword, absolute, sleep_time, page_limit),
     )?
 }
 
 pub async fn retrieve_image(domain: String, url: String) -> Result<String, Box<dyn Error>> {
-    with_symbol::<RetrieveImageFn, _, _>(
-        b"retrieve_image",
-        |f: Symbol<'_, fn(String, String) -> Result<String, Box<dyn Error>>>| f(domain, url),
-    )?
+    with_symbol::<RetrieveImageFn, _, _>("retrieve_image", |f: Symbol<'_, RetrieveImageFn>| {
+        f(domain, url)
+    })?
 }
 
 pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
     with_symbol::<GetModuleSampleFn, _, _>(
-        b"get_module_sample",
-        |f: Symbol<'_, fn(String) -> HashMap<String, String>>| f(domain),
+        "get_module_sample",
+        |f: Symbol<'_, GetModuleSampleFn>| f(domain),
     )
     .unwrap()
 }

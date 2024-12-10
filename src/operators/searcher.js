@@ -10,7 +10,6 @@ export default async function searcher() {
     searchKeyword,
     searchAbsolute,
     addSearchResult,
-    setSearchKeyword,
     searchModuleTypes,
     setSelectedSearchModules,
   } = useSearchStore.getState();
@@ -26,7 +25,6 @@ export default async function searcher() {
         module.selected
     )
     .map((item) => item.domain);
-  setSearchKeyword(searchKeyword);
   setSelectedSearchModules(selectedSearchModules);
   const sleepTime = useSettingsStore.getState().settings.sleep_time;
   for (const module of selectedSearchModules) {

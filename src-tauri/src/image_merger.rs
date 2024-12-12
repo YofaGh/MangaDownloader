@@ -56,7 +56,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, max_width, total_height))| {
             if list_to_merge.len() == 1 {
-                copy_image(path_to_destination, index, &list_to_merge);
+                copy_image(path_to_destination, index, &list_to_merge[0].1);
                 return;
             }
             let mut imgbuf: RgbImage =
@@ -74,7 +74,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
             }
             imgbuf
                 .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-                .expect("Failed to save image");
+                .ok();
         },
     );
 }
@@ -107,7 +107,7 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, min_width, total_height))| {
             if list_to_merge.len() == 1 {
-                copy_image(path_to_destination, index, &list_to_merge);
+                copy_image(path_to_destination, index, &list_to_merge[0].1);
                 return;
             }
             let mut imgbuf: RgbImage =
@@ -123,20 +123,20 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
             }
             imgbuf
                 .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-                .expect("Failed to save image");
+                .ok();
         },
     );
 }
 
-fn copy_image(path_to_destination: &str, index: usize, list_to_merge: &Vec<(DynamicImage, PathBuf)>) {
-    let path: &str = list_to_merge[0].1.to_str().unwrap();
+fn copy_image(path_to_destination: &str, index: usize, path: &PathBuf) {
     copy(
         path,
         format!(
             "{}/{:03}.{}",
             path_to_destination,
             index + 1,
-            path.split('.').last().unwrap()
+            path.extension().unwrap().to_str().unwrap()
         ),
-    ).unwrap();
+    )
+    .unwrap();
 }

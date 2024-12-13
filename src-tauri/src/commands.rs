@@ -130,10 +130,7 @@ pub fn convert(path: &str, pdf_name: &str) -> Result<(), AppError> {
 
 #[command(async)]
 pub fn validate_image(path: String) -> bool {
-    match open(path) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    open(path).is_ok()
 }
 
 #[command(async)]

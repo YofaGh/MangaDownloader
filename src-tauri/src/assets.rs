@@ -13,7 +13,10 @@ use std::{
 use tauri::{Emitter, WebviewWindow};
 use tokio::time::{sleep, Duration};
 
-use crate::lib_utils::{get_modules_version, load_modules, unload_modules};
+use crate::{
+    errors::AppError,
+    lib_utils::{get_modules_version, load_modules, unload_modules},
+};
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
 
@@ -114,7 +117,7 @@ fn emit_status(window: &WebviewWindow, message: &str) {
     window.emit("updateStatus", message).unwrap();
 }
 
-pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, Box<dyn Error>> {
+pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, AppError> {
     let dirs: Vec<DirEntry> = read_dir(path_to_source)?.filter_map(Result::ok).collect();
     let mut dirs: Vec<PathBuf> = dirs
         .into_iter()

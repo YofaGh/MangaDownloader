@@ -14,6 +14,8 @@ use std::{
 
 use crate::{assets::detect_images, errors::AppError};
 
+const MAX_JPEG_HEIGHT: u32 = 65500;
+
 pub fn merge_folder(
     path_to_source: &str,
     path_to_destination: &str,
@@ -43,7 +45,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     for (image, filename) in images.into_iter() {
         let image_height: u32 = image.height();
         let image_width: u32 = image.width();
-        if temp_height + image_height < 65500 {
+        if temp_height + image_height < MAX_JPEG_HEIGHT {
             temp_list.push((image, filename));
             temp_height += image_height;
             max_width = max(max_width, image_width);
@@ -57,8 +59,9 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     lists_to_merge.push((temp_list, max_width, temp_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, max_width, total_height))| {
+            let image_name: String = format!("{}/{:03}", path_to_destination, index + 1);
             if list_to_merge.len() == 1 {
-                copy_image(path_to_destination, index, &list_to_merge[0].1);
+                copy_image(image_name, &list_to_merge[0].1);
                 return;
             }
             let mut imgbuf: RgbImage =
@@ -74,9 +77,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
                 );
                 y_offset += image.height();
             }
-            imgbuf
-                .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-                .ok();
+            imgbuf.save(format!("{}.jpg", image_name)).ok();
         },
     );
 }
@@ -90,12 +91,12 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
         let image_height: u32 = image.height();
         let image_width: u32 = image.width();
         if image_width >= min_width
-            && (current_height + image_height * min_width / image_width) < 65500
+            && (current_height + image_height * min_width / image_width) < MAX_JPEG_HEIGHT
         {
             temp_list.push((image, filename));
             current_height += image_height * min_width / image_width;
         } else if image_width < min_width
-            && (current_height * image_width / min_width + image_height) < 65500
+            && (current_height * image_width / min_width + image_height) < MAX_JPEG_HEIGHT
         {
             temp_list.push((image, filename));
             current_height = current_height * image_width / min_width + image_height;
@@ -110,36 +111,34 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
     lists_to_merge.push((temp_list, min_width, current_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, min_width, total_height))| {
+            let image_name: String = format!("{}/{:03}", path_to_destination, index + 1);
             if list_to_merge.len() == 1 {
-                copy_image(path_to_destination, index, &list_to_merge[0].1);
+                copy_image(image_name, &list_to_merge[0].1);
                 return;
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
-            let mut y_offset: u32 = 0;
+            let mut y_offset: u64 = 0;
             for (image, _) in list_to_merge {
-                let scaled_height: u32 =
-                    (image.height() as f64 * min_width as f64 / image.width() as f64).ceil() as u32;
+                let scaled_height: u64 =
+                    (image.height() as f64 * min_width as f64 / image.width() as f64).ceil() as u64;
                 let resized_image: DynamicImage =
-                    image.resize_exact(min_width, scaled_height, Lanczos3);
+                    image.resize_exact(min_width, scaled_height as u32, Lanczos3);
                 overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
                 y_offset += scaled_height;
             }
-            imgbuf
-                .save(format!("{}/{:03}.jpg", path_to_destination, index + 1))
-                .ok();
+            imgbuf.save(format!("{}.jpg", image_name)).ok();
         },
     );
 }
 
-fn copy_image(path_to_destination: &str, index: usize, path: &PathBuf) {
+fn copy_image(image_name: String, path: &PathBuf) {
     copy(
         path,
         format!(
-            "{}/{:03}.{}",
-            path_to_destination,
-            index + 1,
-            path.extension().unwrap().to_str().unwrap()
+            "{}.{}",
+            image_name,
+            path.extension().and_then(|ext| ext.to_str()).unwrap()
         ),
     )
     .unwrap();

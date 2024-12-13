@@ -205,7 +205,7 @@ pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> 
 
 #[command(async)]
 pub async fn upload_image(path: String) -> String {
-    upload(path).await.unwrap_or_default()
+    upload(path.as_str()).await.unwrap_or_default()
 }
 
 #[command(async)]

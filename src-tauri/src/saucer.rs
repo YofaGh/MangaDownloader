@@ -56,8 +56,8 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client
         .post("https://tineye.com/result_json/?sort=score&order=desc&page=1")
-        .headers(headers.clone())
-        .body(data.clone());
+        .headers(headers.to_owned())
+        .body(data.to_owned());
     let mut response: Value = request.send().await?.json().await?;
     let total_pages: i64 = response["total_pages"].as_i64().unwrap();
     let mut matches: Vec<Value> = response["matches"].as_array().unwrap().to_vec();
@@ -67,8 +67,8 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
                 "https://tineye.com/result_json/?sort=score&order=desc&page={}",
                 i
             ))
-            .headers(headers.clone())
-            .body(data.clone())
+            .headers(headers.to_owned())
+            .body(data.to_owned())
             .send()
             .await?
             .json()
@@ -80,14 +80,8 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
         for domain in match_["domains"].as_array().unwrap() {
             for backlink in domain["backlinks"].as_array().unwrap() {
                 let mut map: HashMap<String, String> = HashMap::new();
-                map.insert(
-                    "url".to_string(),
-                    backlink["backlink"].to_string(),
-                );
-                map.insert(
-                    "image".to_string(),
-                    backlink["url"].to_string(),
-                );
+                map.insert("url".to_string(), backlink["backlink"].to_string());
+                map.insert("image".to_string(), backlink["url"].to_string());
                 results.push(map);
             }
         }
@@ -163,13 +157,13 @@ pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, Box<d
     Ok(results)
 }
 
-pub async fn upload(path: String) -> Result<String, Box<dyn Error>> {
+pub async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
-    let bytes: Vec<u8> = read(path.clone()).await?;
+    let bytes: Vec<u8> = read(path).await?;
     let form: Form = Form::new().part(
         "photo",
         Part::stream(bytes).file_name(
-            Path::new(&path)
+            Path::new(path)
                 .file_name()
                 .unwrap()
                 .to_str()

@@ -40,19 +40,21 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut temp_height: u32 = 0;
     let mut max_width: u32 = 0;
-    for (image, filename) in images {
-        if temp_height + image.height() < 65500 {
-            temp_list.push((image.clone(), filename.clone()));
-            temp_height += image.height();
-            max_width = max(max_width, image.width());
+    for (image, filename) in images.into_iter() {
+        let image_height: u32 = image.height();
+        let image_width: u32 = image.width();
+        if temp_height + image_height < 65500 {
+            temp_list.push((image, filename));
+            temp_height += image_height;
+            max_width = max(max_width, image_width);
         } else {
-            lists_to_merge.push((temp_list.clone(), max_width, temp_height));
-            temp_list = vec![(image.clone(), filename.clone())];
-            temp_height = image.height();
-            max_width = image.width();
+            lists_to_merge.push((temp_list, max_width, temp_height));
+            temp_list = vec![(image, filename)];
+            temp_height = image_height;
+            max_width = image_width;
         }
     }
-    lists_to_merge.push((temp_list.clone(), max_width, temp_height));
+    lists_to_merge.push((temp_list, max_width, temp_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, max_width, total_height))| {
             if list_to_merge.len() == 1 {
@@ -84,26 +86,28 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
     let mut current_height: u32 = 0;
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut min_width: u32 = images[0].0.width();
-    for (image, filename) in images {
-        if image.width() >= min_width
-            && (current_height + image.height() * min_width / image.width()) < 65500
+    for (image, filename) in images.into_iter() {
+        let image_height: u32 = image.height();
+        let image_width: u32 = image.width();
+        if image_width >= min_width
+            && (current_height + image_height * min_width / image_width) < 65500
         {
-            temp_list.push((image.clone(), filename.clone()));
-            current_height += image.height() * min_width / image.width();
-        } else if image.width() < min_width
-            && (current_height * image.width() / min_width + image.height()) < 65500
+            temp_list.push((image, filename));
+            current_height += image_height * min_width / image_width;
+        } else if image_width < min_width
+            && (current_height * image_width / min_width + image_height) < 65500
         {
-            temp_list.push((image.clone(), filename.clone()));
-            current_height = current_height * image.width() / min_width + image.height();
-            min_width = image.width();
+            temp_list.push((image, filename));
+            current_height = current_height * image_width / min_width + image_height;
+            min_width = image_width;
         } else {
-            lists_to_merge.push((temp_list.clone(), min_width, current_height));
-            temp_list = vec![(image.clone(), filename.clone())];
-            min_width = image.width();
-            current_height = image.height();
+            lists_to_merge.push((temp_list, min_width, current_height));
+            temp_list = vec![(image, filename)];
+            min_width = image_width;
+            current_height = image_height;
         }
     }
-    lists_to_merge.push((temp_list.clone(), min_width, current_height));
+    lists_to_merge.push((temp_list, min_width, current_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, min_width, total_height))| {
             if list_to_merge.len() == 1 {

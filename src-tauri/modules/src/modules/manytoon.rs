@@ -177,7 +177,7 @@ impl Module for Manytoon {
         let chapters: Vec<HashMap<String, String>> = document
             .find(Name("li").and(Class("wp-manga-chapter")))
             .map(|div: Node| {
-                let chapter_url: String = div
+                let chapter_url: &str = div
                     .find(Name("a"))
                     .next()
                     .unwrap()
@@ -185,11 +185,13 @@ impl Module for Manytoon {
                     .unwrap()
                     .split('/')
                     .nth_back(1)
-                    .unwrap()
-                    .to_string();
+                    .unwrap();
                 HashMap::from([
-                    ("url".to_string(), chapter_url.clone()),
-                    ("name".to_string(), self.rename_chapter(chapter_url)),
+                    ("url".to_string(), chapter_url.to_string()),
+                    (
+                        "name".to_string(),
+                        self.rename_chapter(chapter_url.to_string()),
+                    ),
                 ])
             })
             .collect();

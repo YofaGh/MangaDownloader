@@ -52,12 +52,12 @@ pub trait Module: Send + Sync {
         self.base().logo.to_string()
     }
     fn get_download_image_headers(&self) -> HeaderMap {
-        self.base().download_image_headers.clone()
+        self.base().download_image_headers.to_owned()
     }
     fn get_module_sample(&self) -> HashMap<String, String> {
         self.base()
             .sample
-            .clone()
+            .to_owned()
             .into_iter()
             .map(|(k, v)| (k.to_owned(), v.to_owned()))
             .collect()

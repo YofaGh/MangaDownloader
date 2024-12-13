@@ -172,7 +172,7 @@ impl Module for Manhuascan {
         let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
         let mut chapters: Vec<HashMap<String, String>> = Vec::new();
         for div in divs {
-            let chapter_url: String = div
+            let chapter_url: &str = div
                 .find(Name("a"))
                 .next()
                 .unwrap()
@@ -180,11 +180,13 @@ impl Module for Manhuascan {
                 .unwrap()
                 .split("/")
                 .last()
-                .unwrap()
-                .to_string();
+                .unwrap();
             chapters.push(HashMap::from([
-                ("url".to_string(), chapter_url.clone()),
-                ("name".to_string(), self.rename_chapter(chapter_url)),
+                ("url".to_string(), chapter_url.to_string()),
+                (
+                    "name".to_string(),
+                    self.rename_chapter(chapter_url.to_string()),
+                ),
             ]));
         }
         Ok(chapters)

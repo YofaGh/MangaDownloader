@@ -89,10 +89,11 @@ impl Module for Readonepiece {
                     .unwrap()
                     .rsplit('/')
                     .collect();
-                let chapter: String = group[1].replace(&format!("{}-", manga), "");
+                let binding: String = group[1].replace(&format!("{}-", manga), "");
+                let chapter: &str = binding.as_str();
                 HashMap::from([
-                    ("url".to_string(), chapter.clone()),
-                    ("name".to_string(), self.rename_chapter(chapter)),
+                    ("url".to_string(), chapter.to_string()),
+                    ("name".to_string(), self.rename_chapter(chapter.to_string())),
                 ])
             })
             .collect();

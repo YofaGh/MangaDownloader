@@ -26,7 +26,7 @@ struct Settings {
     auto_convert: bool,
     load_covers: bool,
     sleep_time: f64,
-    default_search_depth: i32,
+    default_search_depth: usize,
     merge_method: String,
     download_path: Option<String>,
 }
@@ -63,15 +63,14 @@ pub fn load_up_checks(data_dir_path: PathBuf) {
 }
 
 pub async fn check_and_update_dll(
-    window: WebviewWindow,
+    window: &WebviewWindow,
     modules_path: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     emit_status(&window, "Checking for updates");
     let current_version: Version = Version::parse(&get_modules_version())?;
-    match get(GITHUB_URL.to_owned() + "modules-version.txt").await {
+    match get(format!("{}modules-version.txt", GITHUB_URL)).await {
         Ok(response) => {
-            let version_str: String = response.text().await?;
-            let latest_version: Version = Version::parse(version_str.trim())?;
+            let latest_version: Version = Version::parse(response.text().await?.trim())?;
             if latest_version > current_version {
                 emit_status(&window, "Updating Modules");
                 unload_modules()?;
@@ -80,10 +79,7 @@ pub async fn check_and_update_dll(
                     GITHUB_URL
                 ));
                 match get(path).await {
-                    Ok(response) => {
-                        let new_dll_content: Vec<u8> = response.bytes().await?.to_vec();
-                        write(&modules_path, new_dll_content)?;
-                    }
+                    Ok(response) => write(&modules_path, response.bytes().await?.to_vec())?,
                     Err(_) => {
                         emit_status(&window, "Failed to update modules");
                         sleep(Duration::from_secs(1)).await;
@@ -95,6 +91,7 @@ pub async fn check_and_update_dll(
         Err(_) => {
             emit_status(&window, "Failed to check for updates");
             sleep(Duration::from_secs(1)).await;
+            load_modules(modules_path)?;
         }
     }
     Ok(())

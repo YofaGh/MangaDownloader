@@ -56,9 +56,9 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
         .into_iter()
         .map(|module: Box<dyn Module>| {
             HashMap::from([
-                ("type".to_string(), Value::String(module.get_type())),
-                ("domain".to_string(), Value::String(module.get_domain())),
-                ("logo".to_string(), Value::String(module.get_logo())),
+                ("type".to_string(), Value::from(module.get_type())),
+                ("domain".to_string(), Value::from(module.get_domain())),
+                ("logo".to_string(), Value::from(module.get_logo())),
                 (
                     "searchable".to_string(),
                     Value::Bool(module.is_searchable()),

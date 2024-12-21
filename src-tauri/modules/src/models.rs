@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
 use futures::TryStreamExt;
-use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
+use reqwest::{header::HeaderMap, Client, Error as ReqwestError, Method, RequestBuilder, Response};
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -14,15 +14,14 @@ use tokio::{
 };
 use tokio_util::{bytes::Bytes, io::StreamReader};
 
-#[derive(Clone)]
 pub struct BaseModule {
-    pub(crate) type_: &'static str,
-    pub(crate) domain: &'static str,
-    pub(crate) logo: &'static str,
-    pub(crate) download_image_headers: HeaderMap,
-    pub(crate) sample: HashMap<&'static str, &'static str>,
-    pub(crate) searchable: bool,
-    pub(crate) is_coded: bool,
+    pub type_: &'static str,
+    pub domain: &'static str,
+    pub logo: &'static str,
+    pub download_image_headers: HeaderMap,
+    pub sample: HashMap<&'static str, &'static str>,
+    pub searchable: bool,
+    pub is_coded: bool,
 }
 
 impl Default for BaseModule {
@@ -42,14 +41,14 @@ impl Default for BaseModule {
 #[async_trait]
 pub trait Module: Send + Sync {
     fn base(&self) -> &BaseModule;
-    fn get_type(&self) -> String {
-        self.base().type_.to_string()
+    fn get_type(&self) -> &str {
+        self.base().type_
     }
-    fn get_domain(&self) -> String {
-        self.base().domain.to_string()
+    fn get_domain(&self) -> &str {
+        self.base().domain
     }
-    fn get_logo(&self) -> String {
-        self.base().logo.to_string()
+    fn get_logo(&self) -> &str {
+        self.base().logo
     }
     fn get_download_image_headers(&self) -> HeaderMap {
         self.base().download_image_headers.to_owned()
@@ -87,12 +86,12 @@ pub trait Module: Send + Sync {
             .await?;
         let stream = response
             .bytes_stream()
-            .map_err(|e| IoError::new(Other, e.to_string()));
+            .map_err(|e: ReqwestError| IoError::new(Other, e.to_string()));
         let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(&image_name).await?;
         copy(&mut reader, &mut file).await?;
         file.flush().await?;
-        Ok(Some(image_name.to_string()))
+        Ok(Some(image_name))
     }
     async fn retrieve_image(&self, url: String) -> Result<String, Box<dyn Error>> {
         let (response, _) = self

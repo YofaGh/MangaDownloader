@@ -12,6 +12,9 @@
   height: 30px;
   max-width: 30px;
   font-size: medium;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
 }
 
 .cyb-checkbox-label {

@@ -20,7 +20,7 @@ use crate::{
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
 
-#[derive(Clone, Serialize)]
+#[derive(Serialize)]
 struct Settings {
     auto_merge: bool,
     auto_convert: bool,

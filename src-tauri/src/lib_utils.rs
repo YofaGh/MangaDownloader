@@ -25,10 +25,8 @@ type SearchByKeywordFn =
 
 pub fn load_modules(modules_path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut guard: MutexGuard<'_, Option<Library>> = LIB.lock()?;
-    if guard.is_none() {
-        let lib: Library = unsafe { Library::new(modules_path) }?;
-        *guard = Some(lib);
-    }
+    let lib: Library = unsafe { Library::new(modules_path) }?;
+    *guard = Some(lib);
     Ok(())
 }
 

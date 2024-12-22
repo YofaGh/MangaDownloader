@@ -22,7 +22,7 @@ impl Module for Truemanga {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://truemanga.com/{}", manga);
+        let url: String = format!("https://truemanga.com/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -120,7 +120,7 @@ impl Module for Truemanga {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://truemanga.com/{}", manga);
+        let url: String = format!("https://truemanga.com/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let html: String = response.text().await?;
         let book_id: String = {
@@ -142,7 +142,7 @@ impl Module for Truemanga {
         };
         let (response, _) = self
             .send_simple_request(
-                &format!("https://truemanga.com/api/manga/{}/chapters", book_id),
+                &format!("https://truemanga.com/api/manga/{book_id}/chapters"),
                 Some(client),
             )
             .await?;
@@ -175,7 +175,7 @@ impl Module for Truemanga {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://truemanga.com/{}/{}/", manga, chapter);
+        let url: String = format!("https://truemanga.com/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script: String = document
@@ -211,7 +211,7 @@ impl Module for Truemanga {
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let url: String = format!("https://truemanga.com/search?q={}&page={}", keyword, page);
+            let url: String = format!("https://truemanga.com/search?q={keyword}&page={page}");
             let (response, new_client) = self.send_simple_request(&url, client).await?;
             client = Some(new_client);
             if !response.status().is_success() {

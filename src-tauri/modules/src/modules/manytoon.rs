@@ -19,7 +19,7 @@ impl Module for Manytoon {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://manytoon.com/comic/{}", manga);
+        let url: String = format!("https://manytoon.com/comic/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -145,7 +145,7 @@ impl Module for Manytoon {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://manytoon.com/comic/{}", manga);
+        let url: String = format!("https://manytoon.com/comic/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let data: Value = {
             let document: Document = Document::from(response.text().await?.as_str());
@@ -203,7 +203,7 @@ impl Module for Manytoon {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://manytoon.com/comic/{}/{}/", manga, chapter);
+        let url: String = format!("https://manytoon.com/comic/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -227,10 +227,8 @@ impl Module for Manytoon {
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let url: String = format!(
-                "https://manytoon.com/page/{}/?s={}&post_type=wp-manga",
-                page, keyword
-            );
+            let url: String =
+                format!("https://manytoon.com/page/{page}/?s={keyword}&post_type=wp-manga");
             let (response, new_client) = self.send_simple_request(&url, client).await?;
             client = Some(new_client);
             if !response.status().is_success() {

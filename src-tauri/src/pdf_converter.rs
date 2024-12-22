@@ -11,10 +11,10 @@ pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), AppError> {
         .map(|(image, _)| image)
         .collect();
     if images.is_empty() {
-        return Err(AppError::NoImages(format!("No images found in {}", path)));
+        return Err(AppError::NoImages(format!("No images found in {path}")));
     }
     let mut file: PDF<File> = create(
-        format!("{}/{}", path, pdf_name),
+        format!("{path}/{pdf_name}"),
         PageConfig::new(),
         images.len(),
     )?;

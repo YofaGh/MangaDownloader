@@ -21,7 +21,7 @@ impl Module for Nhentai {
     }
 
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://nhentai.net/g/{}/", code);
+        let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -98,7 +98,7 @@ impl Module for Nhentai {
         code: String,
         _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://nhentai.net/g/{}/", code);
+        let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -127,7 +127,7 @@ impl Module for Nhentai {
         while page <= page_limit {
             let (response, new_client) = self
                 .send_simple_request(
-                    &format!("https://nhentai.net/search?q={}&page={}", keyword, page),
+                    &format!("https://nhentai.net/search?q={keyword}&page={page}"),
                     client,
                 )
                 .await?;

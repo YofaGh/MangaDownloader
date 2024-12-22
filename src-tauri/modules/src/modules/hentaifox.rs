@@ -20,7 +20,7 @@ impl Module for Hentaifox {
         &self.base
     }
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://hentaifox.com/gallery/{}", code);
+        let url: String = format!("https://hentaifox.com/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -83,7 +83,7 @@ impl Module for Hentaifox {
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
-        let url: String = format!("https://hentaifox.com/gallery/{}", code);
+        let url: String = format!("https://hentaifox.com/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let path: &str = document
@@ -116,7 +116,7 @@ impl Module for Hentaifox {
                     .find(|&&(k, _)| k == value.split(",").next().unwrap_or(""))
                     .map(|&(_, v)| v)
                     .unwrap_or("jpg");
-                format!("{}/{}.{}", path, key, format)
+                format!("{path}/{key}.{format}")
             })
             .collect();
         Ok((image_urls, Value::Bool(false)))
@@ -135,7 +135,7 @@ impl Module for Hentaifox {
         while page <= page_limit {
             let (response, new_client) = self
                 .send_simple_request(
-                    &format!("https://hentaifox.com/search/?q={}&page={}", keyword, page),
+                    &format!("https://hentaifox.com/search/?q={keyword}&page={page}"),
                     client,
                 )
                 .await?;

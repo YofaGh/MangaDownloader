@@ -19,7 +19,7 @@ impl Module for Mangapark {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://mangapark.to/title/{}", manga);
+        let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -97,7 +97,7 @@ impl Module for Mangapark {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://mangapark.to/title/{}", manga);
+        let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script = document
@@ -111,7 +111,7 @@ impl Module for Mangapark {
             .enumerate()
             .filter_map(|(i, item)| {
                 if let Some(s) = item.as_str() {
-                    if s.contains(&format!("{}/", manga)) {
+                    if s.contains(&format!("{manga}/")) {
                         Some(HashMap::from([
                             ("url".to_string(), s.split('/').last().unwrap().to_string()),
                             (
@@ -137,7 +137,7 @@ impl Module for Mangapark {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://mangapark.to/title/{}/{}", manga, chapter);
+        let url: String = format!("https://mangapark.to/title/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script: Node = document
@@ -178,7 +178,7 @@ impl Module for Mangapark {
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let url: String = format!("https://mangapark.to/search?word={}&page={}", keyword, page);
+            let url: String = format!("https://mangapark.to/search?word={keyword}&page={page}");
             let (response, new_client) = self.send_simple_request(&url, client).await?;
             client = Some(new_client);
             if !response.status().is_success() {

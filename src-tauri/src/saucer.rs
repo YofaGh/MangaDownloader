@@ -16,8 +16,7 @@ use tokio::fs::read;
 pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client.get(&format!(
-        "https://yandex.com/images/search?rpt=imageview&url={}",
-        url
+        "https://yandex.com/images/search?rpt=imageview&url={url}"
     ));
     let document: Document = Document::from(request.send().await?.text().await?.as_str());
     let data_raw: &str = document
@@ -45,7 +44,7 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
 }
 
 pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--", url);
+    let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\nContent-Disposition: form-data; name=\"url\"\n\n{url}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--");
     let mut headers: HeaderMap = HeaderMap::new();
     headers.append(
         "content-type",
@@ -64,8 +63,7 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
     for i in 2..=total_pages {
         response = client
             .post(&format!(
-                "https://tineye.com/result_json/?sort=score&order=desc&page={}",
-                i
+                "https://tineye.com/result_json/?sort=score&order=desc&page={i}"
             ))
             .headers(headers.to_owned())
             .body(data.to_owned())
@@ -91,7 +89,7 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn
 
 pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
-    let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={}", url));
+    let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={url}"));
     let document: Document = Document::from(request.send().await?.text().await?.as_str());
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     let divs: Vec<Node> = document
@@ -106,19 +104,16 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn E
             if let Some(td_a) = td.find(Name("a")).next() {
                 let mut td_url: String = td_a.attr("href").unwrap().to_string();
                 if !td_url.contains("https:") {
-                    td_url = format!("https:{}", td_url);
+                    td_url = format!("https:{td_url}");
                 }
                 let mut map: HashMap<String, String> = HashMap::new();
                 map.insert("url".to_string(), td_url);
                 if let Some(image) = td.find(Name("img")).next() {
                     let mut image_src: String = image.attr("src").unwrap().to_string();
                     if !image_src.contains("https:") {
-                        image_src = format!("https://iqdb.org{}", image_src);
+                        image_src = format!("https://iqdb.org{image_src}");
                     }
-                    map.insert(
-                        "image".to_string(),
-                        format!("https://iqdb.org{}", image_src),
-                    );
+                    map.insert("image".to_string(), format!("https://iqdb.org{image_src}"));
                 }
                 results.push(map);
             }
@@ -129,10 +124,8 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn E
 
 pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
     let client: Client = Client::builder().build()?;
-    let request: RequestBuilder = client.get(&format!(
-        "https://saucenao.com/search.php?db=999&url={}",
-        url
-    ));
+    let request: RequestBuilder =
+        client.get(&format!("https://saucenao.com/search.php?db=999&url={url}"));
     let document: Document = Document::from(request.send().await?.text().await?.as_str());
     let divs: Vec<Node> = document
         .find(Name("div").and(Attr("id", "middle")))
@@ -185,5 +178,5 @@ pub async fn upload(path: &str) -> Result<String, Box<dyn Error>> {
         .unwrap()
         .attr("href")
         .unwrap();
-    Ok(format!("https:{}", link))
+    Ok(format!("https:{link}"))
 }

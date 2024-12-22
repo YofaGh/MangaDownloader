@@ -108,7 +108,7 @@ pub trait Module: Send + Sync {
             .await?;
         let image: Bytes = response.bytes().await?;
         let encoded_image: String = general_purpose::STANDARD.encode(image);
-        Ok(format!("data:image/png;base64, {}", encoded_image))
+        Ok(format!("data:image/png;base64, {encoded_image}"))
     }
     async fn get_images(
         &self,

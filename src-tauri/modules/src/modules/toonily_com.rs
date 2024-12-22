@@ -22,7 +22,7 @@ impl Module for Toonily {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/", manga);
+        let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -127,7 +127,7 @@ impl Module for Toonily {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/", manga);
+        let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
@@ -159,7 +159,7 @@ impl Module for Toonily {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://toonily.com/webtoon/{}/{}/", manga, chapter);
+        let url: String = format!("https://toonily.com/webtoon/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -189,7 +189,7 @@ impl Module for Toonily {
         search_headers.insert(COOKIE, HeaderValue::from_static("toonily-mature=1"));
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let url: String = format!("https://toonily.com/search/{}/page/{}/", keyword, page);
+            let url: String = format!("https://toonily.com/search/{keyword}/page/{page}/");
             let (response, new_client) = self
                 .send_request(
                     &url,

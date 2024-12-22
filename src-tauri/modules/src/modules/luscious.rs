@@ -20,7 +20,7 @@ impl Module for Luscious {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://www.luscious.net/albums/{}", manga);
+        let url: String = format!("https://www.luscious.net/albums/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();

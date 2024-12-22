@@ -20,7 +20,7 @@ impl Module for Imhentai {
         &self.base
     }
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://imhentai.xxx/gallery/{}", code);
+        let url: String = format!("https://imhentai.xxx/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -100,7 +100,7 @@ impl Module for Imhentai {
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
         const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
             &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
-        let url: String = format!("https://imhentai.xxx/gallery/{}", code);
+        let url: String = format!("https://imhentai.xxx/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let path: &str = document
@@ -133,7 +133,7 @@ impl Module for Imhentai {
                     .find(|&&(k, _)| k == value.split(",").next().unwrap_or(""))
                     .map(|&(_, v)| v)
                     .unwrap_or("jpg");
-                format!("{}/{}.{}", path, key, format)
+                format!("{path}/{key}.{format}")
             })
             .collect();
         Ok((image_urls, Value::Bool(false)))
@@ -152,7 +152,7 @@ impl Module for Imhentai {
         while page <= page_limit {
             let (response, new_client) = self
                 .send_simple_request(
-                    &format!("https://imhentai.xxx/search/?key={}&page={}", keyword, page),
+                    &format!("https://imhentai.xxx/search/?key={keyword}&page={page}"),
                     client,
                 )
                 .await?;

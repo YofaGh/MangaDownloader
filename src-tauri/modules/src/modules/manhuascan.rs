@@ -20,7 +20,7 @@ impl Module for Manhuascan {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://manhuascan.us/manga/{}", manga);
+        let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -149,7 +149,7 @@ impl Module for Manhuascan {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://manhuascan.us/manga/{}/{}", manga, chapter);
+        let url: String = format!("https://manhuascan.us/manga/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -166,7 +166,7 @@ impl Module for Manhuascan {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://manhuascan.us/manga/{}", manga);
+        let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
@@ -205,10 +205,7 @@ impl Module for Manhuascan {
         while page <= page_limit {
             let (response, new_client) = self
                 .send_simple_request(
-                    &format!(
-                        "https://manhuascan.us/manga-list?search={}&page={}",
-                        keyword, page
-                    ),
+                    &format!("https://manhuascan.us/manga-list?search={keyword}&page={page}"),
                     client,
                 )
                 .await?;

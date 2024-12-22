@@ -20,7 +20,7 @@ impl Module for Readonepiece {
         &self.base
     }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
+        let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -61,7 +61,7 @@ impl Module for Readonepiece {
         manga: String,
         chapter: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://ww9.readonepiece.com/chapter/{}-{}", manga, chapter);
+        let url: String = format!("https://ww9.readonepiece.com/chapter/{manga}-{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -75,7 +75,7 @@ impl Module for Readonepiece {
         &self,
         manga: String,
     ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let url: String = format!("https://ww9.readonepiece.com/manga/{}/", manga);
+        let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let chapters: Vec<HashMap<String, String>> = document
@@ -89,7 +89,7 @@ impl Module for Readonepiece {
                     .unwrap()
                     .rsplit('/')
                     .collect();
-                let binding: String = group[1].replace(&format!("{}-", manga), "");
+                let binding: String = group[1].replace(&format!("{manga}-"), "");
                 let chapter: &str = binding.as_str();
                 HashMap::from([
                     ("url".to_string(), chapter.to_string()),

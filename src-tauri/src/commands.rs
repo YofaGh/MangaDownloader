@@ -5,7 +5,7 @@ use tauri::{command, path::BaseDirectory::Resource, AppHandle, Manager, WebviewW
 use tokio::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, ReadDir};
 
 use crate::{
-    assets::{append_dynamic_lib_extension, check_and_update_dll},
+    assets::{append_dynamic_lib_extension, check_and_update_modules},
     errors::AppError,
     image_merger::merge_folder,
     lib_utils,
@@ -28,7 +28,12 @@ pub async fn update_checker(app: AppHandle) {
     let modules_path: PathBuf = app.path().resolve(path, Resource).unwrap();
     lib_utils::load_modules(&modules_path).unwrap();
     let splash_screen_window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
-    check_and_update_dll(&splash_screen_window, &modules_path).await.unwrap();
+    let unloaded_modules: bool = check_and_update_modules(&splash_screen_window, &modules_path)
+        .await
+        .unwrap();
+    if !unloaded_modules {
+        lib_utils::load_modules(&modules_path).unwrap();
+    }
     splash_screen_window.close().unwrap();
     app.get_webview_window("main").unwrap().show().unwrap();
 }
@@ -49,24 +54,21 @@ pub async fn remove_directory(path: String, recursive: bool) -> Result<(), AppEr
     if recursive {
         remove_dir_all(&path).await.map_err(|e: Error| {
             AppError::DirectoryRemoval(format!(
-                "Failed to remove the directory {}: {}",
-                path,
+                "Failed to remove the directory {path}: {}",
                 e.to_string()
             ))
         })
     } else {
         let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
             AppError::DirectoryRemoval(format!(
-                "Failed to remove the directory {}: {}",
-                path,
+                "Failed to remove the directory {path}: {}",
                 e.to_string()
             ))
         })?;
         if let Ok(None) = entries.next_entry().await {
             remove_dir(&path).await.map_err(|e: Error| {
                 AppError::DirectoryRemoval(format!(
-                    "Failed to remove the directory {}: {}",
-                    path,
+                    "Failed to remove the directory {path}: {}",
                     e.to_string()
                 ))
             })
@@ -80,8 +82,7 @@ pub async fn remove_directory(path: String, recursive: bool) -> Result<(), AppEr
 pub async fn create_directory(path: String) -> Result<(), AppError> {
     create_dir_all(&path).await.map_err(|e: Error| {
         AppError::DirectoryCreation(format!(
-            "Failed to create the directory {}: {}",
-            path,
+            "Failed to create the directory {path}: {}",
             e.to_string()
         ))
     })
@@ -91,16 +92,14 @@ pub async fn create_directory(path: String) -> Result<(), AppError> {
 pub async fn read_directory(path: String) -> Result<Vec<String>, AppError> {
     let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
         AppError::DirectoryReading(format!(
-            "Failed to read the directory {}: {}",
-            path,
+            "Failed to read the directory {path}: {}",
             e.to_string()
         ))
     })?;
     let mut paths: Vec<String> = Vec::new();
     while let Some(entry) = entries.next_entry().await.map_err(|e: Error| {
         AppError::DirectoryReading(format!(
-            "Failed to read the directory {}: {}",
-            path,
+            "Failed to read the directory {path}: {}",
             e.to_string()
         ))
     })? {

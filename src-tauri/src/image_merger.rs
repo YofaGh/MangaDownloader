@@ -24,8 +24,7 @@ pub fn merge_folder(
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source).unwrap_or_default();
     if images.is_empty() {
         return Err(AppError::NoImages(format!(
-            "No images found in {}",
-            path_to_source
+            "No images found in {path_to_source}"
         )));
     }
     create_dir_all(path_to_destination)?;
@@ -59,7 +58,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
     lists_to_merge.push((temp_list, max_width, temp_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, max_width, total_height))| {
-            let image_name: String = format!("{}/{:03}", path_to_destination, index + 1);
+            let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
                 copy_image(image_name, &list_to_merge[0].1);
                 return;
@@ -77,7 +76,7 @@ pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) {
                 );
                 y_offset += image.height();
             }
-            imgbuf.save(format!("{}.jpg", image_name)).ok();
+            imgbuf.save(format!("{image_name}.jpg")).ok();
         },
     );
 }
@@ -111,7 +110,7 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
     lists_to_merge.push((temp_list, min_width, current_height));
     lists_to_merge.into_par_iter().enumerate().for_each(
         |(index, (list_to_merge, min_width, total_height))| {
-            let image_name: String = format!("{}/{:03}", path_to_destination, index + 1);
+            let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
                 copy_image(image_name, &list_to_merge[0].1);
                 return;
@@ -121,13 +120,13 @@ pub fn merge_fit(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str
             let mut y_offset: u64 = 0;
             for (image, _) in list_to_merge {
                 let scaled_height: u64 =
-                    (image.height() as f64 * min_width as f64 / image.width() as f64).ceil() as u64;
+                    ((image.height() * min_width) as f64 / image.width() as f64).ceil() as u64;
                 let resized_image: DynamicImage =
                     image.resize_exact(min_width, scaled_height as u32, Lanczos3);
                 overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
                 y_offset += scaled_height;
             }
-            imgbuf.save(format!("{}.jpg", image_name)).ok();
+            imgbuf.save(format!("{image_name}.jpg")).ok();
         },
     );
 }
@@ -136,8 +135,7 @@ fn copy_image(image_name: String, path: &PathBuf) {
     copy(
         path,
         format!(
-            "{}.{}",
-            image_name,
+            "{image_name}.{}",
             path.extension().and_then(|ext| ext.to_str()).unwrap()
         ),
     )

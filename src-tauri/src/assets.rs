@@ -15,7 +15,7 @@ use tokio::time::{sleep, Duration};
 
 use crate::{
     errors::AppError,
-    lib_utils::{get_modules_version, load_modules, unload_modules},
+    lib_utils::{get_modules_version, unload_modules},
 };
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
@@ -62,21 +62,22 @@ pub fn load_up_checks(data_dir_path: PathBuf) {
     });
 }
 
-pub async fn check_and_update_dll(
+pub async fn check_and_update_modules(
     window: &WebviewWindow,
     modules_path: &PathBuf,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<bool, Box<dyn Error>> {
     emit_status(&window, "Checking for updates");
     let current_version: Version = Version::parse(&get_modules_version())?;
-    match get(format!("{}modules-version.txt", GITHUB_URL)).await {
+    let mut unloaded_modules: bool = false;
+    match get(format!("{GITHUB_URL}modules-version.txt")).await {
         Ok(response) => {
             let latest_version: Version = Version::parse(response.text().await?.trim())?;
             if latest_version > current_version {
                 emit_status(&window, "Updating Modules");
                 unload_modules()?;
+                unloaded_modules = true;
                 let path: String = append_dynamic_lib_extension(format!(
-                    "{}src-tauri/resources/modules",
-                    GITHUB_URL
+                    "{GITHUB_URL}src-tauri/resources/modules"
                 ));
                 match get(path).await {
                     Ok(response) => write(&modules_path, response.bytes().await?.to_vec())?,
@@ -85,16 +86,14 @@ pub async fn check_and_update_dll(
                         sleep(Duration::from_secs(1)).await;
                     }
                 }
-                load_modules(modules_path)?;
             }
         }
         Err(_) => {
             emit_status(&window, "Failed to check for updates");
             sleep(Duration::from_secs(1)).await;
-            load_modules(modules_path)?;
         }
     }
-    Ok(())
+    Ok(unloaded_modules)
 }
 
 fn save_file(path: PathBuf, data: Value) {
@@ -137,8 +136,8 @@ pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)
 
 pub fn append_dynamic_lib_extension(path: String) -> String {
     if cfg!(target_family = "windows") {
-        format!("{}.dll", path)
+        format!("{path}.dll")
     } else {
-        format!("{}.so", path)
+        format!("{path}.so")
     }
 }

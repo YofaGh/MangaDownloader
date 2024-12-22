@@ -21,7 +21,7 @@ impl Module for Nyahentai {
     }
 
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let url: String = format!("https://nyahentai.red/g/{}/", code);
+        let url: String = format!("https://nyahentai.red/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
@@ -100,7 +100,7 @@ impl Module for Nyahentai {
         code: String,
         _: String,
     ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let url: String = format!("https://nyahentai.red/g/{}/", code);
+        let url: String = format!("https://nyahentai.red/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
@@ -129,7 +129,7 @@ impl Module for Nyahentai {
         while page <= page_limit {
             let (response, new_client) = self
                 .send_simple_request(
-                    &format!("https://nyahentai.red/search?q={}&page={}", keyword, page),
+                    &format!("https://nyahentai.red/search?q={keyword}&page={page}"),
                     client,
                 )
                 .await?;

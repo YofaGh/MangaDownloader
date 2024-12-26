@@ -22,13 +22,11 @@ pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), AppError> {
             let config: PageConfig = PageConfig::new()
                 .size(PageSize::Custom(image.width(), image.height()))
                 .quality(100);
-            Ok(file
-                .add_page_from_image(image, Some("Image".to_string()), Some(config))
+            file.add_page_from_image(image, Some("Image".to_string()), Some(config))
                 .map_err(|err: Error| {
                     AppError::PdfError(format!("Failed to add page from image: {:?}", err))
-                })?)
+                })
         })?;
-    Ok(file
-        .finish()
-        .map_err(|err: IoError| AppError::file("save", &path_buf, err))?)
+    file.finish()
+        .map_err(|err: IoError| AppError::file("save", &path_buf, err))
 }

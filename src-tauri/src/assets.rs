@@ -48,7 +48,7 @@ pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), AppError> {
     let default_settings: Settings = Settings::default();
     save_file(
         &data_dir_path.join("settings.json"),
-        to_value(&default_settings).unwrap(),
+        to_value(&default_settings)?,
     )?;
     let file_array: [&str; 4] = [
         "library.json",
@@ -107,20 +107,20 @@ fn save_file(path: &PathBuf, data: Value) -> Result<(), AppError> {
         .create_new(true)
         .open(path)
         .map_err(|err: IoError| AppError::file("open", &path, err))?;
-    file.write_all(to_string_pretty(&data).unwrap_or_default().as_bytes())
+    file.write_all(to_string_pretty(&data)?.as_bytes())
         .and_then(|_| file.flush())
         .map_err(|err: IoError| AppError::file("write to", &path, err))
 }
 
 fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {
-    Ok(window
+    window
         .emit("updateStatus", message)
         .map_err(|err: TauriError| {
             AppError::Other(format!(
                 "Failed to emit message: {message} to window: {}",
                 err
             ))
-        })?)
+        })
 }
 
 pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, AppError> {
@@ -141,10 +141,9 @@ pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)
     dirs.sort_by(|a: &PathBuf, b: &PathBuf| {
         natord::compare(a.to_str().unwrap_or(""), b.to_str().unwrap_or(""))
     });
-    Ok(dirs
-        .into_par_iter()
-        .filter_map(|path: PathBuf| open(&path).ok().map(|img: DynamicImage| (img, path)))
-        .collect())
+    dirs.into_par_iter()
+        .filter_map(|path: PathBuf| open(&path).ok().map(|img: DynamicImage| Ok((img, path))))
+        .collect()
 }
 
 pub fn append_dynamic_lib_extension(path: &str) -> String {

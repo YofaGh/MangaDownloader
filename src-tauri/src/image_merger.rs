@@ -79,9 +79,9 @@ pub fn merge(
                 );
                 y_offset += image.height();
             }
-            Ok(imgbuf
+            imgbuf
                 .save(format!("{image_name}.jpg"))
-                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))?)
+                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
         },
     )?;
     Ok(())
@@ -135,15 +135,15 @@ pub fn merge_fit(
                 overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
                 y_offset += scaled_height;
             }
-            Ok(imgbuf
+            imgbuf
                 .save(format!("{image_name}.jpg"))
-                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))?)
+                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
         },
     )?;
     Ok(())
 }
 
-fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
+fn copy_image(image_name: String, path: &PathBuf) -> Result<u64, AppError> {
     copy(
         path,
         format!(
@@ -151,6 +151,5 @@ fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
             path.extension().and_then(|ext| ext.to_str()).unwrap()
         ),
     )
-    .map_err(|err: Error| AppError::file("copy", path, err))?;
-    Ok(())
+    .map_err(|err: Error| AppError::file("copy", path, err))
 }

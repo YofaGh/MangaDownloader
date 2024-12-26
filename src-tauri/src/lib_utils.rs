@@ -50,8 +50,7 @@ pub fn unload_modules() -> Result<(), AppError> {
         .close()
         .map_err(|err: LibError| {
             AppError::library(format!("Failed to unload modules: {}", err.to_string()))
-        })?;
-    Ok(())
+        })
 }
 
 fn with_symbol<T, F, R>(name: &str, f: F) -> Result<R, AppError>

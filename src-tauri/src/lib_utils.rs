@@ -1,12 +1,14 @@
 use lazy_static::lazy_static;
-use libloading::{Library, Symbol};
+use libloading::{Error as LibError, Library, Symbol};
 use serde_json::Value;
 use std::{
     collections::HashMap,
     error::Error,
     path::PathBuf,
-    sync::{Mutex, MutexGuard},
+    sync::{Mutex, MutexGuard, PoisonError},
 };
+
+use crate::errors::AppError;
 
 lazy_static! {
     static ref LIB: Mutex<Option<Library>> = Mutex::new(None);
@@ -23,26 +25,52 @@ type DownloadImageFn = fn(String, String, String) -> Result<Option<String>, Box<
 type SearchByKeywordFn =
     fn(String, String, bool, f64, u32) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>>;
 
-pub fn load_modules(modules_path: &PathBuf) -> Result<(), Box<dyn Error>> {
-    let mut guard: MutexGuard<'_, Option<Library>> = LIB.lock()?;
-    let lib: Library = unsafe { Library::new(modules_path) }?;
+pub fn load_modules(modules_path: &PathBuf) -> Result<(), AppError> {
+    let mut guard: MutexGuard<'_, Option<Library>> =
+        LIB.lock()
+            .map_err(|err: PoisonError<MutexGuard<'_, Option<Library>>>| {
+                AppError::lock_library(err.to_string())
+            })?;
+    let lib: Library = unsafe { Library::new(modules_path) }.map_err(|err: LibError| {
+        AppError::library(format!("Failed to load modules: {}", err.to_string()))
+    })?;
     *guard = Some(lib);
     Ok(())
 }
 
-pub fn unload_modules() -> Result<(), Box<dyn Error>> {
-    let mut guard: MutexGuard<'_, Option<Library>> = LIB.lock()?;
-    guard.take().ok_or("Library not loaded")?.close()?;
+pub fn unload_modules() -> Result<(), AppError> {
+    let mut guard: MutexGuard<'_, Option<Library>> =
+        LIB.lock()
+            .map_err(|err: PoisonError<MutexGuard<'_, Option<Library>>>| {
+                AppError::lock_library(err.to_string())
+            })?;
+    guard
+        .take()
+        .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?
+        .close()
+        .map_err(|err: LibError| {
+            AppError::library(format!("Failed to unload modules: {}", err.to_string()))
+        })?;
     Ok(())
 }
 
-fn with_symbol<T, F, R>(name: &str, f: F) -> Result<R, Box<dyn Error>>
+fn with_symbol<T, F, R>(name: &str, f: F) -> Result<R, AppError>
 where
     F: FnOnce(Symbol<T>) -> R,
 {
-    let guard: MutexGuard<'_, Option<Library>> = LIB.lock()?;
-    let lib: &Library = guard.as_ref().ok_or("Library not loaded")?;
-    let symbol: Symbol<T> = unsafe { lib.get(name.as_bytes())? };
+    let guard: MutexGuard<'_, Option<Library>> =
+        LIB.lock()
+            .map_err(|err: PoisonError<MutexGuard<'_, Option<Library>>>| {
+                AppError::lock_library(err.to_string())
+            })?;
+    let lib: &Library = guard
+        .as_ref()
+        .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?;
+    let symbol: Symbol<T> = unsafe {
+        lib.get(name.as_bytes()).map_err(|err: LibError| {
+            AppError::library(format!("Failed to get symbol: {}", err.to_string()))
+        })?
+    };
     Ok(f(symbol))
 }
 

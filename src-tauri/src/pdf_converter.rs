@@ -1,6 +1,6 @@
 use image::DynamicImage;
-use scannedpdf::{create, PageConfig, PageSize, PDF};
-use std::fs::File;
+use scannedpdf::{create, Error, PageConfig, PageSize, PDF};
+use std::{fs::File, io::Error as IoError, path::PathBuf};
 
 use crate::{assets::detect_images, errors::AppError};
 
@@ -11,19 +11,24 @@ pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), AppError> {
         .map(|(image, _)| image)
         .collect();
     if images.is_empty() {
-        return Err(AppError::NoImages(format!("No images found in {path}")));
+        return Err(AppError::no_images(path));
     }
-    let mut file: PDF<File> = create(
-        format!("{path}/{pdf_name}"),
-        PageConfig::new(),
-        images.len(),
-    )?;
-    images.into_iter().for_each(|image: DynamicImage| {
-        let config: PageConfig = PageConfig::new()
-            .size(PageSize::Custom(image.width(), image.height()))
-            .quality(100);
-        file.add_page_from_image(image, Some("Image".to_string()), Some(config))
-            .unwrap();
-    });
-    Ok(file.finish()?)
+    let path_buf: PathBuf = PathBuf::from(format!("{path}/{pdf_name}"));
+    let mut file: PDF<File> = create(&path_buf, PageConfig::new(), images.len())
+        .map_err(|err: IoError| AppError::file("create", &path_buf, err))?;
+    images
+        .into_iter()
+        .try_for_each(|image: DynamicImage| -> Result<(), AppError> {
+            let config: PageConfig = PageConfig::new()
+                .size(PageSize::Custom(image.width(), image.height()))
+                .quality(100);
+            Ok(file
+                .add_page_from_image(image, Some("Image".to_string()), Some(config))
+                .map_err(|err: Error| {
+                    AppError::PdfError(format!("Failed to add page from image: {:?}", err))
+                })?)
+        })?;
+    Ok(file
+        .finish()
+        .map_err(|err: IoError| AppError::file("save", &path_buf, err))?)
 }

@@ -24,7 +24,7 @@ pub async fn get_data_dir_path(app: AppHandle) -> String {
 
 #[command(async)]
 pub async fn update_checker(app: AppHandle) {
-    let path: String = append_dynamic_lib_extension("resources/modules".to_string());
+    let path: String = append_dynamic_lib_extension("resources/modules");
     let modules_path: PathBuf = app.path().resolve(path, Resource).unwrap();
     lib_utils::load_modules(&modules_path).unwrap();
     let splash_screen_window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
@@ -52,60 +52,44 @@ pub async fn remove_directory(path: String, recursive: bool) -> Result<(), AppEr
         return Ok(());
     }
     if recursive {
-        remove_dir_all(&path).await.map_err(|e: Error| {
-            AppError::DirectoryRemoval(format!(
-                "Failed to remove the directory {path}: {}",
-                e.to_string()
-            ))
-        })
-    } else {
-        let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
-            AppError::DirectoryRemoval(format!(
-                "Failed to remove the directory {path}: {}",
-                e.to_string()
-            ))
-        })?;
-        if let Ok(None) = entries.next_entry().await {
-            remove_dir(&path).await.map_err(|e: Error| {
-                AppError::DirectoryRemoval(format!(
-                    "Failed to remove the directory {path}: {}",
-                    e.to_string()
-                ))
-            })
-        } else {
-            Ok(())
-        }
+        return remove_dir_all(&path)
+            .await
+            .map_err(|err: Error| AppError::directory("remove", &path, err));
     }
+    let mut entries: ReadDir = read_dir(&path)
+        .await
+        .map_err(|err: Error| AppError::directory("remove", &path, err))?;
+    if let Ok(None) = entries.next_entry().await {
+        return remove_dir(&path)
+            .await
+            .map_err(|err: Error| AppError::directory("remove", &path, err));
+    }
+    Ok(())
 }
 
 #[command(async)]
 pub async fn create_directory(path: String) -> Result<(), AppError> {
-    create_dir_all(&path).await.map_err(|e: Error| {
-        AppError::DirectoryCreation(format!(
-            "Failed to create the directory {path}: {}",
-            e.to_string()
-        ))
-    })
+    create_dir_all(&path)
+        .await
+        .map_err(|err: Error| AppError::directory("create", &path, err))
 }
 
 #[command(async)]
 pub async fn read_directory(path: String) -> Result<Vec<String>, AppError> {
-    let mut entries: ReadDir = read_dir(&path).await.map_err(|e: Error| {
-        AppError::DirectoryReading(format!(
-            "Failed to read the directory {path}: {}",
-            e.to_string()
-        ))
-    })?;
+    let mut entries: ReadDir = read_dir(&path)
+        .await
+        .map_err(|err: Error| AppError::directory("read", &path, err))?;
     let mut paths: Vec<String> = Vec::new();
-    while let Some(entry) = entries.next_entry().await.map_err(|e: Error| {
-        AppError::DirectoryReading(format!(
-            "Failed to read the directory {path}: {}",
-            e.to_string()
-        ))
-    })? {
-        if let Some(path_str) = entry.path().to_str() {
-            paths.push(path_str.to_string());
-        }
+    while let Some(entry) = entries
+        .next_entry()
+        .await
+        .map_err(|err: Error| AppError::directory("read", &path, err))?
+    {
+        entry
+            .path()
+            .to_str()
+            .and_then(|path_str: &str| Some(paths.push(path_str.to_string())))
+            .unwrap();
     }
     Ok(paths)
 }

@@ -29,11 +29,10 @@ pub fn merge_folder(
     create_dir_all(path_to_destination)
         .map_err(|err: Error| AppError::directory("create", path_to_source, err))?;
     if merge_method == "Normal" {
-        merge(images, path_to_destination)?;
+        merge(images, path_to_destination)
     } else {
-        merge_fit(images, path_to_destination)?;
+        merge_fit(images, path_to_destination)
     }
-    Ok(())
 }
 
 pub fn merge(
@@ -63,8 +62,7 @@ pub fn merge(
         |(index, (list_to_merge, max_width, total_height))| -> Result<(), AppError> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
-                copy_image(image_name, &list_to_merge[0].1)?;
-                return Ok(());
+                return copy_image(image_name, &list_to_merge[0].1).map(|_| ());
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
@@ -83,8 +81,7 @@ pub fn merge(
                 .save(format!("{image_name}.jpg"))
                 .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
         },
-    )?;
-    Ok(())
+    )
 }
 
 pub fn merge_fit(
@@ -121,8 +118,7 @@ pub fn merge_fit(
         |(index, (list_to_merge, min_width, total_height))| -> Result<(), AppError> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
-                copy_image(image_name, &list_to_merge[0].1)?;
-                return Ok(());
+                return copy_image(image_name, &list_to_merge[0].1).map(|_| ());
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
@@ -139,8 +135,7 @@ pub fn merge_fit(
                 .save(format!("{image_name}.jpg"))
                 .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
         },
-    )?;
-    Ok(())
+    )
 }
 
 fn copy_image(image_name: String, path: &PathBuf) -> Result<u64, AppError> {

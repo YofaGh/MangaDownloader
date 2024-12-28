@@ -11,7 +11,6 @@ import {
 } from "../utils";
 
 export default async function moduleChecker(module, setStepStatuses) {
-  const data_dir_path = await getDataDirPath();
   const updateStepStatus = (stepIndex, status) => {
     setStepStatuses((prev) => {
       const newStatuses = [...prev];
@@ -50,6 +49,7 @@ export default async function moduleChecker(module, setStepStatuses) {
       chapter
     );
     if (images.length > 0) {
+      const data_dir_path = await getDataDirPath();
       stat = "done";
       image = images[0];
       path = Array.isArray(save_names)

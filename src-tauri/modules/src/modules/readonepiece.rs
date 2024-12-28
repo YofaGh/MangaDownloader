@@ -1,5 +1,3 @@
-//modules/readonepiece.rs
-use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::header::HeaderMap;
 use select::{
@@ -8,7 +6,12 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
+
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Readonepiece {
     base: BaseModule,
@@ -19,7 +22,7 @@ impl Module for Readonepiece {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -60,7 +63,7 @@ impl Module for Readonepiece {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{manga}-{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -74,7 +77,7 @@ impl Module for Readonepiece {
     async fn get_chapters(
         &self,
         manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());

@@ -1,9 +1,11 @@
+mod errors;
 mod models;
 mod modules;
+pub use errors::AppError;
 use models::{DefaultModule, Module};
 use modules::*;
 use serde_json::Value;
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -75,16 +77,20 @@ pub fn get_module_sample(domain: String) -> HashMap<String, String> {
 }
 
 #[no_mangle]
-pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-    Runtime::new()?.block_on(get_module(domain).get_info(manga))
+pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain).get_info(manga))
 }
 
 #[no_mangle]
 pub fn get_chapters(
     domain: String,
     manga: String,
-) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    Runtime::new()?.block_on(get_module(domain).get_chapters(manga))
+) -> Result<Vec<HashMap<String, String>>, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain).get_chapters(manga))
 }
 
 #[no_mangle]
@@ -92,8 +98,10 @@ pub fn get_images(
     domain: String,
     manga: String,
     chapter: String,
-) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-    Runtime::new()?.block_on(get_module(domain).get_images(manga, chapter))
+) -> Result<(Vec<String>, Value), AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain).get_images(manga, chapter))
 }
 
 #[no_mangle]
@@ -103,8 +111,9 @@ pub fn search_by_keyword(
     absolute: bool,
     sleep_time: f64,
     page_limit: u32,
-) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-    Runtime::new()?
+) -> Result<Vec<HashMap<String, String>>, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
         .block_on(get_module(domain).search_by_keyword(keyword, absolute, sleep_time, page_limit))
 }
 
@@ -113,11 +122,15 @@ pub fn download_image(
     domain: String,
     url: String,
     image_name: String,
-) -> Result<Option<String>, Box<dyn Error>> {
-    Runtime::new()?.block_on(get_module(domain).download_image(url, image_name))
+) -> Result<Option<String>, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain).download_image(url, image_name))
 }
 
 #[no_mangle]
-pub fn retrieve_image(domain: String, url: String) -> Result<String, Box<dyn Error>> {
-    Runtime::new()?.block_on(get_module(domain).retrieve_image(url))
+pub fn retrieve_image(domain: String, url: String) -> Result<String, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain).retrieve_image(url))
 }

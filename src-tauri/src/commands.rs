@@ -120,13 +120,17 @@ pub async fn get_modules() -> Vec<HashMap<String, Value>> {
 
 #[command(async)]
 pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
-    lib_utils::get_info(domain, url).await.unwrap_or_default()
+    lib_utils::get_info(domain, url)
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
 }
 
 #[command(async)]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
     lib_utils::get_chapters(domain, url)
         .await
+        .map_err(|err: AppError| println!("{}", err))
         .unwrap_or_default()
 }
 
@@ -134,6 +138,7 @@ pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, St
 pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<String>, Value) {
     lib_utils::get_images(domain, manga, chapter)
         .await
+        .map_err(|err: AppError| println!("{}", err))
         .unwrap_or_default()
 }
 
@@ -141,6 +146,7 @@ pub async fn get_images(domain: String, manga: String, chapter: String) -> (Vec<
 pub async fn download_image(domain: String, url: String, image_name: String) -> Option<String> {
     lib_utils::download_image(domain, url, image_name)
         .await
+        .map_err(|err: AppError| println!("{}", err))
         .unwrap_or_default()
 }
 
@@ -154,6 +160,7 @@ pub async fn search_by_keyword(
 ) -> Vec<HashMap<String, String>> {
     lib_utils::search_by_keyword(domain, keyword, sleep_time, page_limit, absolute)
         .await
+        .map_err(|err: AppError| println!("{}", err))
         .unwrap_or_default()
 }
 
@@ -161,6 +168,7 @@ pub async fn search_by_keyword(
 pub async fn retrieve_image(domain: String, url: String) -> String {
     lib_utils::retrieve_image(domain, url)
         .await
+        .map_err(|err: AppError| println!("{}", err))
         .unwrap_or_default()
 }
 

@@ -5,14 +5,15 @@ use reqwest::{header::HeaderMap, Client, Error as ReqwestError, Method, RequestB
 use serde_json::Value;
 use std::{
     collections::HashMap,
-    error::Error,
-    io::{Error as IoError, ErrorKind::Other},
+    io::{Error as IoError, ErrorKind as IoErrorKind},
 };
 use tokio::{
     fs::File,
     io::{copy, AsyncWriteExt},
 };
 use tokio_util::{bytes::Bytes, io::StreamReader};
+
+use crate::errors::AppError;
 
 pub struct BaseModule {
     pub type_: &'static str,
@@ -71,7 +72,7 @@ pub trait Module: Send + Sync {
         &self,
         url: String,
         image_name: String,
-    ) -> Result<Option<String>, Box<dyn Error>> {
+    ) -> Result<Option<String>, AppError> {
         let (response, _) = self
             .send_request(
                 &url,
@@ -86,14 +87,20 @@ pub trait Module: Send + Sync {
             .await?;
         let stream = response
             .bytes_stream()
-            .map_err(|e: ReqwestError| IoError::new(Other, e.to_string()));
+            .map_err(|err: ReqwestError| IoError::new(IoErrorKind::Other, err.to_string()));
         let mut reader = StreamReader::new(stream);
-        let mut file: File = File::create(&image_name).await?;
-        copy(&mut reader, &mut file).await?;
-        file.flush().await?;
+        let mut file: File = File::create(&image_name)
+            .await
+            .map_err(|err: IoError| AppError::file("create", &image_name, err))?;
+        copy(&mut reader, &mut file)
+            .await
+            .map_err(|err: IoError| AppError::file("copy", &image_name, err))?;
+        file.flush()
+            .await
+            .map_err(|err: IoError| AppError::file("flush", &image_name, err))?;
         Ok(Some(image_name))
     }
-    async fn retrieve_image(&self, url: String) -> Result<String, Box<dyn Error>> {
+    async fn retrieve_image(&self, url: String) -> Result<String, AppError> {
         let (response, _) = self
             .send_request(
                 &url,
@@ -114,16 +121,13 @@ pub trait Module: Send + Sync {
         &self,
         _manga: String,
         _chapter: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         Ok(Default::default())
     }
-    async fn get_info(&self, _manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, _manga: String) -> Result<HashMap<String, Value>, AppError> {
         Ok(Default::default())
     }
-    async fn get_chapters(
-        &self,
-        _manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    async fn get_chapters(&self, _manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
         Ok(Default::default())
     }
     async fn search_by_keyword(
@@ -132,8 +136,8 @@ pub trait Module: Send + Sync {
         _absolute: bool,
         _sleep_time: f64,
         _page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        Ok(Vec::<HashMap<String, String>>::new())
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+        Ok(Default::default())
     }
     fn rename_chapter(&self, chapter: String) -> String {
         let mut new_name: String = String::new();
@@ -175,7 +179,7 @@ pub trait Module: Send + Sync {
         json: Option<Value>,
         params: Option<Value>,
         client: Option<Client>,
-    ) -> Result<(Response, Client), Box<dyn Error>> {
+    ) -> Result<(Response, Client), AppError> {
         let client: Client = match client {
             Some(c) => c,
             None => Client::builder()
@@ -194,9 +198,9 @@ pub trait Module: Send + Sync {
         }
         let response: Response = request.send().await?;
         if !response.status().is_success() {
-            return Err(Box::new(IoError::new(
-                Other,
-                format!("Received non-200 status code: {}", response.status()),
+            return Err(AppError::ReqwestError(format!(
+                "Received non-200 status code for {url}: {}",
+                response.status()
             )));
         }
         Ok((response, client))
@@ -205,7 +209,7 @@ pub trait Module: Send + Sync {
         &self,
         url: &str,
         client: Option<Client>,
-    ) -> Result<(Response, Client), Box<dyn Error>> {
+    ) -> Result<(Response, Client), AppError> {
         self.send_request(
             url,
             Method::GET,

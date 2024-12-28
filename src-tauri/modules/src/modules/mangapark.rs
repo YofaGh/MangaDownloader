@@ -1,4 +1,3 @@
-use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::Client;
 use select::{
@@ -7,7 +6,12 @@ use select::{
     predicate::{Attr, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error, thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
+
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Mangapark {
     base: BaseModule,
@@ -18,7 +22,7 @@ impl Module for Mangapark {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -96,7 +100,7 @@ impl Module for Mangapark {
     async fn get_chapters(
         &self,
         manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -136,7 +140,7 @@ impl Module for Mangapark {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://mangapark.to/title/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -173,7 +177,7 @@ impl Module for Mangapark {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

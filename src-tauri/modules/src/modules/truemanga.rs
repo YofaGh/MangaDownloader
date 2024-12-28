@@ -1,4 +1,3 @@
-use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderValue, REFERER},
@@ -10,7 +9,12 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error, thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
+
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Truemanga {
     base: BaseModule,
@@ -21,7 +25,7 @@ impl Module for Truemanga {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -119,7 +123,7 @@ impl Module for Truemanga {
     async fn get_chapters(
         &self,
         manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let html: String = response.text().await?;
@@ -128,15 +132,15 @@ impl Module for Truemanga {
             let script: Node = document
                 .find(|tag: &Node| tag.name() == Some("script") && tag.text().contains("bookId"))
                 .next()
-                .ok_or("Script with bookId not found")?;
+                .ok_or_else(|| AppError::parser(&url, "Script with bookId not found"))?;
             script
                 .text()
                 .split("bookId = ")
                 .nth(1)
-                .ok_or("bookId not found in script")?
+                .ok_or_else(|| AppError::parser(&url, "BookId not found in script"))?
                 .split(';')
                 .next()
-                .ok_or("Invalid bookId format")?
+                .ok_or_else(|| AppError::parser(&url, "Invalid bookId format"))?
                 .trim()
                 .to_string()
         };
@@ -174,7 +178,7 @@ impl Module for Truemanga {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://truemanga.com/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -206,7 +210,7 @@ impl Module for Truemanga {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

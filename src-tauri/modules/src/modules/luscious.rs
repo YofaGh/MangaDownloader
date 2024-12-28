@@ -1,4 +1,3 @@
-use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime};
 use reqwest::Client;
@@ -8,7 +7,12 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error, thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
+
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Luscious {
     base: BaseModule,
@@ -19,7 +23,7 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://www.luscious.net/albums/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -131,8 +135,16 @@ impl Module for Luscious {
         &self,
         manga: String,
         _: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
-        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query%2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520url_to_original%2520position%2520%257B%2520category%2520text%2520url%2520%257D%2520thumbnails%2520%257B%2520width%2520height%2520size%2520url%2520%257D%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520page%2520total_pages%2520%257D%2520&variables=%7B%22input%22%3A%7B%22filters%22%3A%5B%7B%22name%22%3A%22album_id%22%2C%22value%22%3A%22__album__id__%22%7D%5D%2C%22display%22%3A%22position%22%2C%22items_per_page%22%3A50%2C%22page%22%3A__page__number__%7D%7D";
+    ) -> Result<(Vec<String>, Value), AppError> {
+        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query\
+        %2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture\
+        %2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
+        FacetCollectionInfo%2520%257D%2520items%2520%257B%2520url_to_original%2520position%2520%257B%2520category\
+        %2520text%2520url%2520%257D%2520thumbnails%2520%257B%2520width%2520height%2520size\
+        %2520url%2520%257D%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo\
+        %2520on%2520FacetCollectionInfo%2520%257B%2520page%2520total_pages%2520%257D%2520&\
+        variables=%7B%22input%22%3A%7B%22filters%22%3A%5B%7B%22name%22%3A%22album_id%22%2C%22value%22%3A%22__album__id__\
+        %22%7D%5D%2C%22display%22%3A%22position%22%2C%22items_per_page%22%3A50%2C%22page%22%3A__page__number__%7D%7D";
         let url: String = data
             .replace("__album__id__", &manga)
             .replace("__page__number__", "1");
@@ -173,8 +185,20 @@ impl Module for Luscious {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
-        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...FacetCollectionInfo%2520%257D%2520items%2520%257B%2520...AlbumInSearchList%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on%2520FacetCollectionInfo%2520%257B%2520total_pages%2520%257D%2520fragment%2520AlbumInSearchList%2520on%2520Album%2520%257B%2520__typename%2520id%2520title%2520%257D%2520&variables=%7B%22input%22%3A%7B%22items_per_page%22%3A30%2C%22display%22%3A%22search_score%22%2C%22filters%22%3A%5B%7B%22name%22%3A%22album_type%22%2C%22value%22%3A%22manga%22%7D%2C%7B%22name%22%3A%22audience_ids%22%2C%22value%22%3A%22%2B1%2B3%2B5%22%7D%2C%7B%22name%22%3A%22language_ids%22%2C%22value%22%3A%22%2B1%2B100%2B101%2B2%2B3%2B4%2B5%2B6%2B8%2B9%2B99%22%7D%2C%7B%22name%22%3A%22search_query%22%2C%22value%22%3A%22__keyword__%22%7D%5D%2C%22page%22%3A__page__number__%7D%7D";
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+        let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&\
+        query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list\
+        %28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
+        FacetCollectionInfo%2520%257D%2520items%2520%257B%2520...\
+        AlbumInSearchList%2520%257D%2520%257D%2520%257D%2520%257D%2520fragment%2520FacetCollectionInfo%2520on\
+        %2520FacetCollectionInfo%2520%257B%2520total_pages\
+        %2520%257D%2520fragment%2520AlbumInSearchList%2520on%2520Album%2520%257B%2520__typename\
+        %2520id%2520title%2520%257D%2520&variables=%7B%22input%22%3A%7B%22items_per_page\
+        %22%3A30%2C%22display%22%3A%22search_score%22%2C%22filters%22%3A%5B%7B%22name%22%3A%22album_type\
+        %22%2C%22value%22%3A%22manga%22%7D%2C%7B%22name%22%3A%22audience_ids\
+        %22%2C%22value%22%3A%22%2B1%2B3%2B5%22%7D%2C%7B%22name%22%3A%22language_ids\
+        %22%2C%22value%22%3A%22%2B1%2B100%2B101%2B2%2B3%2B4%2B5%2B6%2B8%2B9%2B99%22%7D%2C%7B%22name%22%3A%22search_query\
+        %22%2C%22value%22%3A%22__keyword__%22%7D%5D%2C%22page%22%3A__page__number__%7D%7D";
         let mut total_pages: u32 = 1000;
         let mut page: u32 = 1;
         let mut results: Vec<HashMap<String, String>> = Vec::new();

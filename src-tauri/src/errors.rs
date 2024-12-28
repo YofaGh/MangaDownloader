@@ -3,7 +3,6 @@ use semver::Error as SemverError;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 use std::{
-    error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
     io::Error as IoError,
     path::Path,
@@ -19,6 +18,7 @@ pub enum AppError {
     ParserError(String),
     PdfError(String),
     ReqwestError(String),
+    RuntimeError(String),
     SemverError(String),
     SerdeJsonError(String),
 }
@@ -50,28 +50,28 @@ impl AppError {
     }
 }
 
-impl StdError for AppError {}
-
 impl Display for AppError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            AppError::DirectoryOperation(msg)
-            | AppError::FileOperation(msg)
-            | AppError::ImageError(msg)
-            | AppError::LibraryError(msg)
-            | AppError::Other(msg)
-            | AppError::ParserError(msg)
-            | AppError::PdfError(msg)
-            | AppError::ReqwestError(msg)
-            | AppError::SemverError(msg)
-            | AppError::SerdeJsonError(msg) => write!(f, "{msg}"),
-        }
+        let (error_type, msg) = match self {
+            AppError::DirectoryOperation(msg) => ("Directory operation error", msg),
+            AppError::FileOperation(msg) => ("File operation error", msg),
+            AppError::ImageError(msg) => ("Image error", msg),
+            AppError::LibraryError(msg) => ("Library error", msg),
+            AppError::Other(msg) => ("Other error", msg),
+            AppError::ParserError(msg) => ("Parser error", msg),
+            AppError::PdfError(msg) => ("PDF error", msg),
+            AppError::ReqwestError(msg) => ("Reqwest error", msg),
+            AppError::RuntimeError(msg) => ("Runtime error", msg),
+            AppError::SemverError(msg) => ("Semver error", msg),
+            AppError::SerdeJsonError(msg) => ("Serde JSON error", msg),
+        };
+        write!(f, "{error_type}: {msg}")
     }
 }
 
 impl From<ReqwestError> for AppError {
     fn from(err: ReqwestError) -> Self {
-        AppError::ReqwestError(err.to_string())
+        AppError::ReqwestError(format!("Reqwest error: {err}"))
     }
 }
 

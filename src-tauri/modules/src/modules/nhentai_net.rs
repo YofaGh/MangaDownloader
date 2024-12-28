@@ -6,9 +6,12 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error, thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
 
-use crate::models::{BaseModule, Module};
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Nhentai {
     base: BaseModule,
@@ -20,7 +23,7 @@ impl Module for Nhentai {
         &self.base
     }
 
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -97,7 +100,7 @@ impl Module for Nhentai {
         &self,
         code: String,
         _: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -120,7 +123,7 @@ impl Module for Nhentai {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

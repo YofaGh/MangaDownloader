@@ -1,4 +1,3 @@
-use crate::models::{BaseModule, Module};
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderValue, COOKIE, REFERER},
@@ -10,7 +9,12 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, error::Error, thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
+
+use crate::{
+    errors::AppError,
+    models::{BaseModule, Module},
+};
 
 pub struct Toonily {
     base: BaseModule,
@@ -21,7 +25,7 @@ impl Module for Toonily {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Box<dyn Error>> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -126,7 +130,7 @@ impl Module for Toonily {
     async fn get_chapters(
         &self,
         manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -158,7 +162,7 @@ impl Module for Toonily {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), Box<dyn Error>> {
+    ) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -182,7 +186,7 @@ impl Module for Toonily {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Box<dyn Error>> {
+    ) -> Result<Vec<HashMap<String, String>>, AppError> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut search_headers: HeaderMap = HeaderMap::new();

@@ -71,7 +71,7 @@ impl Display for AppError {
 
 impl From<ReqwestError> for AppError {
     fn from(err: ReqwestError) -> Self {
-        AppError::ReqwestError(format!("Reqwest error: {err}"))
+        AppError::ReqwestError(err.to_string())
     }
 }
 

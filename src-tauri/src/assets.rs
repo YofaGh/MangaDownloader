@@ -1,10 +1,12 @@
 use image::{open, DynamicImage};
+use natord::compare;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use reqwest::get;
 use semver::Version;
 use serde::Serialize;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
+    ffi::OsStr,
     fs::{read_dir, write, DirEntry, File, OpenOptions},
     io::{Error as IoError, Write},
     path::PathBuf,
@@ -117,29 +119,25 @@ fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {
         .emit("updateStatus", message)
         .map_err(|err: TauriError| {
             AppError::Other(format!(
-                "Failed to emit message: {message} to window: {}",
-                err
+                "Failed to emit message: {message} to window: {err}"
             ))
         })
 }
 
 pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, AppError> {
-    let dirs: Vec<DirEntry> = read_dir(path_to_source)
+    let mut dirs: Vec<PathBuf> = read_dir(path_to_source)
         .map_err(|err: IoError| AppError::directory("read", path_to_source, err))?
         .filter_map(Result::ok)
-        .collect();
-    let mut dirs: Vec<PathBuf> = dirs
-        .into_iter()
-        .map(|entry: DirEntry| entry.path())
-        .filter(|path: &PathBuf| {
-            matches!(
-                path.extension().and_then(|ext| ext.to_str()),
-                Some("jpg") | Some("png") | Some("jpeg") | Some("gif") | Some("webp")
-            )
+        .filter_map(|entry: DirEntry| {
+            let path: PathBuf = entry.path();
+            match path.extension().and_then(|ext: &OsStr| ext.to_str()) {
+                Some("jpg") | Some("png") | Some("jpeg") | Some("gif") | Some("webp") => Some(path),
+                _ => None,
+            }
         })
         .collect();
     dirs.sort_by(|a: &PathBuf, b: &PathBuf| {
-        natord::compare(a.to_str().unwrap_or(""), b.to_str().unwrap_or(""))
+        compare(a.to_str().unwrap_or(""), b.to_str().unwrap_or(""))
     });
     dirs.into_par_iter()
         .filter_map(|path: PathBuf| open(&path).ok().map(|img: DynamicImage| Ok((img, path))))

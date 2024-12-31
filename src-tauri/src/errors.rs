@@ -21,6 +21,7 @@ pub enum AppError {
     RuntimeError(String),
     SemverError(String),
     SerdeJsonError(String),
+    TauriError(String),
 }
 
 impl AppError {
@@ -45,8 +46,8 @@ impl AppError {
     pub fn parser(url: &str, attr: &str) -> Self {
         Self::ParserError(format!("Failed to parse html {url}: {attr}"))
     }
-    pub fn save_image(name: String, err: String) -> Self {
-        Self::ImageError(format!("Failed to save merged image {name}.jpg: {err}"))
+    pub fn window(action: &str, name: &str, err: String) -> Self {
+        Self::TauriError(format!("Failed to {action} {name}{err}"))
     }
 }
 
@@ -64,6 +65,7 @@ impl Display for AppError {
             AppError::RuntimeError(msg) => ("Runtime error", msg),
             AppError::SemverError(msg) => ("Semver error", msg),
             AppError::SerdeJsonError(msg) => ("Serde JSON error", msg),
+            AppError::TauriError(msg) => ("Tauri error", msg),
         };
         write!(f, "{error_type}: {msg}")
     }

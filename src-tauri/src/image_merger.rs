@@ -6,14 +6,12 @@ use rayon::{
     iter::{IndexedParallelIterator, ParallelIterator},
     prelude::IntoParallelIterator,
 };
-use std::{
-    cmp::max,
-    fs::{copy, create_dir_all},
-    io::Error,
-    path::PathBuf,
-};
+use std::{cmp::max, fs::copy, io::Error, path::PathBuf};
 
-use crate::{assets::detect_images, errors::AppError};
+use crate::{
+    assets::{create_directory, detect_images},
+    errors::AppError,
+};
 
 const MAX_JPEG_HEIGHT: u32 = 65500;
 
@@ -26,8 +24,7 @@ pub fn merge_folder(
     if images.is_empty() {
         return Err(AppError::no_images(path_to_source));
     }
-    create_dir_all(path_to_destination)
-        .map_err(|err: Error| AppError::directory("create", path_to_source, err))?;
+    create_directory(path_to_destination)?;
     if merge_method == "Normal" {
         merge(images, path_to_destination)
     } else {
@@ -62,7 +59,7 @@ pub fn merge(
         |(index, (list_to_merge, max_width, total_height))| -> Result<(), AppError> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
-                return copy_image(image_name, &list_to_merge[0].1).map(|_| ());
+                return copy_image(image_name, &list_to_merge[0].1);
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(max_width, total_height, Rgb([255, 255, 255]));
@@ -77,9 +74,7 @@ pub fn merge(
                 );
                 y_offset += image.height();
             }
-            imgbuf
-                .save(format!("{image_name}.jpg"))
-                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
+            save_image(imgbuf, image_name)
         },
     )
 }
@@ -118,7 +113,7 @@ pub fn merge_fit(
         |(index, (list_to_merge, min_width, total_height))| -> Result<(), AppError> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
-                return copy_image(image_name, &list_to_merge[0].1).map(|_| ());
+                return copy_image(image_name, &list_to_merge[0].1);
             }
             let mut imgbuf: RgbImage =
                 ImageBuffer::from_pixel(min_width, total_height, Rgb([255, 255, 255]));
@@ -131,14 +126,12 @@ pub fn merge_fit(
                 overlay(&mut imgbuf, &resized_image.to_rgb8(), 0, y_offset as i64);
                 y_offset += scaled_height;
             }
-            imgbuf
-                .save(format!("{image_name}.jpg"))
-                .map_err(|err: ImageError| AppError::save_image(image_name, err.to_string()))
+            save_image(imgbuf, image_name)
         },
     )
 }
 
-fn copy_image(image_name: String, path: &PathBuf) -> Result<u64, AppError> {
+fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
     copy(
         path,
         format!(
@@ -146,5 +139,16 @@ fn copy_image(image_name: String, path: &PathBuf) -> Result<u64, AppError> {
             path.extension().and_then(|ext| ext.to_str()).unwrap()
         ),
     )
+    .map(|_| ())
     .map_err(|err: Error| AppError::file("copy", path, err))
+}
+
+fn save_image(image: RgbImage, image_name: String) -> Result<(), AppError> {
+    image
+        .save(format!("{image_name}.jpg"))
+        .map_err(|err: ImageError| {
+            AppError::ImageError(format!(
+                "Failed to save merged image {image_name}.jpg: {err}"
+            ))
+        })
 }

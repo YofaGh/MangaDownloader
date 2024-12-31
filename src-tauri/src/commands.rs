@@ -1,11 +1,10 @@
 use image::open;
 use serde_json::Value;
-use std::{collections::HashMap, io::Error, path::PathBuf, process::Command};
-use tauri::{command, path::BaseDirectory::Resource, AppHandle, Manager, WebviewWindow};
-use tokio::fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, ReadDir};
+use std::{collections::HashMap, fs::DirEntry, path::PathBuf, process::Command};
+use tauri::{command, AppHandle, Error as TauriError, Manager};
 
 use crate::{
-    assets::{append_dynamic_lib_extension, check_and_update_modules},
+    assets,
     errors::AppError,
     image_merger::merge_folder,
     lib_utils,
@@ -14,28 +13,15 @@ use crate::{
 };
 
 #[command(async)]
-pub async fn get_data_dir_path(app: AppHandle) -> String {
+pub async fn get_data_dir_path(app: AppHandle) -> Result<PathBuf, AppError> {
     app.path()
         .app_data_dir()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string()
+        .map_err(|err: TauriError| AppError::TauriError(err.to_string()))
 }
 
 #[command(async)]
-pub async fn update_checker(app: AppHandle) {
-    let path: String = append_dynamic_lib_extension("resources/modules");
-    let modules_path: PathBuf = app.path().resolve(path, Resource).unwrap();
-    lib_utils::load_modules(&modules_path).unwrap();
-    let splash_screen_window: WebviewWindow = app.get_webview_window("splashscreen").unwrap();
-    let unloaded_modules: bool = check_and_update_modules(&splash_screen_window, &modules_path)
-        .await
-        .unwrap();
-    if !unloaded_modules {
-        lib_utils::load_modules(&modules_path).unwrap();
-    }
-    splash_screen_window.close().unwrap();
-    app.get_webview_window("main").unwrap().show().unwrap();
+pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
+    assets::update_checker(app).await
 }
 
 #[command(async)]
@@ -48,50 +34,20 @@ pub async fn open_folder(path: String) {
 
 #[command(async)]
 pub async fn remove_directory(path: String, recursive: bool) -> Result<(), AppError> {
-    if !PathBuf::from(&path).exists() {
-        return Ok(());
-    }
-    if recursive {
-        return remove_dir_all(&path)
-            .await
-            .map_err(|err: Error| AppError::directory("remove", &path, err));
-    }
-    let mut entries: ReadDir = read_dir(&path)
-        .await
-        .map_err(|err: Error| AppError::directory("remove", &path, err))?;
-    if let Ok(None) = entries.next_entry().await {
-        return remove_dir(&path)
-            .await
-            .map_err(|err: Error| AppError::directory("remove", &path, err));
-    }
-    Ok(())
+    assets::remove_directory(path, recursive)
 }
 
 #[command(async)]
 pub async fn create_directory(path: String) -> Result<(), AppError> {
-    create_dir_all(&path)
-        .await
-        .map_err(|err: Error| AppError::directory("create", &path, err))
+    assets::create_directory(&path)
 }
 
 #[command(async)]
 pub async fn read_directory(path: String) -> Result<Vec<String>, AppError> {
-    let mut entries: ReadDir = read_dir(&path)
-        .await
-        .map_err(|err: Error| AppError::directory("read", &path, err))?;
-    let mut paths: Vec<String> = Vec::new();
-    while let Some(entry) = entries
-        .next_entry()
-        .await
-        .map_err(|err: Error| AppError::directory("read", &path, err))?
-    {
-        entry
-            .path()
-            .to_str()
-            .and_then(|path_str: &str| Some(paths.push(path_str.to_string())))
-            .unwrap();
-    }
-    Ok(paths)
+    assets::read_directory(&path)?
+        .into_iter()
+        .filter_map(|entry: DirEntry| entry.path().to_str().map(|path: &str| Ok(path.to_string())))
+        .collect()
 }
 
 #[command(async)]

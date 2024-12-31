@@ -19,6 +19,7 @@ pub enum AppError {
     RuntimeError(String),
     SemverError(String),
     SerdeJsonError(String),
+    TauriError(String),
 }
 
 impl AppError {
@@ -49,7 +50,8 @@ impl Display for AppError {
             | AppError::ReqwestError(msg)
             | AppError::SemverError(msg)
             | AppError::RuntimeError(msg)
-            | AppError::SerdeJsonError(msg) => write!(f, "{msg}"),
+            | AppError::SerdeJsonError(msg)
+            | AppError::TauriError(msg) => write!(f, "{msg}"),
         }
     }
 }

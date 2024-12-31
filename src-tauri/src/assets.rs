@@ -7,16 +7,20 @@ use serde::Serialize;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
     ffi::OsStr,
-    fs::{read_dir, write, DirEntry, File, OpenOptions},
+    fs::{
+        create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File, OpenOptions,
+    },
     io::{Error as IoError, Write},
     path::PathBuf,
 };
-use tauri::{Emitter, Error as TauriError, WebviewWindow};
+use tauri::{
+    path::BaseDirectory::Resource, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow,
+};
 use tokio::time::{sleep, Duration};
 
 use crate::{
     errors::AppError,
-    lib_utils::{get_modules_version, unload_modules},
+    lib_utils::{get_modules_version, load_modules, unload_modules},
 };
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";
@@ -65,18 +69,52 @@ pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), AppError> {
         })
 }
 
-pub async fn check_and_update_modules(
-    window: &WebviewWindow,
-    modules_path: &PathBuf,
-) -> Result<bool, AppError> {
-    emit_status(&window, "Checking for updates")?;
+pub fn remove_directory(path: String, recursive: bool) -> Result<(), AppError> {
+    if !PathBuf::from(&path).exists() {
+        return Ok(());
+    }
+    if recursive {
+        return remove_dir_all(&path)
+            .map_err(|err: IoError| AppError::directory("remove", &path, err));
+    }
+    if read_directory(&path)?.is_empty() {
+        return remove_dir(&path).map_err(|err: IoError| AppError::directory("remove", &path, err));
+    }
+    return Ok(());
+}
+
+pub fn create_directory(path: &str) -> Result<(), AppError> {
+    create_dir_all(&path).map_err(|err: IoError| AppError::directory("create", path, err))
+}
+
+pub fn read_directory(path: &str) -> Result<Vec<DirEntry>, AppError> {
+    read_dir(path)
+        .map_err(|err: IoError| AppError::directory("read", path, err))?
+        .into_iter()
+        .map(|res: Result<DirEntry, IoError>| {
+            res.map_err(|err: IoError| AppError::directory("read", path, err))
+        })
+        .collect()
+}
+
+pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
+    let path: String = append_dynamic_lib_extension("resources/modules");
+    let modules_path: PathBuf = app
+        .path()
+        .resolve(path, Resource)
+        .map_err(|err: TauriError| AppError::Other(err.to_string()))?;
+    load_modules(&modules_path)?;
+    let splash_screen_window: WebviewWindow = app
+        .get_webview_window("splashscreen")
+        .ok_or_else(|| AppError::window("get window", "splashscreen", String::new()))?;
+    emit_status(&splash_screen_window, "Checking for updates")?;
     let current_version: Version = Version::parse(&get_modules_version())?;
     let mut unloaded_modules: bool = false;
     match get(format!("{GITHUB_URL}modules-version.txt")).await {
         Ok(response) => {
             let latest_version: Version = Version::parse(response.text().await?.trim())?;
             if latest_version > current_version {
-                emit_status(&window, "Updating Modules")?;
+                emit_status(&splash_screen_window, "Updating Modules")?;
                 unload_modules()?;
                 unloaded_modules = true;
                 let path: String = append_dynamic_lib_extension(&format!(
@@ -84,20 +122,29 @@ pub async fn check_and_update_modules(
                 ));
                 match get(path).await {
                     Ok(response) => write(&modules_path, response.bytes().await?.to_vec())
-                        .map_err(|err: IoError| AppError::file("write to", modules_path, err))?,
+                        .map_err(|err: IoError| AppError::file("write to", &modules_path, err))?,
                     Err(_) => {
-                        emit_status(&window, "Failed to update modules")?;
+                        emit_status(&splash_screen_window, "Failed to update modules")?;
                         sleep(Duration::from_secs(1)).await;
                     }
                 }
             }
         }
         Err(_) => {
-            emit_status(&window, "Failed to check for updates")?;
+            emit_status(&splash_screen_window, "Failed to check for updates")?;
             sleep(Duration::from_secs(1)).await;
         }
     }
-    Ok(unloaded_modules)
+    if unloaded_modules {
+        load_modules(&modules_path)?;
+    }
+    splash_screen_window
+        .close()
+        .map_err(|err: TauriError| AppError::window("close", "splashscreen: ", err.to_string()))?;
+    app.get_webview_window("main")
+        .ok_or_else(|| AppError::window("get window", "main", String::new()))?
+        .show()
+        .map_err(|err: TauriError| AppError::window("show", "main: ", err.to_string()))
 }
 
 fn save_file(path: &PathBuf, data: Value) -> Result<(), AppError> {
@@ -118,16 +165,17 @@ fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {
     window
         .emit("updateStatus", message)
         .map_err(|err: TauriError| {
-            AppError::Other(format!(
-                "Failed to emit message: {message} to window: {err}"
-            ))
+            AppError::window(
+                &format!("emit message: {message}"),
+                window.label(),
+                err.to_string(),
+            )
         })
 }
 
 pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, AppError> {
-    let mut dirs: Vec<PathBuf> = read_dir(path_to_source)
-        .map_err(|err: IoError| AppError::directory("read", path_to_source, err))?
-        .filter_map(Result::ok)
+    let mut dirs: Vec<PathBuf> = read_directory(path_to_source)?
+        .into_iter()
         .filter_map(|entry: DirEntry| {
             let path: PathBuf = entry.path();
             match path.extension().and_then(|ext: &OsStr| ext.to_str()) {
@@ -144,7 +192,7 @@ pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)
         .collect()
 }
 
-pub fn append_dynamic_lib_extension(path: &str) -> String {
+fn append_dynamic_lib_extension(path: &str) -> String {
     if cfg!(target_family = "windows") {
         format!("{path}.dll")
     } else {

@@ -7,15 +7,11 @@ use serde::Serialize;
 use serde_json::{to_string_pretty, to_value, Value};
 use std::{
     ffi::OsStr,
-    fs::{
-        create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File, OpenOptions,
-    },
+    fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File},
     io::{Error as IoError, Write},
     path::PathBuf,
 };
-use tauri::{
-    path::BaseDirectory::Resource, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow,
-};
+use tauri::{path::BaseDirectory, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow};
 use tokio::time::{sleep, Duration};
 
 use crate::{
@@ -51,10 +47,9 @@ impl Default for Settings {
 }
 
 pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), AppError> {
-    let default_settings: Settings = Settings::default();
     save_file(
         &data_dir_path.join("settings.json"),
-        to_value(&default_settings)?,
+        to_value(Settings::default())?,
     )?;
     let file_array: [&str; 4] = [
         "library.json",
@@ -80,7 +75,7 @@ pub fn remove_directory(path: String, recursive: bool) -> Result<(), AppError> {
     if read_directory(&path)?.is_empty() {
         return remove_dir(&path).map_err(|err: IoError| AppError::directory("remove", &path, err));
     }
-    return Ok(());
+    Ok(())
 }
 
 pub fn create_directory(path: &str) -> Result<(), AppError> {
@@ -101,7 +96,7 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
     let path: String = append_dynamic_lib_extension("resources/modules");
     let modules_path: PathBuf = app
         .path()
-        .resolve(path, Resource)
+        .resolve(path, BaseDirectory::Resource)
         .map_err(|err: TauriError| AppError::Other(err.to_string()))?;
     load_modules(&modules_path)?;
     let splash_screen_window: WebviewWindow = app
@@ -151,14 +146,15 @@ fn save_file(path: &PathBuf, data: Value) -> Result<(), AppError> {
     if path.exists() {
         return Ok(());
     }
-    let mut file: File = OpenOptions::new()
+    let mut file: File = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(path)
         .map_err(|err: IoError| AppError::file("open", &path, err))?;
     file.write_all(to_string_pretty(&data)?.as_bytes())
-        .and_then(|_| file.flush())
-        .map_err(|err: IoError| AppError::file("write to", &path, err))
+        .map_err(|err: IoError| AppError::file("write to", &path, err))?;
+    file.flush()
+        .map_err(|err: IoError| AppError::file("flush", &path, err))
 }
 
 fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {

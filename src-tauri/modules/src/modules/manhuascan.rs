@@ -6,7 +6,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
@@ -29,121 +29,129 @@ impl Module for Manhuascan {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<&str, Value> = HashMap::new();
         let mut dates: HashMap<&str, Value> = HashMap::new();
-        if let Some(element) = document
+        document
             .find(Name("img").and(Attr("class", "attachment- size- wp-post-image")))
             .next()
-        {
-            info.insert(
-                "Cover".to_owned(),
-                to_value(element.attr("src").unwrap_or("")).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document.find(Name("h1").and(Class("entry-title"))).next() {
-            info.insert(
-                "Title".to_owned(),
-                to_value(element.text().trim()).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document.find(Name("span").and(Class("alternative"))).next() {
-            info.insert(
-                "Alternative".to_owned(),
-                to_value(element.text().trim().replace("Other Name: ", "")).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document
+            .and_then(|element: Node<'_>| {
+                element.attr("src").and_then(|v: &str| {
+                    info.insert("Cover".to_string(), to_value(v).unwrap_or_default())
+                })
+            });
+        document
+            .find(Name("h1").and(Class("entry-title")))
+            .next()
+            .and_then(|element: Node| {
+                info.insert(
+                    "Title".to_string(),
+                    to_value(element.text().trim()).unwrap_or_default(),
+                )
+            });
+        document
+            .find(Name("span").and(Class("alternative")))
+            .next()
+            .and_then(|element: Node| {
+                info.insert(
+                    "Alternative".to_string(),
+                    to_value(element.text().trim().replace("Other Name: ", "")).unwrap_or_default(),
+                )
+            });
+        document
             .find(Name("div").and(Attr("class", "entry-content entry-content-single")))
             .next()
-        {
-            info.insert(
-                "Summary".to_owned(),
-                to_value(element.text().trim()).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document.find(Name("div").and(Class("detail_rate"))).next() {
-            let rating_text: String = element
-                .find(Name("span"))
-                .next()
-                .unwrap()
-                .text()
-                .trim()
-                .replace("/5", "");
-            let rating_text: f32 = match rating_text.parse() {
-                Ok(v) => v,
-                Err(_) => 0.0,
-            };
-            info.insert(
-                "Rating".to_owned(),
-                to_value(rating_text).unwrap_or_default(),
-            );
-        }
-        if let Some(box_node) = document
+            .and_then(|element: Node| {
+                info.insert(
+                    "Summary".to_string(),
+                    to_value(element.text().trim()).unwrap_or_default(),
+                )
+            });
+        document
+            .find(Name("div").and(Class("detail_rate")))
+            .next()
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("span"))
+                    .next()
+                    .and_then(|span: Node<'_>| {
+                        info.insert(
+                            "Rating".to_string(),
+                            to_value(
+                                span.text()
+                                    .trim()
+                                    .replace("/5", "")
+                                    .parse::<f32>()
+                                    .unwrap_or_default(),
+                            )
+                            .unwrap_or_default(),
+                        )
+                    })
+            });
+        let Some(box_node) = document
             .find(Name("div").and(Attr("class", "tsinfo bixbox")))
             .next()
-        {
-            if let Some(element) = box_node
-                .find(|n: &Node| n.text().contains("Status"))
-                .next()
-                .and_then(|n: Node| n.find(Name("i")).next())
-            {
-                info.insert(
-                    "Status".to_owned(),
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-            if let Some(element) = box_node
-                .find(|n: &Node| n.text().contains("Author"))
-                .next()
-                .and_then(|n: Node| n.find(Name("a")).next())
-            {
-                extras.insert(
-                    "Authors",
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-            if let Some(element) = box_node
-                .find(|n: &Node| n.text().contains("Artist"))
-                .next()
-                .and_then(|n: Node| n.find(Name("a")).next())
-            {
-                extras.insert(
-                    "Artists",
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-            if let Some(element) = box_node.find(|n: &Node| n.text().contains("Posted")).next() {
-                dates.insert(
-                    "Posted On",
-                    to_value(
-                        element
-                            .find(Name("time"))
-                            .next()
-                            .unwrap()
-                            .attr("datetime")
-                            .unwrap_or(""),
+        else {
+            return Ok(info);
+        };
+        box_node
+            .find(|n: &Node| n.text().contains("Status"))
+            .next()
+            .and_then(|n: Node| {
+                n.find(Name("i")).next().and_then(|element: Node<'_>| {
+                    info.insert(
+                        "Status".to_string(),
+                        to_value(element.text().trim()).unwrap_or_default(),
                     )
-                    .unwrap_or_default(),
-                );
-            }
-            if let Some(element) = box_node
-                .find(|n: &Node| n.text().contains("Updated"))
-                .next()
-            {
-                dates.insert(
-                    "Updated On",
-                    to_value(
-                        element
-                            .find(Name("time"))
-                            .next()
-                            .unwrap()
-                            .attr("datetime")
-                            .unwrap_or(""),
+                })
+            });
+        box_node
+            .find(|n: &Node| n.text().contains("Author"))
+            .next()
+            .and_then(|n: Node| {
+                n.find(Name("a")).next().and_then(|element: Node<'_>| {
+                    extras.insert(
+                        "Authors",
+                        to_value(element.text().trim()).unwrap_or_default(),
                     )
-                    .unwrap_or_default(),
-                );
-            }
-        }
-        info.insert("Extras".to_owned(), to_value(extras).unwrap_or_default());
-        info.insert("Dates".to_owned(), to_value(dates).unwrap_or_default());
+                })
+            });
+        box_node
+            .find(|n: &Node| n.text().contains("Artist"))
+            .next()
+            .and_then(|n: Node| {
+                n.find(Name("a")).next().and_then(|element: Node<'_>| {
+                    extras.insert(
+                        "Artists",
+                        to_value(element.text().trim()).unwrap_or_default(),
+                    )
+                })
+            });
+        box_node
+            .find(|n: &Node| n.text().contains("Posted"))
+            .next()
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("time"))
+                    .next()
+                    .and_then(|time: Node<'_>| {
+                        time.attr("datetime").and_then(|v: &str| {
+                            dates.insert("Posted On", to_value(v).unwrap_or_default())
+                        })
+                    })
+            });
+        box_node
+            .find(|n: &Node| n.text().contains("Updated"))
+            .next()
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("time"))
+                    .next()
+                    .and_then(|time: Node<'_>| {
+                        time.attr("datetime").and_then(|v: &str| {
+                            dates.insert("Updated On", to_value(v).unwrap_or_default())
+                        })
+                    })
+            });
+        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        info.insert("Dates".to_string(), to_value(dates).unwrap_or_default());
         Ok(info)
     }
 
@@ -158,41 +166,32 @@ impl Module for Manhuascan {
         let images: Vec<String> = document
             .find(Name("div").and(Attr("id", "readerarea")))
             .next()
-            .unwrap()
+            .ok_or_else(|| AppError::parser(&manga, "readerarea"))?
             .find(Name("img"))
-            .filter_map(|img: Node| Some(img.attr("src").unwrap().to_string()))
+            .filter_map(|img: Node| img.attr("src").and_then(|v: &str| Some(v.to_string())))
             .collect();
         Ok((images, Value::Bool(false)))
     }
 
-    async fn get_chapters(
-        &self,
-        manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let divs: Vec<Node> = document.find(Name("div").and(Class("eph-num"))).collect();
-        let mut chapters: Vec<HashMap<String, String>> = Vec::new();
-        for div in divs {
-            let chapter_url: &str = div
-                .find(Name("a"))
-                .next()
-                .unwrap()
-                .attr("href")
-                .unwrap()
-                .split("/")
-                .last()
-                .unwrap();
-            chapters.push(HashMap::from([
-                ("url".to_string(), chapter_url.to_string()),
-                (
-                    "name".to_string(),
-                    self.rename_chapter(chapter_url.to_string()),
-                ),
-            ]));
-        }
-        Ok(chapters)
+        Ok(document
+            .find(Name("div").and(Class("eph-num")))
+            .filter_map(|div: Node<'_>| {
+                div.find(Name("a")).next().and_then(|a: Node<'_>| {
+                    a.attr("href").and_then(|href: &str| {
+                        href.split("/").last().and_then(|last: &str| {
+                            Some(HashMap::from([
+                                ("url".to_string(), last.to_string()),
+                                ("name".to_string(), self.rename_chapter(last.to_string())),
+                            ]))
+                        })
+                    })
+                })
+            })
+            .collect())
     }
 
     async fn search_by_keyword(
@@ -222,52 +221,61 @@ impl Module for Manhuascan {
                 break;
             }
             for manga in mangas {
-                let title_element: Node = manga.find(Name("a")).next().unwrap();
-                let title: &str = title_element.attr("title").unwrap();
+                let Some(title) = manga
+                    .find(Name("a"))
+                    .next()
+                    .and_then(|title_element: Node<'_>| title_element.attr("title"))
+                else {
+                    continue;
+                };
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                let mut latest_chapter: String = String::default();
-                if let Some(chapter) = manga
-                    .find(Name("div").and(Class("adds")))
-                    .next()
-                    .unwrap()
+                let Some(url) = manga
                     .find(Name("a"))
                     .next()
-                {
-                    latest_chapter = chapter
-                        .attr("href")
-                        .unwrap_or("")
-                        .split('/')
-                        .last()
-                        .unwrap_or("")
-                        .to_string();
-                }
-                let url: String = title_element
-                    .attr("href")
-                    .unwrap_or("")
-                    .split('/')
-                    .last()
-                    .unwrap_or("")
-                    .to_string();
-                let thumbnail: String = manga
-                    .find(Name("img"))
-                    .next()
-                    .unwrap()
-                    .attr("src")
-                    .unwrap_or("")
-                    .to_string();
-                results.push(HashMap::from([
+                    .and_then(|title_element: Node<'_>| {
+                        title_element
+                            .attr("href")
+                            .and_then(|href: &str| href.split('/').last())
+                    })
+                else {
+                    continue;
+                };
+                let mut result: HashMap<String, String> = HashMap::from([
                     ("name".to_string(), title.to_string()),
                     ("domain".to_string(), self.base.domain.to_string()),
-                    ("url".to_string(), url),
-                    ("latest_chapter".to_string(), latest_chapter),
-                    ("thumbnail".to_string(), thumbnail),
+                    ("url".to_string(), url.to_string()),
                     ("page".to_string(), page.to_string()),
-                ]));
+                ]);
+                manga
+                    .find(Name("div").and(Class("adds")))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        element
+                            .find(Name("a"))
+                            .next()
+                            .and_then(|chapter: Node<'_>| {
+                                chapter.attr("href").and_then(|href: &str| {
+                                    href.split('/').last().and_then(|last: &str| {
+                                        result
+                                            .insert("latest_chapter".to_string(), last.to_string())
+                                    })
+                                })
+                            })
+                    });
+                manga
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        element.attr("src").and_then(|src: &str| {
+                            result.insert("thumbnail".to_string(), src.to_string())
+                        })
+                    });
+                results.push(result);
             }
             page += 1;
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            self.sleep(sleep_time);
         }
         Ok(results)
     }

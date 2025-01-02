@@ -9,7 +9,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
@@ -34,96 +34,113 @@ impl Module for Truemanga {
         let info_box: Node = document
             .find(Name("div").and(Class("book-info")))
             .next()
-            .unwrap();
-        if let Some(element) = info_box.find(Name("div").and(Class("img-cover"))).next() {
-            if let Some(element) = element.find(Name("img")).next() {
-                info.insert(
-                    "Cover".to_owned(),
-                    to_value(element.attr("data-src").unwrap_or("")).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(element) = info_box
+            .ok_or_else(|| AppError::parser(&url, "book-info"))?;
+        info_box
+            .find(Name("div").and(Class("img-cover")))
+            .next()
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        element.attr("data-src").and_then(|src: &str| {
+                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
+                        })
+                    })
+            });
+        info_box
             .find(Name("div").and(Attr("class", "name box")))
             .next()
-        {
-            if let Some(element) = element.find(Name("h1")).next() {
-                info.insert(
-                    "Title".to_owned(),
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-            if let Some(element) = element.find(Name("h2")).next() {
-                info.insert(
-                    "Alternative".to_owned(),
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(element) = document
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("h1"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        info.insert(
+                            "Title".to_string(),
+                            to_value(element.text().trim()).unwrap_or_default(),
+                        )
+                    });
+                element
+                    .find(Name("h2"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        info.insert(
+                            "Alternative".to_string(),
+                            to_value(element.text().trim()).unwrap_or_default(),
+                        )
+                    })
+            });
+        document
             .find(Name("div").and(Attr("class", "section-body summary")))
             .next()
-        {
-            if let Some(element) = element.find(Name("p")).next() {
-                info.insert(
-                    "Summary".to_owned(),
-                    to_value(element.text().trim()).unwrap_or_default(),
-                );
-            }
-        }
-        let boxes: Vec<Node> = document
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("p"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        info.insert(
+                            "Summary".to_string(),
+                            to_value(element.text().trim()).unwrap_or_default(),
+                        )
+                    })
+            });
+        let Some(boxes) = document
             .find(Name("div").and(Attr("class", "meta box mt-1 p-10")))
             .next()
-            .unwrap()
-            .find(Name("p"))
-            .collect();
-        for box_elem in boxes {
+        else {
+            return Ok(info);
+        };
+        boxes.find(Name("p")).for_each(|box_elem: Node<'_>| {
             if box_elem.text().contains("Alt Name") {
-                info.insert(
-                    "Status".to_string(),
-                    to_value(box_elem.find(Name("span")).next().unwrap().text().trim())
-                        .unwrap_or_default(),
-                );
+                box_elem
+                    .find(Name("span"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        info.insert(
+                            "Status".to_string(),
+                            to_value(element.text().trim()).unwrap_or_default(),
+                        )
+                    });
             } else {
-                let label = box_elem
+                box_elem
                     .find(Name("strong"))
                     .next()
-                    .unwrap()
-                    .text()
-                    .replace(":", "")
-                    .trim()
-                    .to_string();
-                let links: Vec<Node> = box_elem.find(Name("a")).collect();
-                if links.len() <= 1 {
-                    extras.insert(
-                        label,
-                        to_value(box_elem.find(Name("span")).next().unwrap().text().trim())
-                            .unwrap_or_default(),
-                    );
-                } else {
-                    extras.insert(
-                        label,
-                        to_value(
-                            links
-                                .iter()
-                                .map(|link: &Node| {
-                                    link.text().trim().replace(" ", "").replace("\n,", "")
+                    .and_then(|element: Node<'_>| {
+                        let label: String = element.text().replace(":", "").trim().to_string();
+                        let links: Vec<Node> = box_elem.find(Name("a")).collect();
+                        if links.len() <= 1 {
+                            box_elem
+                                .find(Name("span"))
+                                .next()
+                                .and_then(|element: Node<'_>| {
+                                    extras.insert(
+                                        label,
+                                        to_value(element.text().trim()).unwrap_or_default(),
+                                    )
                                 })
-                                .collect::<Vec<String>>(),
-                        )
-                        .unwrap_or_default(),
-                    );
-                }
+                        } else {
+                            extras.insert(
+                                label,
+                                to_value(
+                                    links
+                                        .iter()
+                                        .map(|link: &Node| {
+                                            link.text().trim().replace(" ", "").replace("\n,", "")
+                                        })
+                                        .collect::<Vec<String>>(),
+                                )
+                                .unwrap_or_default(),
+                            )
+                        }
+                    });
             }
-        }
+        });
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         Ok(info)
     }
 
-    async fn get_chapters(
-        &self,
-        manga: String,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let html: String = response.text().await?;
@@ -151,27 +168,20 @@ impl Module for Truemanga {
             )
             .await?;
         let chapters_html: String = response.text().await?;
-        let chapters: Vec<HashMap<String, String>> = {
-            let document: Document = Document::from(chapters_html.as_str());
-            document
-                .find(Name("option"))
-                .map(|tag: Node| {
-                    HashMap::from([
-                        (
-                            "url".to_string(),
-                            tag.attr("value")
-                                .unwrap_or_default()
-                                .split("/")
-                                .last()
-                                .unwrap()
-                                .to_string(),
-                        ),
-                        ("name".to_string(), tag.text()),
-                    ])
+        let document: Document = Document::from(chapters_html.as_str());
+        Ok(document
+            .find(Name("option"))
+            .filter_map(|tag: Node| {
+                tag.attr("value").and_then(|value: &str| {
+                    value.split("/").last().and_then(|last: &str| {
+                        Some(HashMap::from([
+                            ("url".to_string(), last.to_string()),
+                            ("name".to_string(), tag.text()),
+                        ]))
+                    })
                 })
-                .collect()
-        };
-        Ok(chapters)
+            })
+            .collect())
     }
 
     async fn get_images(
@@ -185,11 +195,11 @@ impl Module for Truemanga {
         let script: String = document
             .find(|tag: &Node| tag.name() == Some("script") && tag.text().contains("chapImages"))
             .next()
-            .unwrap()
+            .ok_or_else(|| AppError::parser(&url, "Script with chapImages not found"))?
             .text();
         let mut imgs: String = script.replace("var chapImages = '", "").trim().to_string();
         imgs.truncate(imgs.len() - 1);
-        let images: Vec<String> = imgs.split(",").map(|s| s.to_string()).collect();
+        let images: Vec<String> = imgs.split(",").map(|s: &str| s.to_string()).collect();
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
@@ -227,73 +237,73 @@ impl Module for Truemanga {
                 break;
             }
             for manga in mangas {
-                let ti: String = manga
+                let Some(ti) = manga
                     .find(Name("div").and(Class("title")))
                     .next()
-                    .unwrap()
-                    .find(Name("a"))
-                    .next()
-                    .unwrap()
+                    .and_then(|element: Node<'_>| element.find(Name("a")).next())
+                else {
+                    continue;
+                };
+                let Some(title) = ti
                     .attr("title")
-                    .unwrap()
-                    .trim()
-                    .to_string();
-                if absolute && !ti.to_lowercase().contains(&keyword.to_lowercase()) {
+                    .and_then(|element: &str| Some(element.trim().to_string()))
+                else {
+                    continue;
+                };
+                if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                let mut result: HashMap<String, String> = HashMap::new();
-                result.insert("domain".to_string(), self.base.domain.to_string());
-                result.insert("name".to_string(), ti);
-                result.insert(
-                    "url".to_string(),
-                    manga
-                        .find(Name("div").and(Class("title")))
-                        .next()
-                        .unwrap()
-                        .find(Name("a"))
-                        .next()
-                        .unwrap()
-                        .attr("href")
-                        .unwrap()
-                        .split("/")
-                        .last()
-                        .unwrap()
-                        .to_string(),
-                );
-                result.insert(
-                    "thumbnail".to_string(),
-                    manga
-                        .find(Name("img"))
-                        .next()
-                        .unwrap()
-                        .attr("data-src")
-                        .unwrap()
-                        .to_string(),
-                );
-                if let Some(element) = manga.find(Name("span").and(Class("latest-chapter"))).next()
-                {
-                    result.insert(
-                        "latest_chapter".to_string(),
-                        element.attr("title").unwrap_or_default().to_string(),
-                    );
-                }
-                if let Some(element) = manga.find(Name("div").and(Class("genres"))).next() {
-                    result.insert(
-                        "genres".to_string(),
-                        element
-                            .children()
-                            .map(|x: Node| x.text())
-                            .collect::<Vec<String>>()
-                            .join(", "),
-                    );
-                }
-                if let Some(element) = manga.find(Name("div").and(Class("summary"))).next() {
-                    result.insert("summary".to_string(), element.text().trim().to_string());
-                }
+                let Some(url) = ti
+                    .attr("href")
+                    .and_then(|href: &str| href.split("/").last())
+                else {
+                    continue;
+                };
+                let mut result: HashMap<String, String> = HashMap::from([
+                    ("name".to_string(), title),
+                    ("domain".to_string(), self.base.domain.to_string()),
+                    ("url".to_string(), url.to_string()),
+                    ("page".to_string(), page.to_string()),
+                ]);
+                manga
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        element.attr("data-src").and_then(|src: &str| {
+                            result.insert("thumbnail".to_string(), src.to_string())
+                        })
+                    });
+                manga
+                    .find(Name("span").and(Class("latest-chapter")))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        element.attr("title").and_then(|titlel: &str| {
+                            result.insert("latest_chapter".to_string(), titlel.to_string())
+                        })
+                    });
+                manga
+                    .find(Name("div").and(Class("genres")))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        result.insert(
+                            "genres".to_string(),
+                            element
+                                .children()
+                                .map(|x: Node| x.text())
+                                .collect::<Vec<String>>()
+                                .join(", "),
+                        )
+                    });
+                manga
+                    .find(Name("div").and(Class("summary")))
+                    .next()
+                    .and_then(|element: Node<'_>| {
+                        result.insert("summary".to_string(), element.text().trim().to_string())
+                    });
                 results.push(result);
             }
             page += 1;
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            self.sleep(sleep_time);
         }
         Ok(results)
     }

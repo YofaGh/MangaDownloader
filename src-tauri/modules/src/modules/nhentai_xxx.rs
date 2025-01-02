@@ -6,7 +6,7 @@ use select::{
     predicate::{Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
@@ -28,63 +28,78 @@ impl Module for Nhentai {
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
-        if let Some(cover_element) = document.find(Class("cover")).next() {
-            if let Some(img) = cover_element.find(Name("img")).next() {
+        document
+            .find(Class("cover"))
+            .next()
+            .and_then(|cover_element: Node<'_>| {
+                cover_element
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|img: Node<'_>| {
+                        img.attr("data-src").and_then(|src: &str| {
+                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
+                        })
+                    })
+            });
+        document
+            .find(Name("h1"))
+            .next()
+            .and_then(|title_element: Node<'_>| {
                 info.insert(
-                    "Cover".to_string(),
-                    to_value(img.attr("data-src").unwrap_or_default()).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(title_element) = document.find(Name("h1")).next() {
-            info.insert(
-                "Title".to_string(),
-                to_value(title_element.text().trim()).unwrap_or_default(),
-            );
-        }
-        if let Some(alternative_element) = document.find(Name("h2")).next() {
-            info.insert(
-                "Alternative".to_string(),
-                to_value(alternative_element.text().trim()).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document
+                    "Title".to_string(),
+                    to_value(title_element.text().trim()).unwrap_or_default(),
+                )
+            });
+        document
+            .find(Name("h2"))
+            .next()
+            .and_then(|alternative_element: Node<'_>| {
+                info.insert(
+                    "Alternative".to_string(),
+                    to_value(alternative_element.text().trim()).unwrap_or_default(),
+                )
+            });
+        document
             .find(Name("li"))
             .filter(|n: &Node| n.text().contains("Pages:"))
             .next()
-        {
-            info.insert(
-                "Pages".to_string(),
-                to_value(element.text().replace("Pages:", "").trim()).unwrap_or_default(),
-            );
-        }
-        if let Some(element) = document
+            .and_then(|pages_element: Node<'_>| {
+                info.insert(
+                    "Pages".to_string(),
+                    to_value(pages_element.text().replace("Pages:", "").trim()).unwrap_or_default(),
+                )
+            });
+        document
             .find(Name("li"))
             .filter(|n: &Node| n.text().contains("Uploaded:"))
             .next()
-        {
-            info.insert(
-                "Uploaded".to_string(),
-                to_value(element.text().replace("Uploaded:", "").trim()).unwrap_or_default(),
-            );
-        }
-        for tag_box in document.find(Name("li").and(Class("tags"))) {
-            let key: String = tag_box.first_child().unwrap().text().trim().to_string();
-            let values: Vec<String> = tag_box
-                .find(Name("span").and(Class("tag_name")))
-                .map(|link: Node| link.text())
-                .collect();
-            extras.insert(key.replace(":", ""), to_value(values).unwrap_or_default());
-        }
+            .and_then(|uploaded_element: Node<'_>| {
+                info.insert(
+                    "Uploaded".to_string(),
+                    to_value(uploaded_element.text().replace("Uploaded:", "").trim())
+                        .unwrap_or_default(),
+                )
+            });
+        document
+            .find(Name("li").and(Class("tags")))
+            .into_iter()
+            .for_each(|tag_box: Node<'_>| {
+                tag_box.first_child().and_then(|key: Node<'_>| {
+                    let values: Vec<String> = tag_box
+                        .find(Name("span").and(Class("tag_name")))
+                        .map(|link: Node| link.text())
+                        .collect();
+                    extras.insert(
+                        key.text().trim().to_string().replace(":", ""),
+                        to_value(values).unwrap_or_default(),
+                    )
+                });
+            });
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         Ok(info)
     }
 
-    async fn get_images(
-        &self,
-        code: String,
-        _: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://nhentai.xxx/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -94,13 +109,15 @@ impl Module for Nhentai {
                     .and(Name("div"))
                     .descendant(Name("img")),
             )
-            .filter_map(|node: Node| node.attr("data-src"))
-            .map(|image: &str| {
-                format!(
-                    "{}/{}",
-                    image.replace("//t", "//i").rsplit_once("/").unwrap().0,
-                    image.rsplit('/').next().unwrap().replace("t.", ".")
-                )
+            .filter_map(|node: Node| {
+                node.attr("data-src").and_then(|image: &str| {
+                    format!(
+                        "{}/{}",
+                        image.replace("//t", "//i").rsplit_once("/").unwrap().0,
+                        image.rsplit('/').next().unwrap().replace("t.", ".")
+                    )
+                    .into()
+                })
             })
             .collect();
         Ok((images, Value::Bool(false)))
@@ -135,42 +152,37 @@ impl Module for Nhentai {
                 break;
             }
             for doujin in doujins {
-                let title: String = doujin
+                let Some(title) = doujin
                     .find(Name("a"))
                     .next()
-                    .unwrap()
-                    .attr("title")
-                    .unwrap()
-                    .to_string();
+                    .and_then(|a: Node<'_>| a.attr("title"))
+                else {
+                    continue;
+                };
                 if absolute && !title.contains(&keyword) {
                     continue;
                 }
-                let code: String = doujin
-                    .find(Name("a"))
-                    .next()
-                    .unwrap()
-                    .attr("href")
-                    .unwrap()
-                    .rsplit("/")
-                    .nth(1)
-                    .unwrap()
-                    .to_string();
-                let thumbnail: &str = doujin
-                    .find(Name("img"))
-                    .next()
-                    .unwrap()
-                    .attr("data-src")
-                    .unwrap();
-                results.push(HashMap::from([
-                    ("name".to_string(), title),
+                let Some(code) = doujin.find(Name("a")).next().and_then(|a: Node<'_>| {
+                    a.attr("href")
+                        .and_then(|href: &str| href.rsplit("/").nth(1))
+                }) else {
+                    continue;
+                };
+                let mut result: HashMap<String, String> = HashMap::from([
+                    ("name".to_string(), title.to_string()),
                     ("domain".to_string(), self.base.domain.to_string()),
-                    ("code".to_string(), code),
-                    ("thumbnail".to_string(), thumbnail.to_string()),
+                    ("code".to_string(), code.to_string()),
                     ("page".to_string(), page.to_string()),
-                ]));
+                ]);
+                doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
+                    img.attr("data-src").and_then(|src: &str| {
+                        result.insert("thumbnail".to_string(), src.to_string())
+                    })
+                });
+                results.push(result);
             }
             page += 1;
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            self.sleep(sleep_time);
         }
         Ok(results)
     }

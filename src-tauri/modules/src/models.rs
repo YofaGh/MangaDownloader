@@ -6,6 +6,8 @@ use serde_json::Value;
 use std::{
     collections::HashMap,
     io::{Error as IoError, ErrorKind as IoErrorKind},
+    thread,
+    time::Duration,
 };
 use tokio::{
     fs::File,
@@ -221,6 +223,9 @@ pub trait Module: Send + Sync {
             client,
         )
         .await
+    }
+    fn sleep(&self, sleep_time: f64) {
+        thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
     }
 }
 

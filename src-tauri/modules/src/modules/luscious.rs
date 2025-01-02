@@ -7,7 +7,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
@@ -30,112 +30,124 @@ impl Module for Luscious {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         let mut dates: HashMap<String, Value> = HashMap::new();
-        if let Some(element) = document
+        document
             .find(Name("div").and(Class("picture-card-outer")))
             .next()
-        {
-            if let Some(image) = element.find(Name("img")).next() {
-                info.insert(
-                    "Cover".to_string(),
-                    to_value(image.attr("src").unwrap()).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(element) = document
+            .and_then(|element: Node<'_>| {
+                element
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|image: Node<'_>| {
+                        image.attr("src").and_then(|src: &str| {
+                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
+                        })
+                    })
+            });
+        document
             .find(Name("h1").and(Attr("class", "o-h1 album-heading")))
             .next()
-        {
-            info.insert(
-                "Title".to_string(),
-                to_value(element.text()).unwrap_or_default(),
-            );
-        }
-        let info_box = document
-            .find(Name("div").and(Class("album-info-wrapper")))
-            .next()
-            .unwrap();
-        if let Some(alternative_element) = info_box.find(Name("h2")).next() {
-            info.insert(
-                "Alternative".to_string(),
-                to_value(alternative_element.text().trim().to_string()).unwrap_or_default(),
-            );
-        }
-        if let Some(language_element) = info_box
-            .find(Name("a").and(Class("language_flags-module__link--dp0Rr")))
-            .next()
-        {
-            extras.insert(
-                "Language".to_string(),
-                to_value(language_element.text().trim()).unwrap_or_default(),
-            );
-        }
-        for box_element in info_box.find(Name("span").and(Class("album-info-item"))) {
-            let text: String = box_element.text().trim().to_string();
-            if text.contains("pictures") {
+            .and_then(|element: Node<'_>| {
                 info.insert(
-                    "Pages".to_string(),
-                    to_value(text.replace(" pictures", "")).unwrap_or_default(),
-                );
-            } else {
-                if let (Some(strong), Some(date_str)) = (
-                    box_element.find(Name("strong")).next(),
-                    box_element.last_child(),
-                ) {
-                    if let Ok(date) =
-                        NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
-                    {
-                        let datetime: NaiveDateTime = date.and_hms_opt(0, 0, 0).unwrap();
-                        dates.insert(
-                            strong.text().trim_end_matches(':').to_string(),
-                            to_value(datetime.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
-                        );
-                    }
-                }
-            }
-        }
-        for box_element in
-            document.find(Name("div").and(Class("album-info-item").or(Class("o-tag--category"))))
-        {
-            if let Some(strong) = box_element.find(Name("strong")).next() {
-                extras.insert(
-                    strong.text().trim().trim_end_matches(':').to_string(),
-                    to_value(
-                        box_element
-                            .find(Name("a"))
-                            .map(|a: Node| a.text().trim().to_string())
-                            .collect::<Vec<String>>(),
-                    )
-                    .unwrap(),
-                );
-            }
-        }
-        for box_element in document.find(Name("div").and(Class("o-tag--secondary"))) {
-            if let Some(element) = box_element.first_child() {
-                extras.insert(
-                    "Tags".to_string(),
-                    to_value(element.text().trim().to_string()).unwrap(),
-                );
-            }
-        }
-        if let Some(description) = document
+                    "Title".to_string(),
+                    to_value(element.text()).unwrap_or_default(),
+                )
+            });
+        document
             .find(Name("div").and(Class("album-description")))
             .next()
-        {
-            extras.insert(
-                "Album Description".to_string(),
-                to_value(description.text().trim().to_string()).unwrap_or_default(),
-            );
-        }
+            .and_then(|description: Node<'_>| {
+                extras.insert(
+                    "Album Description".to_string(),
+                    to_value(description.text().trim().to_string()).unwrap_or_default(),
+                )
+            });
+        document
+            .find(Name("div").and(Class("album-info-item").or(Class("o-tag--category"))))
+            .for_each(|box_element: Node<'_>| {
+                box_element
+                    .find(Name("strong"))
+                    .next()
+                    .and_then(|strong: Node<'_>| {
+                        extras.insert(
+                            strong.text().trim().trim_end_matches(':').to_string(),
+                            to_value(
+                                box_element
+                                    .find(Name("a"))
+                                    .map(|a: Node| a.text().trim().to_string())
+                                    .collect::<Vec<String>>(),
+                            )
+                            .unwrap_or_default(),
+                        )
+                    });
+            });
+        document
+            .find(Name("div").and(Class("o-tag--secondary")))
+            .for_each(|box_element: Node<'_>| {
+                box_element.first_child().and_then(|element: Node<'_>| {
+                    extras.insert(
+                        "Tags".to_string(),
+                        to_value(element.text().trim().to_string()).unwrap_or_default(),
+                    )
+                });
+            });
+        let Some(info_box) = document
+            .find(Name("div").and(Class("album-info-wrapper")))
+            .next()
+        else {
+            info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+            return Ok(info);
+        };
+        info_box
+            .find(Name("h2"))
+            .next()
+            .and_then(|alternative_element: Node<'_>| {
+                info.insert(
+                    "Alternative".to_string(),
+                    to_value(alternative_element.text().trim().to_string()).unwrap_or_default(),
+                )
+            });
+        info_box
+            .find(Name("a").and(Class("language_flags-module__link--dp0Rr")))
+            .next()
+            .and_then(|language_element: Node<'_>| {
+                extras.insert(
+                    "Language".to_string(),
+                    to_value(language_element.text().trim()).unwrap_or_default(),
+                )
+            });
+        info_box
+            .find(Name("span").and(Class("album-info-item")))
+            .for_each(|box_element: Node<'_>| {
+                let text: String = box_element.text().trim().to_string();
+                if text.contains("pictures") {
+                    info.insert(
+                        "Pages".to_string(),
+                        to_value(text.replace(" pictures", "")).unwrap_or_default(),
+                    );
+                } else {
+                    if let (Some(strong), Some(date_str)) = (
+                        box_element.find(Name("strong")).next(),
+                        box_element.last_child(),
+                    ) {
+                        if let Ok(date) =
+                            NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
+                        {
+                            date.and_hms_opt(0, 0, 0).and_then(|datetime: NaiveDateTime| {
+                                dates.insert(
+                                    strong.text().trim_end_matches(':').to_string(),
+                                    to_value(datetime.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap_or_default(),
+                                )
+                            });
+                        }
+                    }
+                }
+            });
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         info.insert("Dates".to_string(), to_value(dates).unwrap_or_default());
         Ok(info)
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        _: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, manga: String, _: String) -> Result<(Vec<String>, Value), AppError> {
         let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query\
         %2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture\
         %2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
@@ -154,12 +166,12 @@ impl Module for Luscious {
         let response: Value = response.json().await?;
         let total_pages: i64 = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
-            .unwrap_or(1);
+            .ok_or_else(|| AppError::parser(&manga, "total_pages"))?;
         let mut images: Vec<String> = response["data"]["picture"]["list"]["items"]
             .as_array()
-            .unwrap_or(&vec![])
+            .ok_or_else(|| AppError::parser(&manga, "images"))?
             .iter()
-            .map(|item: &Value| item["url_to_original"].as_str().unwrap_or("").to_string())
+            .map(|item: &Value| item["url_to_original"].to_string())
             .collect();
         for page in 2..=total_pages {
             let url: String = data
@@ -170,9 +182,9 @@ impl Module for Luscious {
             let response: Value = response.json().await?;
             let new_images: Vec<String> = response["data"]["picture"]["list"]["items"]
                 .as_array()
-                .unwrap_or(&vec![])
+                .ok_or_else(|| AppError::parser(&manga, "images"))?
                 .iter()
-                .map(|item: &Value| item["url_to_original"].as_str().unwrap_or("").to_string())
+                .map(|item: &Value| item["url_to_original"].to_string())
                 .collect();
             images.extend(new_images);
         }
@@ -218,47 +230,57 @@ impl Module for Luscious {
             let response: Value = response.json().await?;
             total_pages = response["data"]["album"]["list"]["info"]["total_pages"]
                 .as_i64()
-                .unwrap_or(1000) as u32;
+                .ok_or_else(|| AppError::parser(&url, "total_pages"))?
+                as u32;
             let doujins: &Vec<Value> = response["data"]["album"]["list"]["items"]
                 .as_array()
-                .unwrap();
+                .ok_or_else(|| AppError::parser(&url, "items"))?;
             for doujin in doujins {
-                let tags: String = doujin["tags"]
-                    .as_array()
-                    .unwrap_or(&vec![])
-                    .iter()
-                    .map(|tag: &Value| tag["text"].as_str().unwrap_or("").to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                let genres: String = doujin["genres"]
-                    .as_array()
-                    .unwrap_or(&vec![])
-                    .iter()
-                    .map(|genre: &Value| genre["title"].as_str().unwrap_or("").to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                let title: String = doujin["title"].as_str().unwrap_or("").to_string();
+                let Some(title) = doujin.get("title") else {
+                    continue;
+                };
+                let title: String = title.to_string();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                results.push(HashMap::from([
+                let Some(code) = doujin.get("id") else {
+                    continue;
+                };
+                let mut result: HashMap<String, String> = HashMap::from([
                     ("name".to_string(), title),
-                    ("domain".to_string(), "luscious.net".to_string()),
-                    (
-                        "code".to_string(),
-                        doujin["id"].as_str().unwrap_or("").to_string(),
-                    ),
-                    (
-                        "thumbnail".to_string(),
-                        doujin["cover"]["url"].as_str().unwrap_or("").to_string(),
-                    ),
-                    ("tags".to_string(), tags),
-                    ("genres".to_string(), genres),
+                    ("domain".to_string(), self.base.domain.to_string()),
+                    ("code".to_string(), code.to_string()),
                     ("page".to_string(), page.to_string()),
-                ]));
+                ]);
+                doujin["tags"].as_array().map(|tags: &Vec<Value>| {
+                    result.insert(
+                        "tags".to_string(),
+                        tags.iter()
+                            .filter_map(|tag: &Value| {
+                                tag.get("text").map(|text: &Value| text.to_string())
+                            })
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                    )
+                });
+                doujin["genres"].as_array().map(|tags: &Vec<Value>| {
+                    result.insert(
+                        "genres".to_string(),
+                        tags.iter()
+                            .filter_map(|tag: &Value| {
+                                tag.get("text").map(|text: &Value| text.to_string())
+                            })
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                    )
+                });
+                doujin["cover"].get("url").and_then(|cover: &Value| {
+                    result.insert("thumbnail".to_string(), cover.to_string())
+                });
+                results.push(result);
             }
             page += 1;
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            self.sleep(sleep_time);
         }
         Ok(results)
     }

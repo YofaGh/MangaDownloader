@@ -4,12 +4,8 @@ use std::{collections::HashMap, fs::DirEntry, path::PathBuf, process::Command};
 use tauri::{command, AppHandle, Error as TauriError, Manager};
 
 use crate::{
-    assets,
-    errors::AppError,
-    image_merger::merge_folder,
-    lib_utils,
-    pdf_converter::convert_folder,
-    saucer::{iqdb, saucenao, tineye, upload, yandex},
+    assets, errors::AppError, image_merger::merge_folder, lib_utils, pdf_converter::convert_folder,
+    saucer,
 };
 
 #[command(async)]
@@ -136,17 +132,17 @@ pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
 #[command(async)]
 pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
     match saucer.as_str() {
-        "yandex" => yandex(url).await.unwrap_or_default(),
-        "tineye" => tineye(url).await.unwrap_or_default(),
-        "iqdb" => iqdb(url).await.unwrap_or_default(),
-        "saucenao" => saucenao(url).await.unwrap_or_default(),
+        "yandex" => saucer::yandex(url).await.unwrap_or_default(),
+        "tineye" => saucer::tineye(url).await.unwrap_or_default(),
+        "iqdb" => saucer::iqdb(url).await.unwrap_or_default(),
+        "saucenao" => saucer::saucenao(url).await.unwrap_or_default(),
         _ => Vec::new(),
     }
 }
 
 #[command(async)]
 pub async fn upload_image(path: String) -> String {
-    upload(path.as_str()).await.unwrap_or_default()
+    saucer::upload(path.as_str()).await.unwrap_or_default()
 }
 
 #[command(async)]

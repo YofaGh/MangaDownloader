@@ -6,7 +6,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::{to_value, Value};
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
@@ -29,94 +29,121 @@ impl Module for Nhentai {
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
-        if let Some(cover_element) = document.find(Attr("id", "cover")).next() {
-            if let Some(img) = cover_element.find(Name("img")).next() {
-                info.insert(
-                    "Cover".to_string(),
-                    to_value(img.attr("data-src").unwrap_or_default()).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(info_box) = document.find(Attr("id", "info")).next() {
-            if let Some(title_element) = info_box.find(Name("h1")).next() {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(title_element.text().trim()).unwrap_or_default(),
-                );
-            }
-            if let Some(alternative_element) = info_box.find(Name("h2")).next() {
-                info.insert(
-                    "Alternative".to_string(),
-                    to_value(alternative_element.text().trim()).unwrap_or_default(),
-                );
-            }
-        }
-        if let Some(uploaded_element) = document.find(Name("time")).next() {
-            info.insert(
-                "Uploaded".to_string(),
-                to_value(uploaded_element.attr("datetime").unwrap_or_default()).unwrap_or_default(),
-            );
-        }
-        if let Some(tags_section) = document
+        document
+            .find(Attr("id", "cover"))
+            .next()
+            .and_then(|cover_element: Node<'_>| {
+                cover_element
+                    .find(Name("img"))
+                    .next()
+                    .and_then(|img: Node<'_>| {
+                        img.attr("data-src").and_then(|src: &str| {
+                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
+                        })
+                    })
+            });
+        document
+            .find(Attr("id", "info"))
+            .next()
+            .and_then(|info_box: Node<'_>| {
+                info_box
+                    .find(Name("h1"))
+                    .next()
+                    .and_then(|title_element: Node<'_>| {
+                        info.insert(
+                            "Title".to_string(),
+                            to_value(title_element.text().trim()).unwrap_or_default(),
+                        )
+                    });
+                info_box
+                    .find(Name("h2"))
+                    .next()
+                    .and_then(|alternative_element: Node<'_>| {
+                        info.insert(
+                            "Alternative".to_string(),
+                            to_value(alternative_element.text().trim()).unwrap_or_default(),
+                        )
+                    })
+            });
+        document
+            .find(Name("time"))
+            .next()
+            .and_then(|uploaded_element: Node<'_>| {
+                uploaded_element
+                    .attr("datetime")
+                    .and_then(|datetime: &str| {
+                        info.insert(
+                            "Uploaded".to_string(),
+                            to_value(datetime).unwrap_or_default(),
+                        )
+                    })
+            });
+        document
             .find(Name("section").and(Attr("id", "tags")))
             .next()
-        {
-            if let Some(pages_element) = tags_section
-                .find(|tag: &Node| tag.text().contains("Pages:"))
-                .next()
-            {
-                info.insert(
-                    "Pages".to_string(),
-                    to_value(pages_element.text().replace("Pages:", "").trim()).unwrap_or_default(),
-                );
-            }
-        }
-        for tag_box in document
+            .and_then(|tags_section: Node<'_>| {
+                tags_section
+                    .find(|tag: &Node| tag.text().contains("Pages:"))
+                    .next()
+                    .and_then(|pages_element: Node<'_>| {
+                        info.insert(
+                            "Pages".to_string(),
+                            to_value(pages_element.text().replace("Pages:", "").trim())
+                                .unwrap_or_default(),
+                        )
+                    })
+            });
+        document
             .find(Name("section").and(Attr("id", "tags")))
             .next()
-            .unwrap()
-            .find(Class("tag-container").and(Class("field-name")))
-        {
-            if tag_box.text().contains("Pages:") || tag_box.text().contains("Uploaded:") {
-                continue;
-            }
-            let key: String = tag_box.first_child().unwrap().text().trim().to_string();
-            let values: Vec<String> = tag_box
-                .find(Name("a"))
-                .map(|link: Node| {
-                    link.find(Name("span").and(Class("name")))
-                        .next()
-                        .unwrap()
-                        .text()
-                })
-                .collect();
-            extras.insert(key, to_value(values).unwrap_or_default());
-        }
+            .and_then(|box_: Node<'_>| {
+                box_.find(Class("tag-container").and(Class("field-name")))
+                    .into_iter()
+                    .for_each(|tag: Node<'_>| {
+                        if tag.text().contains("Pages:") || tag.text().contains("Uploaded:") {
+                            return;
+                        }
+                        tag.first_child().and_then(|first: Node<'_>| {
+                            let values: Vec<String> = tag
+                                .find(Name("a"))
+                                .filter_map(|link: Node| {
+                                    link.find(Name("span").and(Class("name")))
+                                        .next()
+                                        .and_then(|span: Node<'_>| Some(span.text()))
+                                })
+                                .collect();
+                            extras.insert(
+                                first.text().trim().to_string(),
+                                to_value(values).unwrap_or_default(),
+                            )
+                        });
+                    });
+                Some(())
+            });
         info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
         Ok(info)
     }
 
-    async fn get_images(
-        &self,
-        code: String,
-        _: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), AppError> {
         let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
-            .filter_map(|node: Node| node.attr("data-src"))
-            .map(|image: &str| {
-                format!(
-                    "{}/{}",
-                    image.replace("//t", "//i").rsplit_once("/").unwrap().0,
-                    image.rsplit('/').next().unwrap().replace("t.", ".")
-                )
+            .filter_map(|node: Node| {
+                node.attr("data-src").and_then(|image: &str| {
+                    format!(
+                        "{}/{}",
+                        image.replace("//t", "//i").rsplit_once("/").unwrap().0,
+                        image.rsplit('/').next().unwrap().replace("t.", ".")
+                    )
+                    .into()
+                })
             })
             .collect();
         Ok((images, Value::Bool(false)))
     }
+
     async fn search_by_keyword(
         &self,
         keyword: String,
@@ -146,36 +173,35 @@ impl Module for Nhentai {
                 if absolute && !doujin.text().contains(&keyword) {
                     continue;
                 }
-                let code: String = doujin
-                    .find(Name("a"))
-                    .next()
-                    .unwrap()
-                    .attr("href")
-                    .unwrap()
-                    .to_string()
-                    .replace("/g/", "")
-                    .replace("/", "");
-                let title: String = doujin
+                let Some(title) = doujin
                     .find(Name("div").and(Attr("class", "caption")))
                     .next()
-                    .unwrap()
-                    .text();
-                let thumbnail: &str = doujin
-                    .find(Name("img"))
+                else {
+                    continue;
+                };
+                let Some(code) = doujin
+                    .find(Name("a"))
                     .next()
-                    .unwrap()
-                    .attr("data-src")
-                    .unwrap();
-                results.push(HashMap::from([
-                    ("name".to_string(), title),
+                    .and_then(|a: Node<'_>| a.attr("href"))
+                else {
+                    continue;
+                };
+                let code: String = code.to_string().replace("/g/", "").replace("/", "");
+                let mut result: HashMap<String, String> = HashMap::from([
+                    ("name".to_string(), title.text()),
                     ("domain".to_string(), self.base.domain.to_string()),
                     ("code".to_string(), code),
-                    ("thumbnail".to_string(), thumbnail.to_string()),
                     ("page".to_string(), page.to_string()),
-                ]));
+                ]);
+                doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
+                    img.attr("data-src").and_then(|src: &str| {
+                        result.insert("thumbnail".to_string(), src.to_string())
+                    })
+                });
+                results.push(result);
             }
             page += 1;
-            thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
+            self.sleep(sleep_time);
         }
         Ok(results)
     }

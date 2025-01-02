@@ -1,9 +1,5 @@
 use indexmap::IndexMap;
-use reqwest::{
-    header::{HeaderMap, HeaderValue},
-    multipart::{Form, Part},
-    Client, RequestBuilder,
-};
+use reqwest::{header, multipart, Client, RequestBuilder};
 use select::{
     document::Document,
     node::Node,
@@ -47,10 +43,10 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
 pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppError> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\n\
     Content-Disposition: form-data; name=\"url\"\n\n{url}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--");
-    let mut headers: HeaderMap = HeaderMap::new();
+    let mut headers: header::HeaderMap = header::HeaderMap::new();
     headers.append(
         "content-type",
-        HeaderValue::from_str(
+        header::HeaderValue::from_str(
             "multipart/form-data; boundary=----WebKitFormBoundaryVxauFLsZbD7Cr1Fa",
         )
         .unwrap(),
@@ -163,9 +159,10 @@ pub async fn upload(path: &str) -> Result<String, AppError> {
     let bytes: Vec<u8> = read(&path_buf)
         .await
         .map_err(|err: Error| AppError::file("read", &path_buf, err))?;
-    let form: Form = Form::new().part(
+    let form: multipart::Form = multipart::Form::new().part(
         "photo",
-        Part::stream(bytes).file_name(path_buf.file_name().unwrap().to_str().unwrap().to_string()),
+        multipart::Part::stream(bytes)
+            .file_name(path_buf.file_name().unwrap().to_str().unwrap().to_string()),
     );
     let response = client
         .post("https://imgops.com/store")

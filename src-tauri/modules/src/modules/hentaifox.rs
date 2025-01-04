@@ -11,6 +11,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -30,14 +31,11 @@ impl Module for Hentaifox {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         document
-            .find(Name("div").and(Class("cover")))
+            .find(Name("div").and(Class("cover")).descendant(Name("img")))
             .next()
-            .and_then(|cover_e: Node<'_>| {
-                cover_e.find(Name("img")).next().and_then(|img: Node<'_>| {
-                    img.attr("data-cfsrc").and_then(|src: &str| {
-                        info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                    })
-                })
+            .and_then(|img: Node<'_>| {
+                img.attr("data-cfsrc")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         let info_box: Node<'_> = document
             .find(Name("div").and(Class("info")))
@@ -47,27 +45,22 @@ impl Module for Hentaifox {
             .find(Name("h1"))
             .next()
             .and_then(|title_element: Node<'_>| {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(title_element.text().trim()).unwrap_or_default(),
-                )
+                insert!(info, "Title", title_element.text().trim())
             });
         info_box
             .find(|n: &Node| n.text().contains("Pages"))
             .next()
             .and_then(|pages_element: Node<'_>| {
-                info.insert(
-                    "Pages".to_string(),
-                    to_value(pages_element.text().replace("Pages: ", "")).unwrap_or_default(),
-                )
+                insert!(info, "Pages", pages_element.text().replace("Pages: ", ""))
             });
         info_box
             .find(|n: &Node| n.text().contains("Posted"))
             .next()
             .and_then(|posted_element: Node<'_>| {
-                extras.insert(
-                    "Posted".to_string(),
-                    to_value(posted_element.text().replace("Posted: ", "")).unwrap_or_default(),
+                insert!(
+                    info,
+                    "Posted",
+                    posted_element.text().replace("Posted: ", "")
                 )
             });
         for box_item in info_box.find(Name("ul").and(Not(Class("g_buttons")))) {
@@ -81,12 +74,9 @@ impl Module for Hentaifox {
                         .and_then(|element: Node<'_>| Some(element.text().trim().to_string()))
                 })
                 .collect();
-            extras.insert(
-                key.text().trim_end_matches(':').to_string(),
-                to_value(values).unwrap_or_default(),
-            );
+            insert!(extras, key.text().trim_end_matches(':'), values);
         }
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 
@@ -97,12 +87,13 @@ impl Module for Hentaifox {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let path: &str = document
-            .find(Name("div").and(Class("gallery_thumb")))
+            .find(
+                Name("div")
+                    .and(Class("gallery_thumb"))
+                    .descendant(Name("img")),
+            )
             .next()
-            .ok_or_else(|| AppError::parser(&url, "div gallery_thumb"))?
-            .find(Name("img"))
-            .next()
-            .ok_or_else(|| AppError::parser(&url, "img"))?
+            .ok_or_else(|| AppError::parser(&url, "div gallery_thumb img"))?
             .attr("data-src")
             .ok_or_else(|| AppError::parser(&url, "data-src"))?
             .rsplit_once("/")
@@ -161,9 +152,12 @@ impl Module for Hentaifox {
             }
             for doujin in doujins {
                 let Some(caption) = doujin
-                    .find(Name("div").and(Attr("class", "caption")))
+                    .find(
+                        Name("div")
+                            .and(Attr("class", "caption"))
+                            .descendant(Name("a")),
+                    )
                     .next()
-                    .and_then(|element: Node<'_>| element.find(Name("a")).next())
                 else {
                     continue;
                 };

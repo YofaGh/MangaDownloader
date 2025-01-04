@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -29,36 +30,24 @@ impl Module for Manytoon {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         document
-            .find(Name("div").and(Class("post-title")))
+            .find(Name("div").and(Class("post-title")).descendant(Name("h1")))
             .next()
             .and_then(|element: Node<'_>| {
                 element
-                    .find(Name("h1"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.last_child().and_then(|last: Node<'_>| {
-                            info.insert(
-                                "Title".to_string(),
-                                to_value(last.text().trim()).unwrap_or_default(),
-                            )
-                        })
-                    })
+                    .last_child()
+                    .and_then(|last: Node<'_>| insert!(info, "Title", last.text().trim()))
             });
         document
-            .find(Name("div").and(Class("summary__content")))
+            .find(
+                Name("div")
+                    .and(Class("summary__content"))
+                    .descendant(Name("p")),
+            )
             .next()
             .and_then(|element: Node<'_>| {
                 element
-                    .find(Name("p"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.first_child().and_then(|first: Node<'_>| {
-                            info.insert(
-                                "Summary".to_string(),
-                                to_value(first.text().trim()).unwrap_or_default(),
-                            )
-                        })
-                    })
+                    .first_child()
+                    .and_then(|first: Node<'_>| insert!(info, "Summary", first.text().trim()))
             });
         document
             .find(Name("span").and(Attr("class", "score font-meta total_votes")))
@@ -69,21 +58,15 @@ impl Module for Manytoon {
                     .trim()
                     .parse::<f64>()
                     .ok()
-                    .and_then(|rating: f64| {
-                        info.insert("Rating".to_string(), to_value(rating).unwrap_or_default())
-                    })
+                    .and_then(|rating: f64| insert!(info, "Rating", rating))
             });
         let boxes: Vec<Node> = document
-            .find(Name("div").and(Class("post-content")))
-            .next()
-            .and_then(|element: Node<'_>| {
-                Some(
-                    element
-                        .find(Name("div").and(Class("post-content_item")))
-                        .collect(),
-                )
-            })
-            .unwrap_or_default();
+            .find(
+                Name("div")
+                    .and(Class("post-content"))
+                    .descendant(Name("div").and(Class("post-content_item"))),
+            )
+            .collect();
         for box_elem in boxes {
             if box_elem.text().contains("Rating") {
                 continue;
@@ -93,10 +76,7 @@ impl Module for Manytoon {
                     .find(Name("div").and(Class("summary-content")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Alternative".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
+                        insert!(info, "Alternative", element.text().trim())
                     });
             } else {
                 let (Some(box_str), Some(info_key)) = (
@@ -111,35 +91,30 @@ impl Module for Manytoon {
                 };
                 let box_str: String = box_str.text().replace("(s)", "s").trim().to_string();
                 if info_key.find(Name("a")).next().is_some() {
-                    extras.insert(
+                    insert!(
+                        extras,
                         box_str,
-                        to_value(
-                            info_key
-                                .find(Name("a"))
-                                .map(|a: Node| a.text())
-                                .collect::<Vec<_>>(),
-                        )
-                        .unwrap_or_default(),
+                        info_key
+                            .find(Name("a"))
+                            .map(|a: Node| a.text())
+                            .collect::<Vec<_>>()
                     );
                 } else {
-                    extras.insert(
-                        box_str,
-                        to_value(info_key.text().trim()).unwrap_or_default(),
-                    );
+                    insert!(extras, box_str, info_key.text().trim());
                 }
             }
         }
         let Some(info_box) = document.find(Name("div").and(Class("tab-summary"))).next() else {
-            info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+            insert!(info, "Extras", extras);
             return Ok(info);
         };
         info_box
             .find(Name("img"))
             .next()
             .and_then(|element: Node<'_>| {
-                element.attr("src").and_then(|src: &str| {
-                    info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                })
+                element
+                    .attr("src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         info_box
             .find(Name("div").and(Class("post-status")))
@@ -149,22 +124,14 @@ impl Module for Manytoon {
                     .find(Name("div").and(Class("summary-content")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        extras.insert(
-                            "Release".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
+                        insert!(extras, "Release", element.text().trim())
                     });
                 element
                     .find(Name("div").and(Class("summary-content")))
                     .nth(1)
-                    .and_then(|element: Node<'_>| {
-                        extras.insert(
-                            "Status".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
-                    })
+                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()))
             });
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 
@@ -198,16 +165,18 @@ impl Module for Manytoon {
             .await?;
         let document: Document = Document::from(response.text().await?.as_str());
         Ok(document
-            .find(Name("li").and(Class("wp-manga-chapter")))
+            .find(
+                Name("li")
+                    .and(Class("wp-manga-chapter"))
+                    .descendant(Name("a")),
+            )
             .filter_map(|div: Node<'_>| {
-                div.find(Name("a")).next().and_then(|a: Node<'_>| {
-                    a.attr("href").and_then(|href: &str| {
-                        href.split('/').nth_back(1).and_then(|last: &str| {
-                            Some(HashMap::from([
-                                ("url".to_string(), last.to_string()),
-                                ("name".to_string(), self.rename_chapter(last.to_string())),
-                            ]))
-                        })
+                div.attr("href").and_then(|href: &str| {
+                    href.split('/').nth_back(1).and_then(|last: &str| {
+                        Some(HashMap::from([
+                            ("url".to_string(), last.to_string()),
+                            ("name".to_string(), self.rename_chapter(last.to_string())),
+                        ]))
                     })
                 })
             })
@@ -223,14 +192,12 @@ impl Module for Manytoon {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .find(Name("div").and(Class("reading-content")))
-            .next()
-            .ok_or_else(|| AppError::parser(&chapter, "div reading-content"))?
-            .find(Name("img"))
-            .filter_map(|img: Node| {
-                img.attr("src")
-                    .and_then(|src: &str| Some(src.trim().to_string()))
-            })
+            .find(
+                Name("div")
+                    .and(Class("reading-content"))
+                    .descendant(Name("img")),
+            )
+            .map(|img: Node| img.attr("src").unwrap().trim().to_string())
             .collect();
         Ok((images, Value::from(false)))
     }
@@ -259,9 +226,8 @@ impl Module for Manytoon {
                 .collect();
             for manga in mangas {
                 let Some(details) = manga
-                    .find(Name("div").and(Class("post-title")))
+                    .find(Name("div").and(Class("post-title")).descendant(Name("a")))
                     .next()
-                    .and_then(|element: Node<'_>| element.find(Name("a")).next())
                 else {
                     continue;
                 };
@@ -290,22 +256,18 @@ impl Module for Manytoon {
                         })
                     });
                 manga
-                    .find(Name("span").and(Attr("class", "chapter font-meta")))
+                    .find(
+                        Name("span")
+                            .and(Attr("class", "chapter font-meta"))
+                            .descendant(Name("a")),
+                    )
                     .next()
                     .and_then(|element: Node<'_>| {
-                        element
-                            .find(Name("a"))
-                            .next()
-                            .and_then(|element: Node<'_>| {
-                                element.attr("href").and_then(|href: &str| {
-                                    href.split('/').nth_back(1).and_then(|chapter: &str| {
-                                        result.insert(
-                                            "latest_chapter".to_string(),
-                                            chapter.to_string(),
-                                        )
-                                    })
-                                })
+                        element.attr("href").and_then(|href: &str| {
+                            href.split('/').nth_back(1).and_then(|chapter: &str| {
+                                result.insert("latest_chapter".to_string(), chapter.to_string())
                             })
+                        })
                     });
                 results.push(result);
             }

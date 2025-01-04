@@ -11,6 +11,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -31,35 +32,26 @@ impl Module for Luscious {
         let mut extras: HashMap<String, Value> = HashMap::new();
         let mut dates: HashMap<String, Value> = HashMap::new();
         document
-            .find(Name("div").and(Class("picture-card-outer")))
+            .find(
+                Name("div")
+                    .and(Class("picture-card-outer"))
+                    .descendant(Name("img")),
+            )
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|image: Node<'_>| {
-                        image.attr("src").and_then(|src: &str| {
-                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                        })
-                    })
+            .and_then(|image: Node<'_>| {
+                image
+                    .attr("src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         document
             .find(Name("h1").and(Attr("class", "o-h1 album-heading")))
             .next()
-            .and_then(|element: Node<'_>| {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(element.text()).unwrap_or_default(),
-                )
-            });
+            .and_then(|element: Node<'_>| insert!(info, "Title", element.text()));
         document
             .find(Name("div").and(Class("album-description")))
             .next()
             .and_then(|description: Node<'_>| {
-                extras.insert(
-                    "Album Description".to_string(),
-                    to_value(description.text().trim().to_string()).unwrap_or_default(),
-                )
+                insert!(extras, "Album Description", description.text().trim())
             });
         document
             .find(Name("div").and(Class("album-info-item").or(Class("o-tag--category"))))
@@ -68,62 +60,48 @@ impl Module for Luscious {
                     .find(Name("strong"))
                     .next()
                     .and_then(|strong: Node<'_>| {
-                        extras.insert(
-                            strong.text().trim().trim_end_matches(':').to_string(),
-                            to_value(
-                                box_element
-                                    .find(Name("a"))
-                                    .map(|a: Node| a.text().trim().to_string())
-                                    .collect::<Vec<String>>(),
-                            )
-                            .unwrap_or_default(),
+                        insert!(
+                            extras,
+                            strong.text().trim().trim_end_matches(':'),
+                            box_element
+                                .find(Name("a"))
+                                .map(|a: Node| a.text().trim().to_string())
+                                .collect::<Vec<String>>()
                         )
                     });
             });
         document
             .find(Name("div").and(Class("o-tag--secondary")))
             .for_each(|box_element: Node<'_>| {
-                box_element.first_child().and_then(|element: Node<'_>| {
-                    extras.insert(
-                        "Tags".to_string(),
-                        to_value(element.text().trim().to_string()).unwrap_or_default(),
-                    )
-                });
+                box_element
+                    .first_child()
+                    .and_then(|element: Node<'_>| insert!(extras, "Tags", element.text().trim()));
             });
         let Some(info_box) = document
             .find(Name("div").and(Class("album-info-wrapper")))
             .next()
         else {
-            info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+            insert!(info, "Extras", extras);
             return Ok(info);
         };
         info_box
             .find(Name("h2"))
             .next()
             .and_then(|alternative_element: Node<'_>| {
-                info.insert(
-                    "Alternative".to_string(),
-                    to_value(alternative_element.text().trim().to_string()).unwrap_or_default(),
-                )
+                insert!(info, "Alternative", alternative_element.text().trim())
             });
         info_box
             .find(Name("a").and(Class("language_flags-module__link--dp0Rr")))
             .next()
             .and_then(|language_element: Node<'_>| {
-                extras.insert(
-                    "Language".to_string(),
-                    to_value(language_element.text().trim()).unwrap_or_default(),
-                )
+                insert!(extras, "Language", language_element.text().trim())
             });
         info_box
             .find(Name("span").and(Class("album-info-item")))
             .for_each(|box_element: Node<'_>| {
                 let text: String = box_element.text().trim().to_string();
                 if text.contains("pictures") {
-                    info.insert(
-                        "Pages".to_string(),
-                        to_value(text.replace(" pictures", "")).unwrap_or_default(),
-                    );
+                    insert!(info, "Pages", text.replace(" pictures", ""));
                 } else {
                     if let (Some(strong), Some(date_str)) = (
                         box_element.find(Name("strong")).next(),
@@ -132,18 +110,20 @@ impl Module for Luscious {
                         if let Ok(date) =
                             NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
                         {
-                            date.and_hms_opt(0, 0, 0).and_then(|datetime: NaiveDateTime| {
-                                dates.insert(
-                                    strong.text().trim_end_matches(':').to_string(),
-                                    to_value(datetime.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap_or_default(),
-                                )
-                            });
+                            date.and_hms_opt(0, 0, 0)
+                                .and_then(|datetime: NaiveDateTime| {
+                                    insert!(
+                                        dates,
+                                        strong.text().trim_end_matches(':'),
+                                        datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+                                    )
+                                });
                         }
                     }
                 }
             });
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
-        info.insert("Dates".to_string(), to_value(dates).unwrap_or_default());
+        insert!(info, "Extras", extras);
+        insert!(info, "Dates", dates);
         Ok(info)
     }
 

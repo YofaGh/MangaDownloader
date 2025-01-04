@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -35,29 +36,19 @@ impl Module for Readonepiece {
                     .find(Name("img"))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        element.attr("src").and_then(|src: &str| {
-                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                        })
+                        element
+                            .attr("src")
+                            .and_then(|src: &str| insert!(info, "Cover", src))
                     });
                 element
                     .find(Name("div").and(Class("text-text-muted")))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Summary".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
-                    })
+                    .and_then(|element: Node<'_>| insert!(info, "Summary", element.text().trim()))
             });
         document
             .find(Name("h1").and(Attr("class", "my-3 font-bold text-2xl md:text-3xl")))
             .next()
-            .and_then(|element: Node<'_>| {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(element.text().trim()).unwrap_or_default(),
-                )
-            });
+            .and_then(|element: Node<'_>| insert!(info, "Title", element.text().trim()));
         Ok(info)
     }
 
@@ -71,11 +62,7 @@ impl Module for Readonepiece {
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("img").and(Attr("class", "mb-3 mx-auto js-page")))
-            .filter_map(|image: Node<'_>| {
-                image
-                    .attr("src")
-                    .and_then(|src: &str| Some(src.to_string()))
-            })
+            .map(|image: Node<'_>| image.attr("src").unwrap().to_string())
             .collect();
         Ok((images, Value::Bool(false)))
     }

@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -30,17 +31,11 @@ impl Module for Nhentai {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         document
-            .find(Attr("id", "cover"))
+            .find(Attr("id", "cover").descendant(Name("img")))
             .next()
-            .and_then(|cover_element: Node<'_>| {
-                cover_element
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|img: Node<'_>| {
-                        img.attr("data-src").and_then(|src: &str| {
-                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                        })
-                    })
+            .and_then(|img: Node<'_>| {
+                img.attr("data-src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         document
             .find(Attr("id", "info"))
@@ -50,19 +45,13 @@ impl Module for Nhentai {
                     .find(Name("h1"))
                     .next()
                     .and_then(|title_element: Node<'_>| {
-                        info.insert(
-                            "Title".to_string(),
-                            to_value(title_element.text().trim()).unwrap_or_default(),
-                        )
+                        insert!(info, "Title", title_element.text().trim())
                     });
                 info_box
                     .find(Name("h2"))
                     .next()
                     .and_then(|alternative_element: Node<'_>| {
-                        info.insert(
-                            "Alternative".to_string(),
-                            to_value(alternative_element.text().trim()).unwrap_or_default(),
-                        )
+                        insert!(info, "Alternative", alternative_element.text().trim())
                     })
             });
         document
@@ -71,12 +60,7 @@ impl Module for Nhentai {
             .and_then(|uploaded_element: Node<'_>| {
                 uploaded_element
                     .attr("datetime")
-                    .and_then(|datetime: &str| {
-                        info.insert(
-                            "Uploaded".to_string(),
-                            to_value(datetime).unwrap_or_default(),
-                        )
-                    })
+                    .and_then(|datetime: &str| insert!(info, "Uploaded", datetime))
             });
         document
             .find(Name("section").and(Attr("id", "tags")))
@@ -86,11 +70,7 @@ impl Module for Nhentai {
                     .find(|tag: &Node| tag.text().contains("Pages:"))
                     .next()
                     .and_then(|pages_element: Node<'_>| {
-                        info.insert(
-                            "Pages".to_string(),
-                            to_value(pages_element.text().replace("Pages:", "").trim())
-                                .unwrap_or_default(),
-                        )
+                        insert!(info, "Pages", pages_element.text().replace("Pages:", ""))
                     })
             });
         document
@@ -112,15 +92,12 @@ impl Module for Nhentai {
                                         .and_then(|span: Node<'_>| Some(span.text()))
                                 })
                                 .collect();
-                            extras.insert(
-                                first.text().trim().to_string(),
-                                to_value(values).unwrap_or_default(),
-                            )
+                            insert!(extras, first.text().trim(), values)
                         });
                     });
                 Some(())
             });
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 
@@ -130,15 +107,13 @@ impl Module for Nhentai {
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
-            .filter_map(|node: Node| {
-                node.attr("data-src").and_then(|image: &str| {
-                    format!(
-                        "{}/{}",
-                        image.replace("//t", "//i").rsplit_once("/").unwrap().0,
-                        image.rsplit('/').next().unwrap().replace("t.", ".")
-                    )
-                    .into()
-                })
+            .map(|node: Node| {
+                let image: &str = node.attr("data-src").unwrap();
+                format!(
+                    "{}/{}",
+                    image.replace("//t", "//i").rsplit_once("/").unwrap().0,
+                    image.rsplit('/').next().unwrap().replace("t.", ".")
+                )
             })
             .collect();
         Ok((images, Value::Bool(false)))

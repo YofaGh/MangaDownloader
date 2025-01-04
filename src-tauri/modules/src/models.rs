@@ -247,3 +247,12 @@ impl DefaultModule {
         }
     }
 }
+
+#[macro_export]
+macro_rules! insert {
+    ($hashmap:expr, $key:expr, $value:expr) => {
+        to_value($value)
+            .ok()
+            .and_then(|value: Value| $hashmap.insert($key.to_string(), value))
+    }
+}

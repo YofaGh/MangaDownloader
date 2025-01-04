@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -36,49 +37,28 @@ impl Module for Mangapark {
             .find(Name("img"))
             .next()
             .and_then(|cover: Node<'_>| {
-                cover.attr("src").and_then(|src: &str| {
-                    info.insert(
-                        "Cover".to_string(),
-                        to_value(src.to_string()).unwrap_or_default(),
-                    )
-                })
+                cover
+                    .attr("src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         info_box
             .find(Name("h3"))
             .next()
-            .and_then(|title: Node<'_>| {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(title.text().trim()).unwrap_or_default(),
-                )
-            });
+            .and_then(|title: Node<'_>| insert!(info, "Title", title.text().trim()));
         info_box
             .find(Name("div").and(Attr("q:key", "tz_2")))
             .next()
             .and_then(|alternative: Node<'_>| {
-                info.insert(
-                    "Alternative".to_string(),
-                    to_value(alternative.text().trim()).unwrap_or_default(),
-                )
+                insert!(info, "Alternative", alternative.text().trim())
             });
         info_box
             .find(Name("div").and(Attr("class", "limit-html prose lg:prose-lg")))
             .next()
-            .and_then(|summary: Node<'_>| {
-                info.insert(
-                    "Summary".to_string(),
-                    to_value(summary.text().trim()).unwrap_or_default(),
-                )
-            });
+            .and_then(|summary: Node<'_>| insert!(info, "Summary", summary.text().trim()));
         info_box
             .find(Name("span").and(Attr("q:key", "Yn_5")))
             .next()
-            .and_then(|status: Node<'_>| {
-                info.insert(
-                    "Status".to_string(),
-                    to_value(status.text().trim()).unwrap_or_default(),
-                )
-            });
+            .and_then(|status: Node<'_>| insert!(info, "Status", status.text().trim()));
         info_box
             .find(Name("span").and(Attr("q:key", "lt_0")))
             .next()
@@ -88,27 +68,23 @@ impl Module for Mangapark {
                     .trim()
                     .parse::<f64>()
                     .ok()
-                    .and_then(|rating: f64| {
-                        info.insert("Rating".to_string(), to_value(rating).unwrap_or_default())
-                    })
+                    .and_then(|rating: f64| insert!(info, "Rating", rating))
             });
         if info_box
             .find(Name("span").and(Attr("q:key", "kd_0")))
             .next()
             .is_some()
         {
-            extras.insert(
-                "Genres".to_string(),
-                to_value(
-                    info_box
-                        .find(Name("span").and(Attr("q:key", "kd_0")))
-                        .map(|a: Node| a.text().trim().to_string())
-                        .collect::<Vec<String>>(),
-                )
-                .unwrap_or_default(),
+            insert!(
+                extras,
+                "Genres",
+                info_box
+                    .find(Name("span").and(Attr("q:key", "kd_0")))
+                    .map(|a: Node| a.text().trim().to_string())
+                    .collect::<Vec<String>>()
             );
         }
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 
@@ -278,19 +254,14 @@ impl Module for Mangapark {
                         )
                     });
                 manga
-                    .find(Name("div").and(Attr("q:key", "R7_8")))
+                    .find(Name("div").and(Attr("q:key", "R7_8")).descendant(Name("a")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        element
-                            .find(Name("a"))
-                            .next()
-                            .and_then(|element: Node<'_>| {
-                                element.attr("href").and_then(|m: &str| {
-                                    m.split("/").last().and_then(|m: &str| {
-                                        result.insert("latest_chapter".to_string(), m.to_string())
-                                    })
-                                })
+                        element.attr("href").and_then(|m: &str| {
+                            m.split("/").last().and_then(|m: &str| {
+                                result.insert("latest_chapter".to_string(), m.to_string())
                             })
+                        })
                     });
                 results.push(result);
             }

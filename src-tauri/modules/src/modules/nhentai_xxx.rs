@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -29,44 +30,33 @@ impl Module for Nhentai {
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
         document
-            .find(Class("cover"))
+            .find(Class("cover").descendant(Name("img")))
             .next()
-            .and_then(|cover_element: Node<'_>| {
-                cover_element
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|img: Node<'_>| {
-                        img.attr("data-src").and_then(|src: &str| {
-                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                        })
-                    })
+            .and_then(|img: Node<'_>| {
+                img.attr("data-src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         document
             .find(Name("h1"))
             .next()
             .and_then(|title_element: Node<'_>| {
-                info.insert(
-                    "Title".to_string(),
-                    to_value(title_element.text().trim()).unwrap_or_default(),
-                )
+                insert!(info, "Title", title_element.text().trim())
             });
         document
             .find(Name("h2"))
             .next()
             .and_then(|alternative_element: Node<'_>| {
-                info.insert(
-                    "Alternative".to_string(),
-                    to_value(alternative_element.text().trim()).unwrap_or_default(),
-                )
+                insert!(info, "Alternative", alternative_element.text().trim())
             });
         document
             .find(Name("li"))
             .filter(|n: &Node| n.text().contains("Pages:"))
             .next()
             .and_then(|pages_element: Node<'_>| {
-                info.insert(
-                    "Pages".to_string(),
-                    to_value(pages_element.text().replace("Pages:", "").trim()).unwrap_or_default(),
+                insert!(
+                    info,
+                    "Pages",
+                    pages_element.text().replace("Pages:", "").trim()
                 )
             });
         document
@@ -74,10 +64,10 @@ impl Module for Nhentai {
             .filter(|n: &Node| n.text().contains("Uploaded:"))
             .next()
             .and_then(|uploaded_element: Node<'_>| {
-                info.insert(
-                    "Uploaded".to_string(),
-                    to_value(uploaded_element.text().replace("Uploaded:", "").trim())
-                        .unwrap_or_default(),
+                insert!(
+                    info,
+                    "Uploaded",
+                    uploaded_element.text().replace("Uploaded:", "").trim()
                 )
             });
         document
@@ -89,13 +79,10 @@ impl Module for Nhentai {
                         .find(Name("span").and(Class("tag_name")))
                         .map(|link: Node| link.text())
                         .collect();
-                    extras.insert(
-                        key.text().trim().to_string().replace(":", ""),
-                        to_value(values).unwrap_or_default(),
-                    )
+                    insert!(extras, key.text().trim().replace(":", ""), values)
                 });
             });
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 
@@ -109,15 +96,13 @@ impl Module for Nhentai {
                     .and(Name("div"))
                     .descendant(Name("img")),
             )
-            .filter_map(|node: Node| {
-                node.attr("data-src").and_then(|image: &str| {
-                    format!(
-                        "{}/{}",
-                        image.replace("//t", "//i").rsplit_once("/").unwrap().0,
-                        image.rsplit('/').next().unwrap().replace("t.", ".")
-                    )
-                    .into()
-                })
+            .map(|node: Node| {
+                let image: &str = node.attr("data-src").unwrap();
+                format!(
+                    "{}/{}",
+                    image.replace("//t", "//i").rsplit_once("/").unwrap().0,
+                    image.rsplit('/').next().unwrap().replace("t.", ".")
+                )
             })
             .collect();
         Ok((images, Value::Bool(false)))

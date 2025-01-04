@@ -13,6 +13,7 @@ use std::collections::HashMap;
 
 use crate::{
     errors::AppError,
+    insert,
     models::{BaseModule, Module},
 };
 
@@ -43,9 +44,9 @@ impl Module for Truemanga {
                     .find(Name("img"))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        element.attr("data-src").and_then(|src: &str| {
-                            info.insert("Cover".to_string(), to_value(src).unwrap_or_default())
-                        })
+                        element
+                            .attr("data-src")
+                            .and_then(|src: &str| insert!(info, "Cover", src))
                     })
             });
         info_box
@@ -55,20 +56,12 @@ impl Module for Truemanga {
                 element
                     .find(Name("h1"))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Title".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
-                    });
+                    .and_then(|element: Node<'_>| insert!(info, "Title", element.text().trim()));
                 element
                     .find(Name("h2"))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Alternative".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
+                        insert!(info, "Alternative", element.text().trim())
                     })
             });
         document
@@ -78,12 +71,7 @@ impl Module for Truemanga {
                 element
                     .find(Name("p"))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Summary".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
-                    })
+                    .and_then(|element: Node<'_>| insert!(info, "Summary", element.text().trim()))
             });
         let Some(boxes) = document
             .find(Name("div").and(Attr("class", "meta box mt-1 p-10")))
@@ -96,12 +84,7 @@ impl Module for Truemanga {
                 box_elem
                     .find(Name("span"))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        info.insert(
-                            "Status".to_string(),
-                            to_value(element.text().trim()).unwrap_or_default(),
-                        )
-                    });
+                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()));
             } else {
                 box_elem
                     .find(Name("strong"))
@@ -114,29 +97,24 @@ impl Module for Truemanga {
                                 .find(Name("span"))
                                 .next()
                                 .and_then(|element: Node<'_>| {
-                                    extras.insert(
-                                        label,
-                                        to_value(element.text().trim()).unwrap_or_default(),
-                                    )
+                                    insert!(extras, label, element.text().trim())
                                 })
                         } else {
-                            extras.insert(
+                            insert!(
+                                extras,
                                 label,
-                                to_value(
-                                    links
-                                        .iter()
-                                        .map(|link: &Node| {
-                                            link.text().trim().replace(" ", "").replace("\n,", "")
-                                        })
-                                        .collect::<Vec<String>>(),
-                                )
-                                .unwrap_or_default(),
+                                links
+                                    .iter()
+                                    .map(|link: &Node| {
+                                        link.text().trim().replace(" ", "").replace("\n,", "")
+                                    })
+                                    .collect::<Vec<String>>()
                             )
                         }
                     });
             }
         });
-        info.insert("Extras".to_string(), to_value(extras).unwrap_or_default());
+        insert!(info, "Extras", extras);
         Ok(info)
     }
 

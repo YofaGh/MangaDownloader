@@ -15,7 +15,7 @@ lazy_static! {
 
 type GetVersionFn = fn() -> String;
 type GetModulesFn = fn() -> Vec<HashMap<String, Value>>;
-type GetModuleSampleFn = fn(String) -> HashMap<String, String>;
+type GetModuleSampleFn = fn(String) -> Result<HashMap<String, String>, AppError>;
 type GetInfoFn = fn(String, String) -> Result<HashMap<String, Value>, AppError>;
 type GetChaptersFn = fn(String, String) -> Result<Vec<HashMap<String, String>>, AppError>;
 type RetrieveImageFn = fn(String, String) -> Result<String, AppError>;
@@ -30,9 +30,8 @@ pub fn load_modules(modules_path: &PathBuf) -> Result<(), AppError> {
             .map_err(|err: PoisonError<MutexGuard<'_, Option<Library>>>| {
                 AppError::lock_library(err.to_string())
             })?;
-    let lib: Library = unsafe { Library::new(modules_path) }.map_err(|err: LibError| {
-        AppError::library(format!("Failed to load modules: {}", err.to_string()))
-    })?;
+    let lib: Library = unsafe { Library::new(modules_path) }
+        .map_err(|err: LibError| AppError::library(format!("Failed to load modules: {}", err)))?;
     *guard = Some(lib);
     Ok(())
 }
@@ -47,9 +46,7 @@ pub fn unload_modules() -> Result<(), AppError> {
         .take()
         .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?
         .close()
-        .map_err(|err: LibError| {
-            AppError::library(format!("Failed to unload modules: {}", err.to_string()))
-        })
+        .map_err(|err: LibError| AppError::library(format!("Failed to unload modules: {}", err)))
 }
 
 fn with_symbol<T, F, R>(name: &str, f: F) -> Result<R, AppError>
@@ -65,9 +62,8 @@ where
         .as_ref()
         .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?;
     let symbol: Symbol<T> = unsafe {
-        lib.get(name.as_bytes()).map_err(|err: LibError| {
-            AppError::library(format!("Failed to get symbol: {}", err.to_string()))
-        })?
+        lib.get(name.as_bytes())
+            .map_err(|err: LibError| AppError::library(format!("Failed to get symbol: {}", err)))?
     };
     Ok(f(symbol))
 }
@@ -131,9 +127,8 @@ pub async fn retrieve_image(domain: String, url: String) -> Result<String, AppEr
     })?
 }
 
-pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
+pub async fn get_module_sample(domain: String) -> Result<HashMap<String, String>, AppError> {
     with_symbol("get_module_sample", |f: Symbol<'_, GetModuleSampleFn>| {
         f(domain)
-    })
-    .unwrap()
+    })?
 }

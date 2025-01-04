@@ -95,8 +95,13 @@ impl Module for Imhentai {
     }
 
     async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), AppError> {
-        const IMAGE_FORMATS: &'static [(&'static str, &'static str)] =
-            &[("j", "jpg"), ("p", "png"), ("b", "bmp"), ("g", "gif")];
+        let image_formats: HashMap<&str, &str> = HashMap::from([
+            ("j", "jpg"),
+            ("p", "png"),
+            ("b", "bmp"),
+            ("g", "gif"),
+            ("w", "webp"),
+        ]);
         let url: String = format!("https://imhentai.xxx/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -126,11 +131,10 @@ impl Module for Imhentai {
         let image_urls: Vec<String> = images
             .into_iter()
             .map(|(key, value)| {
-                let format: &str = IMAGE_FORMATS
-                    .into_iter()
-                    .find_map(|&(k, v)| (k == value.split(",").next().unwrap_or("")).then_some(v))
-                    .unwrap_or("jpg");
-                format!("{path}/{key}.{format}")
+                format!(
+                    "{path}/{key}.{}",
+                    image_formats.get(value.split(",").next().unwrap()).unwrap()
+                )
             })
             .collect();
         Ok((image_urls, Value::Bool(false)))

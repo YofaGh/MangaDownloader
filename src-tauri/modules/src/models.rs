@@ -229,30 +229,11 @@ pub trait Module: Send + Sync {
     }
 }
 
-pub struct DefaultModule {
-    base: BaseModule,
-}
-
-#[async_trait]
-impl Module for DefaultModule {
-    fn base(&self) -> &BaseModule {
-        &self.base
-    }
-}
-
-impl DefaultModule {
-    pub fn new() -> Self {
-        Self {
-            base: BaseModule::default(),
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! insert {
     ($hashmap:expr, $key:expr, $value:expr) => {
         to_value($value)
             .ok()
             .and_then(|value: Value| $hashmap.insert($key.to_string(), value))
-    }
+    };
 }

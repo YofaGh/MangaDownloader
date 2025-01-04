@@ -199,7 +199,7 @@ impl Module for Manytoon {
             )
             .map(|img: Node| img.attr("src").unwrap().trim().to_string())
             .collect();
-        Ok((images, Value::from(false)))
+        Ok((images, Value::Bool(false)))
     }
 
     async fn search_by_keyword(

@@ -126,7 +126,10 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 
 #[command(async)]
 pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
-    lib_utils::get_module_sample(domain).await
+    lib_utils::get_module_sample(domain)
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
 }
 
 #[command(async)]

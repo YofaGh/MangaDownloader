@@ -2,7 +2,7 @@ mod errors;
 mod models;
 mod modules;
 pub use errors::AppError;
-use models::{DefaultModule, Module};
+use models::Module;
 use modules::*;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -10,22 +10,25 @@ use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn get_module(domain: String) -> Box<dyn Module> {
+fn get_module(domain: String) -> Result<Box<dyn Module>, AppError> {
     match domain.as_str() {
-        "hentaifox.com" => Box::new(hentaifox::Hentaifox::new()),
-        "imhentai.xxx" => Box::new(imhentai::Imhentai::new()),
-        "luscious.net" => Box::new(luscious::Luscious::new()),
-        "mangapark.to" => Box::new(mangapark::Mangapark::new()),
-        "manhuascan.us" => Box::new(manhuascan::Manhuascan::new()),
-        "manytoon.com" => Box::new(manytoon::Manytoon::new()),
-        "nhentai.net" => Box::new(nhentai_net::Nhentai::new()),
-        "nhentai.xxx" => Box::new(nhentai_xxx::Nhentai::new()),
-        "nyahentai.red" => Box::new(nyahentai::Nyahentai::new()),
-        "simplyhentai.org" => Box::new(simplyhentai::Simplyhentai::new()),
-        "readonepiece.com" => Box::new(readonepiece::Readonepiece::new()),
-        "toonily.com" => Box::new(toonily_com::Toonily::new()),
-        "truemanga.com" => Box::new(truemanga::Truemanga::new()),
-        _ => Box::new(DefaultModule::new()),
+        "hentaifox.com" => Ok(Box::new(hentaifox::Hentaifox::new())),
+        "imhentai.xxx" => Ok(Box::new(imhentai::Imhentai::new())),
+        "luscious.net" => Ok(Box::new(luscious::Luscious::new())),
+        "mangapark.to" => Ok(Box::new(mangapark::Mangapark::new())),
+        "manhuascan.us" => Ok(Box::new(manhuascan::Manhuascan::new())),
+        "manytoon.com" => Ok(Box::new(manytoon::Manytoon::new())),
+        "nhentai.net" => Ok(Box::new(nhentai_net::Nhentai::new())),
+        "nhentai.xxx" => Ok(Box::new(nhentai_xxx::Nhentai::new())),
+        "nyahentai.red" => Ok(Box::new(nyahentai::Nyahentai::new())),
+        "simplyhentai.org" => Ok(Box::new(simplyhentai::Simplyhentai::new())),
+        "readonepiece.com" => Ok(Box::new(readonepiece::Readonepiece::new())),
+        "toonily.com" => Ok(Box::new(toonily_com::Toonily::new())),
+        "truemanga.com" => Ok(Box::new(truemanga::Truemanga::new())),
+        _ => Err(AppError::Other(format!(
+            "Domain {} is not supported",
+            domain
+        ))),
     }
 }
 
@@ -72,15 +75,15 @@ pub fn get_modules() -> Vec<HashMap<String, Value>> {
 }
 
 #[no_mangle]
-pub fn get_module_sample(domain: String) -> HashMap<String, String> {
-    get_module(domain).get_module_sample()
+pub fn get_module_sample(domain: String) -> Result<HashMap<String, String>, AppError> {
+    Ok(get_module(domain)?.get_module_sample())
 }
 
 #[no_mangle]
 pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).get_info(manga))
+        .block_on(get_module(domain)?.get_info(manga))
 }
 
 #[no_mangle]
@@ -90,7 +93,7 @@ pub fn get_chapters(
 ) -> Result<Vec<HashMap<String, String>>, AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).get_chapters(manga))
+        .block_on(get_module(domain)?.get_chapters(manga))
 }
 
 #[no_mangle]
@@ -101,7 +104,7 @@ pub fn get_images(
 ) -> Result<(Vec<String>, Value), AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).get_images(manga, chapter))
+        .block_on(get_module(domain)?.get_images(manga, chapter))
 }
 
 #[no_mangle]
@@ -114,7 +117,7 @@ pub fn search_by_keyword(
 ) -> Result<Vec<HashMap<String, String>>, AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).search_by_keyword(keyword, absolute, sleep_time, page_limit))
+        .block_on(get_module(domain)?.search_by_keyword(keyword, absolute, sleep_time, page_limit))
 }
 
 #[no_mangle]
@@ -125,12 +128,12 @@ pub fn download_image(
 ) -> Result<Option<String>, AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).download_image(url, image_name))
+        .block_on(get_module(domain)?.download_image(url, image_name))
 }
 
 #[no_mangle]
 pub fn retrieve_image(domain: String, url: String) -> Result<String, AppError> {
     Runtime::new()
         .map_err(AppError::runtime)?
-        .block_on(get_module(domain).retrieve_image(url))
+        .block_on(get_module(domain)?.retrieve_image(url))
 }

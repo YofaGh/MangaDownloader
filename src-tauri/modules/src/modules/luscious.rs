@@ -168,7 +168,7 @@ impl Module for Luscious {
                 .collect();
             images.extend(new_images);
         }
-        Ok((images, to_value(false).unwrap_or_default()))
+        Ok((images, Value::Bool(false)))
     }
 
     async fn search_by_keyword(

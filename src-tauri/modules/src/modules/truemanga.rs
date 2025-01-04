@@ -189,7 +189,7 @@ impl Module for Truemanga {
                 )
             })
             .collect();
-        Ok((images, to_value(save_names).unwrap_or_default()))
+        Ok((images, to_value(save_names).unwrap()))
     }
 
     async fn search_by_keyword(

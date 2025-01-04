@@ -159,7 +159,7 @@ impl Module for Mangapark {
             .enumerate()
             .map(|(i, img)| format!("{:03}.{}", i + 1, img.split('.').last().unwrap()))
             .collect();
-        Ok((images, to_value(save_names).unwrap_or_default()))
+        Ok((images, to_value(save_names).unwrap()))
     }
 
     async fn search_by_keyword(

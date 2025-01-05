@@ -40,8 +40,7 @@ pub fn run() {
             search_by_keyword,
         ])
         .setup(|app: &mut App| {
-            load_up_checks(app.path().app_data_dir().unwrap_or_default())
-                .expect("error while running load up checks");
+            load_up_checks(app.path().app_data_dir()?).expect("error while running load up checks");
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
             Ok(())

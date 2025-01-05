@@ -1,13 +1,19 @@
 import { invoke } from ".";
 import { useNotificationStore } from "../store";
 
+const baseInvoker = async (fn, args) => {
+  try {
+    await invoke(fn, args);
+  } catch (error) {
+    useNotificationStore.getState().notifyError(Object.values(error)[0]);
+  }
+};
+
 export const getModules = async () => await invoke("get_modules");
 
 export const getSaucersList = async () => await invoke("get_saucers_list");
 
 export const getDataDirPath = async () => await invoke("get_data_dir_path");
-
-export const openFolder = async (path) => await invoke("open_folder", { path });
 
 export const uploadImage = async (path) =>
   await invoke("upload_image", { path });
@@ -23,6 +29,9 @@ export const readDirectory = async (path) =>
 
 export const getInfo = async (domain, url) =>
   await invoke("get_info", { domain, url });
+
+export const openFolder = async (path) =>
+  await baseInvoker("open_folder", { path });
 
 export const createDirectory = async (path) =>
   await invoke("create_directory", { path });
@@ -42,19 +51,15 @@ export const retrieveImage = async (domain, url) =>
 export const getImages = async (domain, manga, chapter) =>
   await invoke("get_images", { domain, manga, chapter });
 
+export const removeDirectory = async (path, recursive) => {
+  await baseInvoker("remove_directory", { path, recursive });
+};
+
 export const downloadImage = async (domain, url, imageName) =>
   await invoke("download_image", { domain, url, imageName });
 
 export const merge = async (pathToSource, pathToDestination, mergeMethod) =>
   await invoke("merge", { pathToSource, pathToDestination, mergeMethod });
-
-export const removeDirectory = async (path, recursive) => {
-  try {
-    await invoke("remove_directory", { path, recursive });
-  } catch (error) {
-    useNotificationStore.getState().notifyError(Object.values(error)[0]);
-  }
-};
 
 export const searchByKeyword = async (
   domain,

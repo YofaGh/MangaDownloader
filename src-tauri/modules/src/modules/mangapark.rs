@@ -107,15 +107,12 @@ impl Module for Mangapark {
                 item.as_str().and_then(|s: &str| {
                     if s.contains(&format!("{manga}/")) {
                         s.split('/').last().and_then(|url: &str| {
-                            Some(HashMap::from([
-                                ("url".to_string(), url.to_string()),
-                                (
-                                    "name".to_string(),
-                                    self.rename_chapter(
-                                        objs.get(i.wrapping_sub(1)).unwrap().to_string(),
-                                    ),
-                                ),
-                            ]))
+                            objs.get(i.wrapping_sub(1)).and_then(|name: &Value| {
+                                Some(HashMap::from([
+                                    ("url".to_string(), url.to_string()),
+                                    ("name".to_string(), self.rename_chapter(name.to_string())),
+                                ]))
+                            })
                         })
                     } else {
                         None
@@ -157,9 +154,15 @@ impl Module for Mangapark {
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
-            .map(|(i, img)| format!("{:03}.{}", i + 1, img.split('.').last().unwrap()))
-            .collect();
-        Ok((images, to_value(save_names).unwrap()))
+            .map(|(i, img)| {
+                let extension: &str = img
+                    .split('.')
+                    .last()
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?;
+                Ok(format!("{:03}.{extension}", i + 1))
+            })
+            .collect::<Result<Vec<String>, AppError>>()?;
+        Ok((images, to_value(save_names)?))
     }
 
     async fn search_by_keyword(

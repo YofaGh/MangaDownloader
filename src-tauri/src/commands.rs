@@ -1,6 +1,6 @@
 use image::open;
 use serde_json::Value;
-use std::{collections::HashMap, fs::DirEntry, path::PathBuf, process::Command};
+use std::{collections::HashMap, fs::DirEntry, path::PathBuf};
 use tauri::{command, AppHandle, Error as TauriError, Manager};
 
 use crate::{
@@ -21,11 +21,8 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
 }
 
 #[command(async)]
-pub async fn open_folder(path: String) {
-    Command::new("explorer")
-        .args(["/select,", &path])
-        .spawn()
-        .ok();
+pub async fn open_folder(path: String) -> Result<(), AppError> {
+    assets::open_folder(path).await
 }
 
 #[command(async)]

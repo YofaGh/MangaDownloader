@@ -83,10 +83,8 @@ impl Module for Imhentai {
             };
             let values: Vec<String> = box_item
                 .find(Name("a"))
-                .filter_map(|a: Node| {
-                    a.first_child()
-                        .and_then(|element: Node<'_>| Some(element.text().trim().to_string()))
-                })
+                .filter_map(|a: Node| a.first_child())
+                .map(|a: Node<'_>| a.text().trim().to_string())
                 .collect();
             insert!(extras, key.text().trim_end_matches(':'), values);
         }
@@ -105,19 +103,19 @@ impl Module for Imhentai {
         let url: String = format!("https://imhentai.xxx/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let path: &str = document
-            .find(
-                Name("div")
-                    .and(Attr("id", "append_thumbs"))
-                    .descendant(Name("img")),
-            )
-            .next()
-            .ok_or_else(|| AppError::parser(&code, "div id append_thumbs img"))?
-            .attr("data-src")
-            .ok_or_else(|| AppError::parser(&code, "img data-src"))?
-            .rsplit_once("/")
-            .ok_or_else(|| AppError::parser(&code, "rsplit once /"))?
-            .0;
+        let path: &str = (|| {
+            let img: Node<'_> = document
+                .find(
+                    Name("div")
+                        .and(Attr("id", "append_thumbs"))
+                        .descendant(Name("img")),
+                )
+                .next()?;
+            let src: &str = img.attr("data-src")?;
+            let (path, _) = src.rsplit_once("/")?;
+            Some(path)
+        })()
+        .ok_or_else(|| AppError::parser(&url, "failed to get path"))?;
         let script: String = document
             .find(|n: &Node| n.name() == Some("script") && n.text().contains("var g_th"))
             .next()
@@ -131,12 +129,14 @@ impl Module for Imhentai {
         let image_urls: Vec<String> = images
             .into_iter()
             .map(|(key, value)| {
-                format!(
-                    "{path}/{key}.{}",
-                    image_formats.get(value.split(",").next().unwrap()).unwrap()
-                )
+                (|| {
+                    let format_key: &str = value.split(",").next()?;
+                    let extension: &&str = image_formats.get(format_key)?;
+                    Some(format!("{path}/{key}.{extension}"))
+                })()
+                .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))
             })
-            .collect();
+            .collect::<Result<Vec<String>, AppError>>()?;
         Ok((image_urls, Value::Bool(false)))
     }
 

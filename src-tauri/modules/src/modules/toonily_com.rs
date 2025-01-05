@@ -157,18 +157,31 @@ impl Module for Toonily {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .find(Name("div").and(Class("reading-content")))
-            .next()
-            .ok_or_else(|| AppError::parser(&chapter, "div reading-content"))?
-            .find(Name("img"))
-            .map(|img: Node| img.attr("data-src").unwrap().trim().to_string())
-            .collect();
+            .find(
+                Name("div")
+                    .and(Class("reading-content"))
+                    .descendant(Name("img")),
+            )
+            .map(|img: Node| {
+                Ok(img
+                    .attr("data-src")
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
+                    .trim()
+                    .to_string())
+            })
+            .collect::<Result<Vec<String>, AppError>>()?;
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
-            .map(|(i, img)| format!("{:03}.{}", i + 1, img.split('.').last().unwrap()))
-            .collect();
-        Ok((images, to_value(save_names).unwrap()))
+            .map(|(i, img)| {
+                let extension: &str = img
+                    .split('.')
+                    .last()
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename extension"))?;
+                Ok(format!("{:03}.{extension}", i + 1))
+            })
+            .collect::<Result<Vec<String>, AppError>>()?;
+        Ok((images, to_value(save_names)?))
     }
 
     async fn search_by_keyword(

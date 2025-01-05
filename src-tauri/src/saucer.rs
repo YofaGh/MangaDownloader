@@ -6,7 +6,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::Value;
-use std::{collections::HashMap, io::Error, path::PathBuf};
+use std::{collections::HashMap, ffi::OsStr, io::Error, path::PathBuf};
 use tokio::fs::read;
 
 use crate::errors::AppError;
@@ -26,7 +26,9 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
         })
         .ok_or_else(|| AppError::parser(&url, "data-state attribute"))?;
     let data: IndexMap<String, Value> = serde_json::from_str(&data_raw)?;
-    let sites: &Vec<Value> = data["sites"].as_array().unwrap();
+    let sites: &Vec<Value> = data["sites"]
+        .as_array()
+        .ok_or_else(|| AppError::SerdeJsonError(format!("{url}: saucer: unable to find sites")))?;
     sites
         .into_iter()
         .map(|site: &Value| {
@@ -49,7 +51,9 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
         header::HeaderValue::from_str(
             "multipart/form-data; boundary=----WebKitFormBoundaryVxauFLsZbD7Cr1Fa",
         )
-        .unwrap(),
+        .map_err(|err: header::InvalidHeaderValue| {
+            AppError::ReqwestError(format!("{url}: saucer, invalid header: {err}"))
+        })?,
     );
     let client: Client = Client::builder().build()?;
     let request: RequestBuilder = client
@@ -57,8 +61,13 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
         .headers(headers.to_owned())
         .body(data.to_owned());
     let mut response: Value = request.send().await?.json().await?;
-    let total_pages: i64 = response["total_pages"].as_i64().unwrap();
-    let mut matches: Vec<Value> = response["matches"].as_array().unwrap().to_vec();
+    let total_pages: i64 = response["total_pages"].as_i64().ok_or_else(|| {
+        AppError::SerdeJsonError(format!("{url}: saucer: unable to find total_pages"))
+    })?;
+    let mut matches: Vec<Value> = response["matches"]
+        .as_array()
+        .ok_or_else(|| AppError::SerdeJsonError(format!("{url}: saucer: unable to find matches")))?
+        .to_vec();
     for i in 2..=total_pages {
         response = client
             .post(&format!(
@@ -70,12 +79,25 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
             .await?
             .json()
             .await?;
-        matches.extend(response["matches"].as_array().unwrap().to_vec());
+        matches.extend(
+            response["matches"]
+                .as_array()
+                .ok_or_else(|| {
+                    AppError::SerdeJsonError(format!("{url}: saucer: unable to find matches"))
+                })?
+                .to_vec(),
+        );
     }
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     for match_ in matches {
-        for domain in match_["domains"].as_array().unwrap() {
-            for backlink in domain["backlinks"].as_array().unwrap() {
+        let domains: &Vec<Value> = match_["domains"].as_array().ok_or_else(|| {
+            AppError::SerdeJsonError(format!("{url}: saucer: unable to find domains"))
+        })?;
+        for domain in domains {
+            let backlinks: &Vec<Value> = domain["backlinks"].as_array().ok_or_else(|| {
+                AppError::SerdeJsonError(format!("{url}: saucer: unable to find backlinks"))
+            })?;
+            for backlink in backlinks {
                 let mut map: HashMap<String, String> = HashMap::new();
                 map.insert("url".to_string(), backlink["backlink"].to_string());
                 map.insert("image".to_string(), backlink["url"].to_string());
@@ -105,18 +127,23 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, AppError>
         div.find(Name("td").and(Class("image")))
             .find_map(|td: Node<'_>| {
                 td.find(Name("a")).next().map(|td_a: Node<'_>| {
-                    let mut td_url: String = td_a.attr("href").unwrap().to_string();
+                    let Some(td_url) = td_a.attr("href") else {
+                        return;
+                    };
+                    let mut td_url: String = td_url.to_string();
                     if !td_url.contains("https:") {
                         td_url = format!("https:{td_url}");
                     }
                     let mut map: HashMap<String, String> = HashMap::new();
                     map.insert("url".to_string(), td_url);
                     td.find(Name("img")).next().map(|image: Node<'_>| {
-                        let mut image_src: String = image.attr("src").unwrap().to_string();
-                        if !image_src.contains("https:") {
-                            image_src = format!("https://iqdb.org{image_src}");
-                        }
-                        map.insert("image".to_string(), image_src);
+                        image.attr("src").and_then(|src| {
+                            let mut image_src: String = src.to_string();
+                            if !image_src.contains("https:") {
+                                image_src = format!("https://iqdb.org{image_src}");
+                            }
+                            map.insert("image".to_string(), image_src)
+                        });
                     });
                     results.push(map);
                 })
@@ -161,8 +188,13 @@ pub async fn upload(path: &str) -> Result<String, AppError> {
         .map_err(|err: Error| AppError::file("read", &path_buf, err))?;
     let form: multipart::Form = multipart::Form::new().part(
         "photo",
-        multipart::Part::stream(bytes)
-            .file_name(path_buf.file_name().unwrap().to_str().unwrap().to_string()),
+        multipart::Part::stream(bytes).file_name(
+            path_buf
+                .file_name()
+                .and_then(|name: &OsStr| name.to_str())
+                .ok_or_else(|| AppError::FileOperation(format!("{path}: Invalid image filename")))?
+                .to_string(),
+        ),
     );
     let response = client
         .post("https://imgops.com/store")

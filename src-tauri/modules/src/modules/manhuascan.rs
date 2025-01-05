@@ -143,8 +143,13 @@ impl Module for Manhuascan {
             .next()
             .ok_or_else(|| AppError::parser(&manga, "readerarea"))?
             .find(Name("img"))
-            .map(|img: Node| img.attr("src").unwrap().to_string())
-            .collect();
+            .map(|img: Node| {
+                Ok(img
+                    .attr("src")
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
+                    .to_string())
+            })
+            .collect::<Result<Vec<String>, AppError>>()?;
         Ok((images, Value::Bool(false)))
     }
 

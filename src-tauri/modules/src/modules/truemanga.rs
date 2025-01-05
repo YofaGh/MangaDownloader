@@ -182,14 +182,17 @@ impl Module for Truemanga {
             .iter()
             .enumerate()
             .map(|(i, img)| {
-                format!(
-                    "{:03}.{}",
-                    i + 1,
-                    img.split('.').last().unwrap().split("?").next().unwrap()
-                )
+                let extension: &str = img
+                    .split('.')
+                    .last()
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?
+                    .split('?')
+                    .next()
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?;
+                Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect();
-        Ok((images, to_value(save_names).unwrap()))
+            .collect::<Result<Vec<String>, AppError>>()?;
+        Ok((images, to_value(save_names)?))
     }
 
     async fn search_by_keyword(

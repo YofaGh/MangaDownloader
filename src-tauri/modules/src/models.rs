@@ -156,7 +156,7 @@ pub trait Module: Send + Sync {
             }
         }
         if !reached_number {
-            return chapter.to_string();
+            return chapter;
         }
         new_name = new_name.trim_end_matches('.').to_string();
         match new_name.parse::<i32>() {

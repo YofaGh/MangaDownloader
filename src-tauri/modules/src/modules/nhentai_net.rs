@@ -108,14 +108,22 @@ impl Module for Nhentai {
         let images: Vec<String> = document
             .find(Class("gallerythumb").and(Name("a")).descendant(Name("img")))
             .map(|node: Node| {
-                let image: &str = node.attr("data-src").unwrap();
-                format!(
-                    "{}/{}",
-                    image.replace("//t", "//i").rsplit_once("/").unwrap().0,
-                    image.rsplit('/').next().unwrap().replace("t.", ".")
-                )
+                let image: &str = node
+                    .attr("data-src")
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?;
+                let imagen: String = image.replace("t.", ".");
+                let name: &str = imagen
+                    .rsplit_once("/")
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?
+                    .0;
+                let ext: String = image
+                    .rsplit('/')
+                    .next()
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename extension"))?
+                    .replace("t.", ".");
+                Ok(format!("{name}/{ext}"))
             })
-            .collect();
+            .collect::<Result<Vec<String>, AppError>>()?;
         Ok((images, Value::Bool(false)))
     }
 

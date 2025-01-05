@@ -10,6 +10,7 @@ use std::{
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File},
     io::{Error as IoError, Write},
     path::PathBuf,
+    process::Command,
 };
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow};
 use tokio::time::{sleep, Duration};
@@ -93,7 +94,8 @@ pub fn read_directory(path: &str) -> Result<Vec<DirEntry>, AppError> {
 }
 
 pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
-    let path: String = append_dynamic_lib_extension("resources/modules");
+    let extension: &str = get_dynamic_lib_extension();
+    let path: String = format!("resources/modules.{extension}");
     let modules_path: PathBuf = app
         .path()
         .resolve(path, BaseDirectory::Resource)
@@ -112,9 +114,7 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
                 emit_status(&splash_screen_window, "Updating Modules")?;
                 unload_modules()?;
                 unloaded_modules = true;
-                let path: String = append_dynamic_lib_extension(&format!(
-                    "{GITHUB_URL}src-tauri/resources/modules"
-                ));
+                let path: String = format!("{GITHUB_URL}src-tauri/resources/modules.{extension}");
                 match get(path).await {
                     Ok(response) => write(&modules_path, response.bytes().await?.to_vec())
                         .map_err(|err: IoError| AppError::file("write to", &modules_path, err))?,
@@ -188,10 +188,65 @@ pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)
         .collect()
 }
 
-fn append_dynamic_lib_extension(path: &str) -> String {
-    if cfg!(target_family = "windows") {
-        format!("{path}.dll")
-    } else {
-        format!("{path}.so")
+pub async fn open_folder(path: String) -> Result<(), AppError> {
+    let path_buf: PathBuf = PathBuf::from(&path);
+    if !path_buf.exists() {
+        return Err(AppError::DirectoryOperation(format!(
+            "Failed to open Directory: {path} does not exist",
+        )));
+    }
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("explorer")
+            .args(["/select,", &path])
+            .spawn()
+            .map_err(|err: IoError| AppError::directory("open", &path, err))?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .args(["-R", &path])
+            .spawn()
+            .map_err(|err: IoError| AppError::directory("open", &path, err))?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let managers = ["xdg-open", "nautilus", "dolphin", "nemo", "thunar"];
+        let mut success = false;
+        for manager in managers {
+            if Command::new(manager).arg(&path).spawn().is_ok() {
+                success = true;
+                break;
+            }
+        }
+        if !success {
+            return Err(AppError::DirectoryOperation(format!(
+                "No suitable file manager found",
+            )));
+        }
+    }
+    Ok(())
+}
+
+pub fn get_dynamic_lib_extension() -> &'static str {
+    #[cfg(target_os = "windows")]
+    {
+        "dll"
+    }
+    #[cfg(target_os = "macos")]
+    {
+        "dylib"
+    }
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    {
+        "so"
+    }
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    {
+        "so"
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        "so"
     }
 }

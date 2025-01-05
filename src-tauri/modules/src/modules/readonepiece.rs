@@ -62,8 +62,13 @@ impl Module for Readonepiece {
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("img").and(Attr("class", "mb-3 mx-auto js-page")))
-            .map(|image: Node<'_>| image.attr("src").unwrap().to_string())
-            .collect();
+            .map(|image: Node<'_>| {
+                Ok(image
+                    .attr("src")
+                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
+                    .to_string())
+            })
+            .collect::<Result<Vec<String>, AppError>>()?;
         Ok((images, Value::Bool(false)))
     }
 

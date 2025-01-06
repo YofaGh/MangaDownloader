@@ -51,26 +51,15 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
 }
 
 #[no_mangle]
-pub fn get_version() -> String {
-    VERSION.to_string()
+pub fn get_version() -> Result<String, AppError> {
+    Ok(VERSION.to_string())
 }
 
 #[no_mangle]
-pub fn get_modules() -> Vec<HashMap<String, Value>> {
+pub fn get_modules() -> Result<Vec<HashMap<String, Value>>, AppError> {
     get_all_modules()
         .into_iter()
-        .map(|module: Box<dyn Module>| {
-            HashMap::from([
-                ("type".to_string(), Value::from(module.get_type())),
-                ("domain".to_string(), Value::from(module.get_domain())),
-                ("logo".to_string(), Value::from(module.get_logo())),
-                (
-                    "searchable".to_string(),
-                    Value::Bool(module.is_searchable()),
-                ),
-                ("is_coded".to_string(), Value::Bool(module.is_coded())),
-            ])
-        })
+        .map(|module: Box<dyn Module>| module.get_module_info())
         .collect()
 }
 

@@ -203,7 +203,7 @@ impl Nyahentai {
                 domain: "nyahentai.red",
                 logo: "https://nyahentai.red/front/logo.svg",
                 sample: HashMap::from([("code", "1")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

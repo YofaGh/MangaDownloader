@@ -214,7 +214,7 @@ impl Hentaifox {
                 domain: "hentaifox.com",
                 logo: "https://hentaifox.com/images/logo.png",
                 sample: HashMap::from([("code", "1")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

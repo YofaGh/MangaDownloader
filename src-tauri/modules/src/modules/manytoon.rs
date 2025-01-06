@@ -291,7 +291,7 @@ impl Manytoon {
                 domain: "manytoon.com",
                 logo: "https://manytoon.com/favicon.ico",
                 sample: HashMap::from([("manga", "my-illustrator")]),
-                searchable: true,
+                is_searchable: true,
                 ..BaseModule::default()
             },
         }

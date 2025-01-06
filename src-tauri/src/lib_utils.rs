@@ -13,8 +13,8 @@ lazy_static! {
     static ref LIB: Mutex<Option<Library>> = Mutex::new(None);
 }
 
-type GetVersionFn = fn() -> String;
-type GetModulesFn = fn() -> Vec<HashMap<String, Value>>;
+type GetVersionFn = fn() -> Result<String, AppError>;
+type GetModulesFn = fn() -> Result<Vec<HashMap<String, Value>>, AppError>;
 type GetModuleSampleFn = fn(String) -> Result<HashMap<String, String>, AppError>;
 type GetInfoFn = fn(String, String) -> Result<HashMap<String, Value>, AppError>;
 type GetChaptersFn = fn(String, String) -> Result<Vec<HashMap<String, String>>, AppError>;
@@ -68,12 +68,12 @@ where
     Ok(f(symbol))
 }
 
-pub fn get_modules_version() -> String {
-    with_symbol("get_version", |f: Symbol<'_, GetVersionFn>| f()).unwrap()
+pub fn get_modules_version() -> Result<String, AppError> {
+    with_symbol("get_version", |f: Symbol<'_, GetVersionFn>| f())?
 }
 
-pub async fn get_modules() -> Vec<HashMap<String, Value>> {
-    with_symbol("get_modules", |f: Symbol<'_, GetModulesFn>| f()).unwrap()
+pub async fn get_modules() -> Result<Vec<HashMap<String, Value>>, AppError> {
+    with_symbol("get_modules", |f: Symbol<'_, GetModulesFn>| f())?
 }
 
 pub async fn get_info(domain: String, url: String) -> Result<HashMap<String, Value>, AppError> {

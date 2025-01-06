@@ -273,7 +273,7 @@ impl Luscious {
                 domain: "luscious.net",
                 logo: "https://www.luscious.net/assets/logo.png",
                 sample: HashMap::from([("code", "505726"), ("keyword", "solo")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

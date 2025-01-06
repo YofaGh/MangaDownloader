@@ -105,7 +105,7 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
         .get_webview_window("splashscreen")
         .ok_or_else(|| AppError::window("get window", "splashscreen", String::new()))?;
     emit_status(&splash_screen_window, "Checking for updates")?;
-    let current_version: Version = Version::parse(&get_modules_version())?;
+    let current_version: Version = Version::parse(&get_modules_version()?)?;
     let mut unloaded_modules: bool = false;
     match get(format!("{GITHUB_URL}modules-version.txt")).await {
         Ok(response) => {
@@ -237,15 +237,7 @@ pub fn get_dynamic_lib_extension() -> &'static str {
     {
         "dylib"
     }
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    {
-        "so"
-    }
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    {
-        "so"
-    }
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(target_os = "linux")]
     {
         "so"
     }

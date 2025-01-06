@@ -227,7 +227,7 @@ impl Imhentai {
                 domain: "imhentai.xxx",
                 logo: "https://imhentai.xxx/images/logo.png",
                 sample: HashMap::from([("code", "1")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

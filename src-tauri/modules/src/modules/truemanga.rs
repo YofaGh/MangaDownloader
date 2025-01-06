@@ -301,7 +301,7 @@ impl Truemanga {
                 logo: "https://truemanga.com/static/sites/truemanga/icons/favicon.ico",
                 download_image_headers,
                 sample: HashMap::from([("manga", "blind-play"), ("keyword", "play")]),
-                searchable: true,
+                is_searchable: true,
                 ..BaseModule::default()
             },
         }

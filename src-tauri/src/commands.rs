@@ -64,7 +64,10 @@ pub fn validate_image(path: String) -> bool {
 
 #[command(async)]
 pub async fn get_modules() -> Vec<HashMap<String, Value>> {
-    lib_utils::get_modules().await
+    lib_utils::get_modules()
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
 }
 
 #[command(async)]

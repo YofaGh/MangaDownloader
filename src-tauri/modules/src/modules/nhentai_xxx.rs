@@ -189,7 +189,7 @@ impl Nhentai {
                 domain: "nhentai.xxx",
                 logo: "https://nhentai.xxx/front/logo.svg",
                 sample: HashMap::from([("code", "1")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

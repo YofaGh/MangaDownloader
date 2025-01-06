@@ -198,7 +198,7 @@ impl Nhentai {
                 domain: "nhentai.net",
                 logo: "https://static.nhentai.net/img/logo.090da3be7b51.svg",
                 sample: HashMap::from([("code", "1")]),
-                searchable: true,
+                is_searchable: true,
                 is_coded: true,
                 ..BaseModule::default()
             },

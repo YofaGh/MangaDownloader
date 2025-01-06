@@ -261,7 +261,7 @@ impl Manhuascan {
                 domain: "manhuascan.us",
                 logo: "https://manhuascan.us/fav.png?v=1",
                 sample: HashMap::from([("manga", "secret-class")]),
-                searchable: true,
+                is_searchable: true,
                 ..BaseModule::default()
             },
         }

@@ -282,7 +282,7 @@ impl Mangapark {
                 domain: "mangapark.to",
                 logo: "https://mangapark.to/public-assets/img/favicon.ico",
                 sample: HashMap::from([("manga", "77478-en-sakamoto-days")]),
-                searchable: true,
+                is_searchable: true,
                 ..BaseModule::default()
             },
         }

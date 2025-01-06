@@ -23,7 +23,7 @@ pub struct BaseModule {
     pub logo: &'static str,
     pub download_image_headers: HeaderMap,
     pub sample: HashMap<&'static str, &'static str>,
-    pub searchable: bool,
+    pub is_searchable: bool,
     pub is_coded: bool,
 }
 
@@ -35,7 +35,7 @@ impl Default for BaseModule {
             logo: "",
             download_image_headers: HeaderMap::new(),
             sample: HashMap::new(),
-            searchable: false,
+            is_searchable: false,
             is_coded: false,
         }
     }
@@ -44,15 +44,6 @@ impl Default for BaseModule {
 #[async_trait]
 pub trait Module: Send + Sync {
     fn base(&self) -> &BaseModule;
-    fn get_type(&self) -> &str {
-        self.base().type_
-    }
-    fn get_domain(&self) -> &str {
-        self.base().domain
-    }
-    fn get_logo(&self) -> &str {
-        self.base().logo
-    }
     fn get_download_image_headers(&self) -> HeaderMap {
         self.base().download_image_headers.to_owned()
     }
@@ -64,11 +55,15 @@ pub trait Module: Send + Sync {
             .map(|(k, v)| (k.to_owned(), v.to_owned()))
             .collect()
     }
-    fn is_searchable(&self) -> bool {
-        self.base().searchable
-    }
-    fn is_coded(&self) -> bool {
-        self.base().is_coded
+    fn get_module_info(&self) -> Result<HashMap<String, Value>, AppError> {
+        let base: &BaseModule = self.base();
+        Ok(HashMap::from([
+            ("type".to_string(), Value::from(base.type_)),
+            ("domain".to_string(), Value::from(base.domain)),
+            ("logo".to_string(), Value::from(base.logo)),
+            ("searchable".to_string(), Value::Bool(base.is_searchable)),
+            ("is_coded".to_string(), Value::Bool(base.is_coded)),
+        ]))
     }
     async fn download_image(
         &self,

@@ -265,7 +265,7 @@ impl Toonily {
                 logo: "https://toonily.com/wp-content/uploads/2020/01/cropped-toonfavicon-1-192x192.png",
                 download_image_headers,
                 sample: HashMap::from([("manga", "peerless-dad")]),
-                searchable: true,
+                is_searchable: true,
                 ..BaseModule::default()
             },
         }

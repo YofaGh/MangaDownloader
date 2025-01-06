@@ -6,7 +6,7 @@ use rayon::{
     iter::{IndexedParallelIterator, ParallelIterator},
     prelude::IntoParallelIterator,
 };
-use std::{cmp::max, fs::copy, io::Error, path::PathBuf};
+use std::{cmp::max, ffi::OsStr, fs::copy, io::Error, path::PathBuf};
 
 use crate::{
     assets::{create_directory, detect_images},
@@ -132,15 +132,15 @@ pub fn merge_fit(
 }
 
 fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
-    copy(
-        path,
-        format!(
-            "{image_name}.{}",
-            path.extension().and_then(|ext| ext.to_str()).unwrap()
-        ),
-    )
-    .map(|_| ())
-    .map_err(|err: Error| AppError::file("copy", path, err))
+    let extension: &str = path
+        .extension()
+        .and_then(|ext: &OsStr| ext.to_str())
+        .ok_or_else(|| {
+            AppError::FileOperation("Failed to get file extension {path}".to_string())
+        })?;
+    copy(path, format!("{image_name}.{extension}"))
+        .map(|_| ())
+        .map_err(|err: Error| AppError::file("copy", path, err))
 }
 
 fn save_image(image: RgbImage, image_name: String) -> Result<(), AppError> {

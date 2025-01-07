@@ -33,10 +33,10 @@ impl Module for Manytoon {
         document
             .find(Name("div").and(Class("post-title")).descendant(Name("h1")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .last_child()
-                    .and_then(|last: Node<'_>| insert!(info, "Title", last.text().trim()))
+                    .and_then(|last: Node| insert!(info, "Title", last.text().trim()))
             });
         document
             .find(
@@ -45,15 +45,15 @@ impl Module for Manytoon {
                     .descendant(Name("p")),
             )
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .first_child()
-                    .and_then(|first: Node<'_>| insert!(info, "Summary", first.text().trim()))
+                    .and_then(|first: Node| insert!(info, "Summary", first.text().trim()))
             });
         document
             .find(Name("span").and(Attr("class", "score font-meta total_votes")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .text()
                     .trim()
@@ -76,9 +76,7 @@ impl Module for Manytoon {
                 box_elem
                     .find(Name("div").and(Class("summary-content")))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        insert!(info, "Alternative", element.text().trim())
-                    });
+                    .and_then(|element: Node| insert!(info, "Alternative", element.text().trim()));
             } else {
                 let (Some(box_str), Some(info_key)) = (
                     box_elem
@@ -109,28 +107,23 @@ impl Module for Manytoon {
             insert!(info, "Extras", extras);
             return Ok(info);
         };
-        info_box
-            .find(Name("img"))
-            .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .attr("src")
-                    .and_then(|src: &str| insert!(info, "Cover", src))
-            });
+        info_box.find(Name("img")).next().and_then(|element: Node| {
+            element
+                .attr("src")
+                .and_then(|src: &str| insert!(info, "Cover", src))
+        });
         info_box
             .find(Name("div").and(Class("post-status")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .find(Name("div").and(Class("summary-content")))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        insert!(extras, "Release", element.text().trim())
-                    });
+                    .and_then(|element: Node| insert!(extras, "Release", element.text().trim()));
                 element
                     .find(Name("div").and(Class("summary-content")))
                     .nth(1)
-                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()))
+                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()))
             });
         insert!(info, "Extras", extras);
         Ok(info)
@@ -171,7 +164,7 @@ impl Module for Manytoon {
                     .and(Class("wp-manga-chapter"))
                     .descendant(Name("a")),
             )
-            .filter_map(|div: Node<'_>| {
+            .filter_map(|div: Node| {
                 div.attr("href").and_then(|href: &str| {
                     href.split('/').nth_back(1).and_then(|last: &str| {
                         Some(HashMap::from([
@@ -250,14 +243,11 @@ impl Module for Manytoon {
                 };
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "url", url, page);
-                manga
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.attr("src").and_then(|src: &str| {
-                            result.insert("thumbnail".to_owned(), src.to_owned())
-                        })
-                    });
+                manga.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
+                });
                 manga
                     .find(
                         Name("span")
@@ -265,7 +255,7 @@ impl Module for Manytoon {
                             .descendant(Name("a")),
                     )
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         element.attr("href").and_then(|href: &str| {
                             href.split('/').nth_back(1).and_then(|chapter: &str| {
                                 result.insert("latest_chapter".to_owned(), chapter.to_owned())

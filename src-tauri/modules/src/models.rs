@@ -44,9 +44,6 @@ impl Default for BaseModule {
 #[async_trait]
 pub trait Module: Send + Sync {
     fn base(&self) -> &BaseModule;
-    fn get_download_image_headers(&self) -> HeaderMap {
-        self.base().download_image_headers.to_owned()
-    }
     fn get_module_sample(&self) -> HashMap<String, String> {
         self.base()
             .sample
@@ -74,8 +71,8 @@ pub trait Module: Send + Sync {
             .send_request(
                 &url,
                 Method::GET,
-                self.get_download_image_headers(),
-                Some(true),
+                self.base().download_image_headers.to_owned(),
+                None,
                 None,
                 None,
                 None,
@@ -102,8 +99,8 @@ pub trait Module: Send + Sync {
             .send_request(
                 &url,
                 Method::GET,
-                self.get_download_image_headers(),
-                Some(true),
+                self.base().download_image_headers.to_owned(),
+                None,
                 None,
                 None,
                 None,
@@ -158,11 +155,10 @@ pub trait Module: Send + Sync {
             Ok(num) => format!("Chapter {:03}", num),
             Err(_) => {
                 let parts: Vec<&str> = new_name.split('.').collect();
-                format!(
-                    "Chapter {:03}.{}",
-                    parts[0].parse::<i32>().unwrap(),
-                    parts[1]
-                )
+                match parts[0].parse::<i32>() {
+                    Ok(num) => format!("Chapter {:03}.{}", num, parts[1]),
+                    Err(_) => chapter,
+                }
             }
         }
     }
@@ -211,7 +207,7 @@ pub trait Module: Send + Sync {
             url,
             Method::GET,
             HeaderMap::new(),
-            Some(true),
+            None,
             None,
             None,
             None,

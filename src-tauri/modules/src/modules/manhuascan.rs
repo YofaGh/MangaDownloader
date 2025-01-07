@@ -34,7 +34,7 @@ impl Module for Manhuascan {
         document
             .find(Name("img").and(Attr("class", "attachment- size- wp-post-image")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .attr("src")
                     .and_then(|v: &str| insert!(info, "Cover", v))
@@ -64,7 +64,7 @@ impl Module for Manhuascan {
                     .descendant(Name("span")),
             )
             .next()
-            .and_then(|span: Node<'_>| {
+            .and_then(|span: Node| {
                 span.text()
                     .trim()
                     .replace("/5", "")
@@ -84,7 +84,7 @@ impl Module for Manhuascan {
             .and_then(|n: Node| {
                 n.find(Name("i"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()))
+                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()))
             });
         box_node
             .find(|n: &Node| n.text().contains("Author"))
@@ -92,7 +92,7 @@ impl Module for Manhuascan {
             .and_then(|n: Node| {
                 n.find(Name("a"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(extras, "Authors", element.text().trim()))
+                    .and_then(|element: Node| insert!(extras, "Authors", element.text().trim()))
             });
         box_node
             .find(|n: &Node| n.text().contains("Artist"))
@@ -100,31 +100,25 @@ impl Module for Manhuascan {
             .and_then(|n: Node| {
                 n.find(Name("a"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(extras, "Artists", element.text().trim()))
+                    .and_then(|element: Node| insert!(extras, "Artists", element.text().trim()))
             });
         box_node
             .find(|n: &Node| n.text().contains("Posted"))
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("time"))
-                    .next()
-                    .and_then(|time: Node<'_>| {
-                        time.attr("datetime")
-                            .and_then(|v: &str| insert!(dates, "Posted On", v))
-                    })
+            .and_then(|element: Node| {
+                element.find(Name("time")).next().and_then(|time: Node| {
+                    time.attr("datetime")
+                        .and_then(|v: &str| insert!(dates, "Posted On", v))
+                })
             });
         box_node
             .find(|n: &Node| n.text().contains("Updated"))
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("time"))
-                    .next()
-                    .and_then(|time: Node<'_>| {
-                        time.attr("datetime")
-                            .and_then(|v: &str| insert!(dates, "Updated On", v))
-                    })
+            .and_then(|element: Node| {
+                element.find(Name("time")).next().and_then(|time: Node| {
+                    time.attr("datetime")
+                        .and_then(|v: &str| insert!(dates, "Updated On", v))
+                })
             });
         insert!(info, "Extras", extras);
         insert!(info, "Dates", dates);
@@ -160,7 +154,7 @@ impl Module for Manhuascan {
         let document: Document = Document::from(response.text().await?.as_str());
         Ok(document
             .find(Name("div").and(Class("eph-num")).descendant(Name("a")))
-            .filter_map(|a: Node<'_>| {
+            .filter_map(|a: Node| {
                 a.attr("href").and_then(|href: &str| {
                     href.split("/").last().and_then(|last: &str| {
                         Some(HashMap::from([
@@ -203,7 +197,7 @@ impl Module for Manhuascan {
                 let Some(title) = manga
                     .find(Name("a"))
                     .next()
-                    .and_then(|title_element: Node<'_>| title_element.attr("title"))
+                    .and_then(|title_element: Node| title_element.attr("title"))
                 else {
                     continue;
                 };
@@ -213,7 +207,7 @@ impl Module for Manhuascan {
                 let Some(url) = manga
                     .find(Name("a"))
                     .next()
-                    .and_then(|title_element: Node<'_>| {
+                    .and_then(|title_element: Node| {
                         title_element
                             .attr("href")
                             .and_then(|href: &str| href.split('/').last())
@@ -226,21 +220,18 @@ impl Module for Manhuascan {
                 manga
                     .find(Name("div").and(Class("adds")).descendant(Name("a")))
                     .next()
-                    .and_then(|chapter: Node<'_>| {
+                    .and_then(|chapter: Node| {
                         chapter.attr("href").and_then(|href: &str| {
                             href.split('/').last().and_then(|last: &str| {
                                 result.insert("latest_chapter".to_owned(), last.to_owned())
                             })
                         })
                     });
-                manga
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.attr("src").and_then(|src: &str| {
-                            result.insert("thumbnail".to_owned(), src.to_owned())
-                        })
-                    });
+                manga.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
+                });
                 results.push(result);
             }
             page += 1;

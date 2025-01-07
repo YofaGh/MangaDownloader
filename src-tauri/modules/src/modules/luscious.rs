@@ -39,7 +39,7 @@ impl Module for Luscious {
                     .descendant(Name("img")),
             )
             .next()
-            .and_then(|image: Node<'_>| {
+            .and_then(|image: Node| {
                 image
                     .attr("src")
                     .and_then(|src: &str| insert!(info, "Cover", src))
@@ -47,20 +47,20 @@ impl Module for Luscious {
         document
             .find(Name("h1").and(Attr("class", "o-h1 album-heading")))
             .next()
-            .and_then(|element: Node<'_>| insert!(info, "Title", element.text()));
+            .and_then(|element: Node| insert!(info, "Title", element.text()));
         document
             .find(Name("div").and(Class("album-description")))
             .next()
-            .and_then(|description: Node<'_>| {
+            .and_then(|description: Node| {
                 insert!(extras, "Album Description", description.text().trim())
             });
         document
             .find(Name("div").and(Class("album-info-item").or(Class("o-tag--category"))))
-            .for_each(|box_element: Node<'_>| {
+            .for_each(|box_element: Node| {
                 box_element
                     .find(Name("strong"))
                     .next()
-                    .and_then(|strong: Node<'_>| {
+                    .and_then(|strong: Node| {
                         insert!(
                             extras,
                             strong.text().trim().trim_end_matches(':'),
@@ -73,10 +73,10 @@ impl Module for Luscious {
             });
         document
             .find(Name("div").and(Class("o-tag--secondary")))
-            .for_each(|box_element: Node<'_>| {
+            .for_each(|box_element: Node| {
                 box_element
                     .first_child()
-                    .and_then(|element: Node<'_>| insert!(extras, "Tags", element.text().trim()));
+                    .and_then(|element: Node| insert!(extras, "Tags", element.text().trim()));
             });
         let Some(info_box) = document
             .find(Name("div").and(Class("album-info-wrapper")))
@@ -88,18 +88,18 @@ impl Module for Luscious {
         info_box
             .find(Name("h2"))
             .next()
-            .and_then(|alternative_element: Node<'_>| {
+            .and_then(|alternative_element: Node| {
                 insert!(info, "Alternative", alternative_element.text().trim())
             });
         info_box
             .find(Name("a").and(Class("language_flags-module__link--dp0Rr")))
             .next()
-            .and_then(|language_element: Node<'_>| {
+            .and_then(|language_element: Node| {
                 insert!(extras, "Language", language_element.text().trim())
             });
         info_box
             .find(Name("span").and(Class("album-info-item")))
-            .for_each(|box_element: Node<'_>| {
+            .for_each(|box_element: Node| {
                 let text: String = box_element.text().trim().to_owned();
                 if text.contains("pictures") {
                     insert!(info, "Pages", text.replace(" pictures", ""));

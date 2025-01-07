@@ -35,42 +35,42 @@ impl Module for Nyahentai {
         document
             .find(Attr("id", "cover").descendant(Name("img")))
             .next()
-            .and_then(|img: Node<'_>| {
+            .and_then(|img: Node| {
                 img.attr("data-src")
                     .and_then(|src: &str| insert!(info, "Cover", src))
             });
         document
             .find(Attr("id", "info"))
             .next()
-            .and_then(|info_box: Node<'_>| {
+            .and_then(|info_box: Node| {
                 info_box
                     .find(Name("h1"))
                     .next()
-                    .and_then(|title_element: Node<'_>| {
+                    .and_then(|title_element: Node| {
                         insert!(info, "Title", title_element.text().trim())
                     });
                 info_box
                     .find(Name("h2"))
                     .next()
-                    .and_then(|alternative_element: Node<'_>| {
+                    .and_then(|alternative_element: Node| {
                         insert!(info, "Alternative", alternative_element.text().trim())
                     })
             });
         document
             .find(Name("time"))
             .next()
-            .and_then(|uploaded_element: Node<'_>| {
+            .and_then(|uploaded_element: Node| {
                 uploaded_element
                     .attr("datetime")
                     .and_then(|datetime: &str| insert!(dates, "Uploaded", datetime))
             });
         document
             .find(Name("section").and(Attr("id", "tags")))
-            .find_map(|tags_section: Node<'_>| {
+            .find_map(|tags_section: Node| {
                 tags_section
                     .find(|tag: &Node| tag.text().contains("Pages:"))
                     .next()
-                    .and_then(|pages_element: Node<'_>| {
+                    .and_then(|pages_element: Node| {
                         insert!(
                             info,
                             "Pages",
@@ -81,20 +81,20 @@ impl Module for Nyahentai {
         document
             .find(Name("section").and(Attr("id", "tags")))
             .next()
-            .and_then(|box_: Node<'_>| {
+            .and_then(|box_: Node| {
                 box_.find(Class("tag-container").and(Class("field-name")))
                     .into_iter()
-                    .for_each(|tag: Node<'_>| {
+                    .for_each(|tag: Node| {
                         if tag.text().contains("Pages:") || tag.text().contains("Uploaded:") {
                             return;
                         }
-                        tag.first_child().and_then(|first: Node<'_>| {
+                        tag.first_child().and_then(|first: Node| {
                             let values: Vec<String> = tag
                                 .find(Name("a"))
                                 .filter_map(|link: Node| {
                                     link.find(Name("span").and(Class("name")))
                                         .next()
-                                        .and_then(|span: Node<'_>| Some(span.text()))
+                                        .and_then(|span: Node| Some(span.text()))
                                 })
                                 .collect();
                             insert!(extras, first.text().trim(), values)
@@ -171,14 +171,14 @@ impl Module for Nyahentai {
                 let Some(code) = doujin
                     .find(Name("a"))
                     .next()
-                    .and_then(|a: Node<'_>| a.attr("href"))
+                    .and_then(|a: Node| a.attr("href"))
                 else {
                     continue;
                 };
                 let code: String = code.replace("/g/", "").replace("/", "");
                 let mut result: HashMap<String, String> =
                     search_map!(title.text(), self.base.domain, "code", code, page);
-                doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
+                doujin.find(Name("img")).next().and_then(|img: Node| {
                     img.attr("data-src")
                         .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });

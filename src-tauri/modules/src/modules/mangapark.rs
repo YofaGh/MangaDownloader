@@ -34,36 +34,31 @@ impl Module for Mangapark {
             .find(Attr("class", "flex flex-col md:flex-row"))
             .next()
             .ok_or_else(|| AppError::parser(&url, "info_box"))?;
-        info_box
-            .find(Name("img"))
-            .next()
-            .and_then(|cover: Node<'_>| {
-                cover
-                    .attr("src")
-                    .and_then(|src: &str| insert!(info, "Cover", src))
-            });
+        info_box.find(Name("img")).next().and_then(|cover: Node| {
+            cover
+                .attr("src")
+                .and_then(|src: &str| insert!(info, "Cover", src))
+        });
         info_box
             .find(Name("h3"))
             .next()
-            .and_then(|title: Node<'_>| insert!(info, "Title", title.text().trim()));
+            .and_then(|title: Node| insert!(info, "Title", title.text().trim()));
         info_box
             .find(Name("div").and(Attr("q:key", "tz_2")))
             .next()
-            .and_then(|alternative: Node<'_>| {
-                insert!(info, "Alternative", alternative.text().trim())
-            });
+            .and_then(|alternative: Node| insert!(info, "Alternative", alternative.text().trim()));
         info_box
             .find(Name("div").and(Attr("class", "limit-html prose lg:prose-lg")))
             .next()
-            .and_then(|summary: Node<'_>| insert!(info, "Summary", summary.text().trim()));
+            .and_then(|summary: Node| insert!(info, "Summary", summary.text().trim()));
         info_box
             .find(Name("span").and(Attr("q:key", "Yn_5")))
             .next()
-            .and_then(|status: Node<'_>| insert!(info, "Status", status.text().trim()));
+            .and_then(|status: Node| insert!(info, "Status", status.text().trim()));
         info_box
             .find(Name("span").and(Attr("q:key", "lt_0")))
             .next()
-            .and_then(|rating: Node<'_>| {
+            .and_then(|rating: Node| {
                 rating
                     .text()
                     .trim()
@@ -93,7 +88,7 @@ impl Module for Mangapark {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let script: Node<'_> = document
+        let script: Node = document
             .find(Name("script").and(Attr("type", "qwik/json")))
             .next()
             .ok_or_else(|| AppError::parser(&url, "script"))?;
@@ -195,7 +190,7 @@ impl Module for Mangapark {
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                let Some(url) = ti.find(Name("a")).next().and_then(|link: Node<'_>| {
+                let Some(url) = ti.find(Name("a")).next().and_then(|link: Node| {
                     link.attr("href")
                         .and_then(|href: &str| href.split('/').last())
                 }) else {
@@ -203,18 +198,15 @@ impl Module for Mangapark {
                 };
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "url", url, page);
-                manga
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.attr("src").and_then(|thumbnail: &str| {
-                            result.insert("thumbnail".to_owned(), thumbnail.to_owned())
-                        })
-                    });
+                manga.find(Name("img")).next().and_then(|element: Node| {
+                    element.attr("src").and_then(|thumbnail: &str| {
+                        result.insert("thumbnail".to_owned(), thumbnail.to_owned())
+                    })
+                });
                 manga
                     .find(Name("div").and(Attr("q:key", "6N_0")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         result.insert(
                             "authors".to_owned(),
                             element
@@ -228,7 +220,7 @@ impl Module for Mangapark {
                 manga
                     .find(Name("div").and(Attr("q:key", "lA_0")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         result.insert(
                             "alternatives".to_owned(),
                             element
@@ -242,7 +234,7 @@ impl Module for Mangapark {
                 manga
                     .find(Name("div").and(Attr("q:key", "HB_9")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         result.insert(
                             "genres".to_owned(),
                             element
@@ -256,7 +248,7 @@ impl Module for Mangapark {
                 manga
                     .find(Name("div").and(Attr("q:key", "R7_8")).descendant(Name("a")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         element.attr("href").and_then(|m: &str| {
                             m.split("/").last().and_then(|m: &str| {
                                 result.insert("latest_chapter".to_owned(), m.to_owned())

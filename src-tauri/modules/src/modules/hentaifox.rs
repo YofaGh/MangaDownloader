@@ -34,30 +34,28 @@ impl Module for Hentaifox {
         document
             .find(Name("div").and(Class("cover")).descendant(Name("img")))
             .next()
-            .and_then(|img: Node<'_>| {
+            .and_then(|img: Node| {
                 img.attr("data-cfsrc")
                     .and_then(|src: &str| insert!(info, "Cover", src))
             });
-        let info_box: Node<'_> = document
+        let info_box: Node = document
             .find(Name("div").and(Class("info")))
             .next()
             .ok_or_else(|| AppError::parser(&url, "info_box"))?;
         info_box
             .find(Name("h1"))
             .next()
-            .and_then(|title_element: Node<'_>| {
-                insert!(info, "Title", title_element.text().trim())
-            });
+            .and_then(|title_element: Node| insert!(info, "Title", title_element.text().trim()));
         info_box
             .find(|n: &Node| n.text().contains("Pages"))
             .next()
-            .and_then(|pages_element: Node<'_>| {
+            .and_then(|pages_element: Node| {
                 insert!(info, "Pages", pages_element.text().replace("Pages: ", ""))
             });
         info_box
             .find(|n: &Node| n.text().contains("Posted"))
             .next()
-            .and_then(|posted_element: Node<'_>| {
+            .and_then(|posted_element: Node| {
                 insert!(
                     info,
                     "Posted",
@@ -71,7 +69,7 @@ impl Module for Hentaifox {
             let values: Vec<String> = box_item
                 .find(Name("a"))
                 .filter_map(|a: Node| a.first_child())
-                .map(|a: Node<'_>| a.text().trim().to_owned())
+                .map(|a: Node| a.text().trim().to_owned())
                 .collect();
             insert!(extras, key.text().trim_end_matches(':'), values);
         }
@@ -91,7 +89,7 @@ impl Module for Hentaifox {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let path: &str = (|| {
-            let img: Node<'_> = document
+            let img: Node = document
                 .find(
                     Name("div")
                         .and(Class("gallery_thumb"))
@@ -178,20 +176,15 @@ impl Module for Hentaifox {
                 }
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "code", code[1], page);
-                doujin
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.attr("data-cfsrc").and_then(|img: &str| {
-                            result.insert("thumbnail".to_owned(), img.to_owned())
-                        })
-                    });
+                doujin.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("data-cfsrc")
+                        .and_then(|img: &str| result.insert("thumbnail".to_owned(), img.to_owned()))
+                });
                 doujin
                     .find(Name("a").and(Attr("class", "t_cat")))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        result.insert("category".to_owned(), element.text())
-                    });
+                    .and_then(|element: Node| result.insert("category".to_owned(), element.text()));
                 results.push(result);
             }
             page += 1;

@@ -31,24 +31,21 @@ impl Module for Readonepiece {
         document
             .find(Name("div").and(Attr("class", "py-4 px-6 mb-3")))
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element
-                            .attr("src")
-                            .and_then(|src: &str| insert!(info, "Cover", src))
-                    });
+            .and_then(|element: Node| {
+                element.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("src")
+                        .and_then(|src: &str| insert!(info, "Cover", src))
+                });
                 element
                     .find(Name("div").and(Class("text-text-muted")))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(info, "Summary", element.text().trim()))
+                    .and_then(|element: Node| insert!(info, "Summary", element.text().trim()))
             });
         document
             .find(Name("h1").and(Attr("class", "my-3 font-bold text-2xl md:text-3xl")))
             .next()
-            .and_then(|element: Node<'_>| insert!(info, "Title", element.text().trim()));
+            .and_then(|element: Node| insert!(info, "Title", element.text().trim()));
         Ok(info)
     }
 
@@ -62,7 +59,7 @@ impl Module for Readonepiece {
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
             .find(Name("img").and(Attr("class", "mb-3 mx-auto js-page")))
-            .map(|image: Node<'_>| {
+            .map(|image: Node| {
                 Ok(image
                     .attr("src")
                     .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
@@ -79,7 +76,7 @@ impl Module for Readonepiece {
         Ok(document
             .find(Name("div").and(Attr("class", "bg-bg-secondary p-3 rounded mb-3 shadow")))
             .filter_map(|div: Node| {
-                div.find(Name("a")).next().and_then(|a: Node<'_>| {
+                div.find(Name("a")).next().and_then(|a: Node| {
                     a.attr("href").and_then(|href: &str| {
                         let group: Vec<&str> = href.rsplit('/').collect();
                         if group.len() < 2 {

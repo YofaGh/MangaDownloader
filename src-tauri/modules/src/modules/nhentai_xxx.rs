@@ -33,27 +33,25 @@ impl Module for Nhentai {
         document
             .find(Class("cover").descendant(Name("img")))
             .next()
-            .and_then(|img: Node<'_>| {
+            .and_then(|img: Node| {
                 img.attr("data-src")
                     .and_then(|src: &str| insert!(info, "Cover", src))
             });
         document
             .find(Name("h1"))
             .next()
-            .and_then(|title_element: Node<'_>| {
-                insert!(info, "Title", title_element.text().trim())
-            });
+            .and_then(|title_element: Node| insert!(info, "Title", title_element.text().trim()));
         document
             .find(Name("h2"))
             .next()
-            .and_then(|alternative_element: Node<'_>| {
+            .and_then(|alternative_element: Node| {
                 insert!(info, "Alternative", alternative_element.text().trim())
             });
         document
             .find(Name("li"))
             .filter(|n: &Node| n.text().contains("Pages:"))
             .next()
-            .and_then(|pages_element: Node<'_>| {
+            .and_then(|pages_element: Node| {
                 insert!(
                     info,
                     "Pages",
@@ -64,7 +62,7 @@ impl Module for Nhentai {
             .find(Name("li"))
             .filter(|n: &Node| n.text().contains("Uploaded:"))
             .next()
-            .and_then(|uploaded_element: Node<'_>| {
+            .and_then(|uploaded_element: Node| {
                 insert!(
                     info,
                     "Uploaded",
@@ -74,8 +72,8 @@ impl Module for Nhentai {
         document
             .find(Name("li").and(Class("tags")))
             .into_iter()
-            .for_each(|tag_box: Node<'_>| {
-                tag_box.first_child().and_then(|key: Node<'_>| {
+            .for_each(|tag_box: Node| {
+                tag_box.first_child().and_then(|key: Node| {
                     let values: Vec<String> = tag_box
                         .find(Name("span").and(Class("tag_name")))
                         .map(|link: Node| link.text())
@@ -149,14 +147,14 @@ impl Module for Nhentai {
                 let Some(title) = doujin
                     .find(Name("a"))
                     .next()
-                    .and_then(|a: Node<'_>| a.attr("title"))
+                    .and_then(|a: Node| a.attr("title"))
                 else {
                     continue;
                 };
                 if absolute && !title.contains(&keyword) {
                     continue;
                 }
-                let Some(code) = doujin.find(Name("a")).next().and_then(|a: Node<'_>| {
+                let Some(code) = doujin.find(Name("a")).next().and_then(|a: Node| {
                     a.attr("href")
                         .and_then(|href: &str| href.rsplit("/").nth(1))
                 }) else {
@@ -164,7 +162,7 @@ impl Module for Nhentai {
                 };
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "code", code, page);
-                doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
+                doujin.find(Name("img")).next().and_then(|img: Node| {
                     img.attr("data-src")
                         .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });

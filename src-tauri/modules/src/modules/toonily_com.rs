@@ -37,44 +37,38 @@ impl Module for Toonily {
             .find(Name("div").and(Class("tab-summary")))
             .next()
             .ok_or_else(|| AppError::parser(&manga, "div tab_summary"))?;
-        info_box
-            .find(Name("img"))
-            .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .attr("data-src")
-                    .and_then(|src: &str| insert!(info, "Cover", src))
-            });
+        info_box.find(Name("img")).next().and_then(|element: Node| {
+            element
+                .attr("data-src")
+                .and_then(|src: &str| insert!(info, "Cover", src))
+        });
         info_box
             .find(Name("div").and(Class("post-title")))
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("h1"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element
-                            .first_child()
-                            .and_then(|first: Node<'_>| insert!(info, "Title", first.text().trim()))
-                    })
+            .and_then(|element: Node| {
+                element.find(Name("h1")).next().and_then(|element: Node| {
+                    element
+                        .first_child()
+                        .and_then(|first: Node| insert!(info, "Title", first.text().trim()))
+                })
             });
         info_box
             .find(Name("div").and(Class("post-status")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .find(Name("div").and(Class("summary-content")))
                     .nth(1)
-                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()))
+                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()))
             });
         document
             .find(Name("div").and(Class("summary__content")))
             .next()
-            .and_then(|element: Node<'_>| insert!(info, "Summary", element.text().trim()));
+            .and_then(|element: Node| insert!(info, "Summary", element.text().trim()));
         document
             .find(Name("span").and(Attr("id", "averagerate")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .text()
                     .trim()
@@ -85,7 +79,7 @@ impl Module for Toonily {
         document
             .find(Name("div").and(Class("wp-manga-tags-list")))
             .next()
-            .and_then(|tags: Node<'_>| {
+            .and_then(|tags: Node| {
                 let tags: Vec<String> = tags
                     .find(Name("a"))
                     .map(|a: Node| a.text().trim().replace('#', ""))
@@ -95,32 +89,29 @@ impl Module for Toonily {
         document
             .find(Name("div").and(Class("manga-info-row")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .find(Name("div").and(Class("post-content_item")))
-                    .for_each(|box_elem: Node<'_>| {
-                        box_elem
-                            .find(Name("h5"))
-                            .next()
-                            .and_then(|box_str: Node<'_>| {
-                                if box_str.text().contains("Alt Name") {
+                    .for_each(|box_elem: Node| {
+                        box_elem.find(Name("h5")).next().and_then(|box_str: Node| {
+                            if box_str.text().contains("Alt Name") {
+                                box_elem
+                                    .find(Name("div").and(Class("summary-content")))
+                                    .next()
+                                    .and_then(|element: Node| {
+                                        insert!(info, "Alternative", element.text().trim())
+                                    })
+                            } else {
+                                insert!(
+                                    extras,
+                                    box_str.text().replace("(s)", "s"),
                                     box_elem
-                                        .find(Name("div").and(Class("summary-content")))
-                                        .next()
-                                        .and_then(|element: Node<'_>| {
-                                            insert!(info, "Alternative", element.text().trim())
-                                        })
-                                } else {
-                                    insert!(
-                                        extras,
-                                        box_str.text().replace("(s)", "s"),
-                                        box_elem
-                                            .find(Name("a"))
-                                            .map(|a: Node| a.text())
-                                            .collect::<Vec<_>>()
-                                    )
-                                }
-                            });
+                                        .find(Name("a"))
+                                        .map(|a: Node| a.text())
+                                        .collect::<Vec<_>>()
+                                )
+                            }
+                        });
                     });
                 Some(())
             });
@@ -135,7 +126,7 @@ impl Module for Toonily {
         Ok(document
             .find(Name("li").and(Class("wp-manga-chapter")))
             .filter_map(|div: Node| {
-                div.find(Name("a")).next().and_then(|a: Node<'_>| {
+                div.find(Name("a")).next().and_then(|a: Node| {
                     a.attr("href").and_then(|href: &str| {
                         href.split('/').nth_back(1).and_then(|slash: &str| {
                             Some(HashMap::from([
@@ -230,7 +221,7 @@ impl Module for Toonily {
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
-                let Some(url) = details.find(Name("a")).next().and_then(|a: Node<'_>| {
+                let Some(url) = details.find(Name("a")).next().and_then(|a: Node| {
                     a.attr("href")
                         .and_then(|href: &str| href.split('/').nth_back(1))
                 }) else {
@@ -238,7 +229,7 @@ impl Module for Toonily {
                 };
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "url", url, page);
-                manga.find(Name("img")).next().and_then(|img: Node<'_>| {
+                manga.find(Name("img")).next().and_then(|img: Node| {
                     img.attr("data-src")
                         .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });

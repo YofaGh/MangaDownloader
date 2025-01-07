@@ -40,39 +40,34 @@ impl Module for Truemanga {
         info_box
             .find(Name("div").and(Class("img-cover")))
             .next()
-            .and_then(|element: Node<'_>| {
-                element
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element
-                            .attr("data-src")
-                            .and_then(|src: &str| insert!(info, "Cover", src))
-                    })
+            .and_then(|element: Node| {
+                element.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("data-src")
+                        .and_then(|src: &str| insert!(info, "Cover", src))
+                })
             });
         info_box
             .find(Name("div").and(Attr("class", "name box")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .find(Name("h1"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(info, "Title", element.text().trim()));
+                    .and_then(|element: Node| insert!(info, "Title", element.text().trim()));
                 element
                     .find(Name("h2"))
                     .next()
-                    .and_then(|element: Node<'_>| {
-                        insert!(info, "Alternative", element.text().trim())
-                    })
+                    .and_then(|element: Node| insert!(info, "Alternative", element.text().trim()))
             });
         document
             .find(Name("div").and(Attr("class", "section-body summary")))
             .next()
-            .and_then(|element: Node<'_>| {
+            .and_then(|element: Node| {
                 element
                     .find(Name("p"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(info, "Summary", element.text().trim()))
+                    .and_then(|element: Node| insert!(info, "Summary", element.text().trim()))
             });
         let Some(boxes) = document
             .find(Name("div").and(Attr("class", "meta box mt-1 p-10")))
@@ -80,24 +75,24 @@ impl Module for Truemanga {
         else {
             return Ok(info);
         };
-        boxes.find(Name("p")).for_each(|box_elem: Node<'_>| {
+        boxes.find(Name("p")).for_each(|box_elem: Node| {
             if box_elem.text().contains("Alt Name") {
                 box_elem
                     .find(Name("span"))
                     .next()
-                    .and_then(|element: Node<'_>| insert!(info, "Status", element.text().trim()));
+                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()));
             } else {
                 box_elem
                     .find(Name("strong"))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         let label: String = element.text().trim().replace(":", "");
                         let links: Vec<Node> = box_elem.find(Name("a")).collect();
                         if links.len() <= 1 {
                             box_elem
                                 .find(Name("span"))
                                 .next()
-                                .and_then(|element: Node<'_>| {
+                                .and_then(|element: Node| {
                                     insert!(extras, label, element.text().trim())
                                 })
                         } else {
@@ -222,7 +217,7 @@ impl Module for Truemanga {
                 let Some(ti) = manga
                     .find(Name("div").and(Class("title")))
                     .next()
-                    .and_then(|element: Node<'_>| element.find(Name("a")).next())
+                    .and_then(|element: Node| element.find(Name("a")).next())
                 else {
                     continue;
                 };
@@ -243,18 +238,15 @@ impl Module for Truemanga {
                 };
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "url", url, page);
-                manga
-                    .find(Name("img"))
-                    .next()
-                    .and_then(|element: Node<'_>| {
-                        element.attr("data-src").and_then(|src: &str| {
-                            result.insert("thumbnail".to_owned(), src.to_owned())
-                        })
-                    });
+                manga.find(Name("img")).next().and_then(|element: Node| {
+                    element
+                        .attr("data-src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
+                });
                 manga
                     .find(Name("span").and(Class("latest-chapter")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         element.attr("title").and_then(|title: &str| {
                             result.insert("latest_chapter".to_owned(), title.to_owned())
                         })
@@ -262,7 +254,7 @@ impl Module for Truemanga {
                 manga
                     .find(Name("div").and(Class("genres")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         result.insert(
                             "genres".to_owned(),
                             element
@@ -275,7 +267,7 @@ impl Module for Truemanga {
                 manga
                     .find(Name("div").and(Class("summary")))
                     .next()
-                    .and_then(|element: Node<'_>| {
+                    .and_then(|element: Node| {
                         result.insert("summary".to_owned(), element.text().trim().to_owned())
                     });
                 results.push(result);

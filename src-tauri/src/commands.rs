@@ -134,24 +134,21 @@ pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
 
 #[command(async)]
 pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
-    match saucer.as_str() {
-        "yandex" => saucer::yandex(url).await.unwrap_or_default(),
-        "tineye" => saucer::tineye(url).await.unwrap_or_default(),
-        "iqdb" => saucer::iqdb(url).await.unwrap_or_default(),
-        "saucenao" => saucer::saucenao(url).await.unwrap_or_default(),
-        _ => Vec::new(),
-    }
+    saucer::sauce(saucer, url)
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
 }
 
 #[command(async)]
 pub async fn upload_image(path: String) -> String {
-    saucer::upload(path.as_str()).await.unwrap_or_default()
+    saucer::upload(path.as_str())
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
 }
 
 #[command(async)]
 pub async fn get_saucers_list() -> Vec<String> {
-    vec!["yandex", "tineye", "iqdb", "saucenao"]
-        .into_iter()
-        .map(|s: &str| s.to_owned())
-        .collect()
+    saucer::get_saucers_list()
 }

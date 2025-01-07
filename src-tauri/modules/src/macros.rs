@@ -10,11 +10,11 @@ macro_rules! insert {
 #[macro_export]
 macro_rules! search_map {
     ($title:expr, $domain:expr, $key:expr, $value:expr, $page:expr) => {{
-        let mut map: HashMap<String, String> = HashMap::new();
-        map.insert("name".to_owned(), $title.to_string());
-        map.insert("domain".to_owned(), $domain.to_owned());
-        map.insert($key.to_owned(), $value.to_string());
-        map.insert("page".to_owned(), $page.to_string());
-        map
+        HashMap::from([
+            ("name".to_owned(), $title.to_string()),
+            ("domain".to_owned(), $domain.to_owned()),
+            ($key.to_owned(), $value.to_string()),
+            ("page".to_owned(), $page.to_string()),
+        ])
     }};
 }

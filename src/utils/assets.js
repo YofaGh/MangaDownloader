@@ -23,6 +23,9 @@ import {
 export const fixFolderName = (manga) =>
   manga.replace(/[/:*?"><|]+/g, "").replace(/\.*$/, "");
 
+export const toggleModal = (id, show) =>
+  (document.getElementById(id).style.display = show ? "block" : "none");
+
 export const convert = async (webtoon, openPath) => {
   let pdfName = fixFolderName(webtoon.title);
   let notifInfo = webtoon.title;
@@ -120,7 +123,7 @@ export const startUp = async () => {
       .setModules(response.map((module) => ({ ...module, selected: true })));
   })();
   if (!useSettingsStore.getState().settings.download_path)
-    showHideModal("browse-modal", true);
+    toggleModal("browse-modal", true);
   const storeConfigs = [
     { store: useQueueStore, key: "queue", delay: DelayTimes.LONG },
     { store: useLibraryStore, key: "library", delay: DelayTimes.SHORT },
@@ -132,6 +135,3 @@ export const startUp = async () => {
     _setupSubscriber(store, key, delay)
   );
 };
-
-export const showHideModal = (id, show) =>
-  (document.getElementById(id).style.display = show ? "block" : "none");

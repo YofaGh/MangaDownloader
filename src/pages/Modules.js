@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { showHideModal } from "../utils";
+import { toggleModal } from "../utils";
 import { useModulesStore } from "../store";
 import { MCard, ModuleCheckerModal } from "../components";
 
@@ -10,7 +10,7 @@ export default function Modules() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (event.target === document.getElementById("checkModal"))
-        showHideModal("checkModal", false);
+        toggleModal("checkModal", false);
     };
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);

@@ -1,6 +1,6 @@
 import { PushButton } from "..";
 import { useSettingsStore } from "../../store";
-import { chooseFolder, showHideModal } from "../../utils";
+import { chooseFolder, toggleModal } from "../../utils";
 
 export default function DownloadPathModal() {
   const updateSettings = useSettingsStore((state) => state.updateSettings);
@@ -9,7 +9,7 @@ export default function DownloadPathModal() {
     let download_path = await chooseFolder();
     if (!download_path) return;
     updateSettings({ download_path });
-    showHideModal("browse-modal", false);
+    toggleModal("browse-modal", false);
   };
 
   return (

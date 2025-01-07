@@ -1,4 +1,5 @@
 mod errors;
+mod macros;
 mod models;
 mod modules;
 pub use errors::AppError;
@@ -52,7 +53,7 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
 
 #[no_mangle]
 pub fn get_version() -> Result<String, AppError> {
-    Ok(VERSION.to_string())
+    Ok(VERSION.to_owned())
 }
 
 #[no_mangle]

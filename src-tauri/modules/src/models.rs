@@ -58,11 +58,11 @@ pub trait Module: Send + Sync {
     fn get_module_info(&self) -> Result<HashMap<String, Value>, AppError> {
         let base: &BaseModule = self.base();
         Ok(HashMap::from([
-            ("type".to_string(), Value::from(base.type_)),
-            ("domain".to_string(), Value::from(base.domain)),
-            ("logo".to_string(), Value::from(base.logo)),
-            ("searchable".to_string(), Value::Bool(base.is_searchable)),
-            ("is_coded".to_string(), Value::Bool(base.is_coded)),
+            ("type".to_owned(), Value::from(base.type_)),
+            ("domain".to_owned(), Value::from(base.domain)),
+            ("logo".to_owned(), Value::from(base.logo)),
+            ("is_searchable".to_owned(), Value::Bool(base.is_searchable)),
+            ("is_coded".to_owned(), Value::Bool(base.is_coded)),
         ]))
     }
     async fn download_image(
@@ -153,7 +153,7 @@ pub trait Module: Send + Sync {
         if !reached_number {
             return chapter;
         }
-        new_name = new_name.trim_end_matches('.').to_string();
+        new_name = new_name.trim_end_matches('.').to_owned();
         match new_name.parse::<i32>() {
             Ok(num) => format!("Chapter {:03}", num),
             Err(_) => {
@@ -222,13 +222,4 @@ pub trait Module: Send + Sync {
     fn sleep(&self, sleep_time: f64) {
         thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
     }
-}
-
-#[macro_export]
-macro_rules! insert {
-    ($hashmap:expr, $key:expr, $value:expr) => {
-        to_value($value)
-            .ok()
-            .and_then(|value: Value| $hashmap.insert($key.to_string(), value))
-    };
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSettingsStore } from "../store";
-import { searchByKeyword, showHideModal } from "../utils";
+import { searchByKeyword, toggleModal } from "../utils";
 import {
   Loading,
   SearchBar,
@@ -22,7 +22,7 @@ export default function Module() {
   const [sortOpen, setSortOpen] = useState(false);
   const [depth, setDepth] = useState(default_search_depth);
   const [searchingStatus, setSearchingStatus] = useState(null);
-  const { is_coded, searchable, domain } = useLocation().state.module;
+  const { is_coded, is_searchable, domain } = useLocation().state.module;
 
   const startSearching = async () => {
     setSearchingStatus("searching");
@@ -69,7 +69,7 @@ export default function Module() {
           <ExpandButton
             name="filter"
             dimension={20}
-            onClick={() => showHideModal("mod-Modal", true)}
+            onClick={() => toggleModal("mod-Modal", true)}
           />
           <SearchBar
             input={input}
@@ -81,7 +81,7 @@ export default function Module() {
           <Link to={`/${domain}/webtoon/${input}`}>
             <ExpandButton name="goto" dimension={20} />
           </Link>
-          {searchable && (
+          {is_searchable && (
             <ExpandButton
               name="search"
               dimension={20}

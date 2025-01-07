@@ -12,6 +12,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Manytoon {
@@ -89,7 +90,7 @@ impl Module for Manytoon {
                 ) else {
                     continue;
                 };
-                let box_str: String = box_str.text().replace("(s)", "s").trim().to_string();
+                let box_str: String = box_str.text().trim().replace("(s)", "s");
                 if info_key.find(Name("a")).next().is_some() {
                     insert!(
                         extras,
@@ -174,8 +175,8 @@ impl Module for Manytoon {
                 div.attr("href").and_then(|href: &str| {
                     href.split('/').nth_back(1).and_then(|last: &str| {
                         Some(HashMap::from([
-                            ("url".to_string(), last.to_string()),
-                            ("name".to_string(), self.rename_chapter(last.to_string())),
+                            ("url".to_owned(), last.to_owned()),
+                            ("name".to_owned(), self.rename_chapter(last.to_owned())),
                         ]))
                     })
                 })
@@ -202,7 +203,7 @@ impl Module for Manytoon {
                     .attr("src")
                     .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
                     .trim()
-                    .to_string())
+                    .to_owned())
             })
             .collect::<Result<Vec<String>, AppError>>()?;
         Ok((images, Value::Bool(false)))
@@ -247,18 +248,14 @@ impl Module for Manytoon {
                 else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("url".to_string(), url.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "url", url, page);
                 manga
                     .find(Name("img"))
                     .next()
                     .and_then(|element: Node<'_>| {
                         element.attr("src").and_then(|src: &str| {
-                            result.insert("thumbnail".to_string(), src.to_string())
+                            result.insert("thumbnail".to_owned(), src.to_owned())
                         })
                     });
                 manga
@@ -271,7 +268,7 @@ impl Module for Manytoon {
                     .and_then(|element: Node<'_>| {
                         element.attr("href").and_then(|href: &str| {
                             href.split('/').nth_back(1).and_then(|chapter: &str| {
-                                result.insert("latest_chapter".to_string(), chapter.to_string())
+                                result.insert("latest_chapter".to_owned(), chapter.to_owned())
                             })
                         })
                     });

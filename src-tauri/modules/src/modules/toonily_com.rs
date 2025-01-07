@@ -15,6 +15,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Toonily {
@@ -87,7 +88,7 @@ impl Module for Toonily {
             .and_then(|tags: Node<'_>| {
                 let tags: Vec<String> = tags
                     .find(Name("a"))
-                    .map(|a: Node| a.text().trim().replace('#', "").to_string())
+                    .map(|a: Node| a.text().trim().replace('#', ""))
                     .collect();
                 insert!(extras, "Tags", tags)
             });
@@ -138,8 +139,8 @@ impl Module for Toonily {
                     a.attr("href").and_then(|href: &str| {
                         href.split('/').nth_back(1).and_then(|slash: &str| {
                             Some(HashMap::from([
-                                ("url".to_string(), slash.to_string()),
-                                ("name".to_string(), self.rename_chapter(slash.to_string())),
+                                ("url".to_owned(), slash.to_owned()),
+                                ("name".to_owned(), self.rename_chapter(slash.to_owned())),
                             ]))
                         })
                     })
@@ -167,7 +168,7 @@ impl Module for Toonily {
                     .attr("data-src")
                     .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
                     .trim()
-                    .to_string())
+                    .to_owned())
             })
             .collect::<Result<Vec<String>, AppError>>()?;
         let save_names: Vec<String> = images
@@ -225,7 +226,7 @@ impl Module for Toonily {
                 else {
                     continue;
                 };
-                let title: String = details.text().trim().to_string();
+                let title: String = details.text().trim().to_owned();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
@@ -235,16 +236,11 @@ impl Module for Toonily {
                 }) else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("url".to_string(), url.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "url", url, page);
                 manga.find(Name("img")).next().and_then(|img: Node<'_>| {
-                    img.attr("data-src").and_then(|src: &str| {
-                        result.insert("thumbnail".to_string(), src.to_string())
-                    })
+                    img.attr("data-src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });
                 results.push(result);
             }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PushButton, Icon } from "..";
-import { showHideModal } from "../../utils";
+import { toggleModal } from "../../utils";
 import { useLibraryStore, useNotificationStore } from "../../store";
 
 export default function AddToLibraryModal({ webtoon, domain, url }) {
@@ -28,7 +28,7 @@ export default function AddToLibraryModal({ webtoon, domain, url }) {
       last_downloaded_chapter: null,
     });
     notifySuccess(`Added ${title} to library`);
-    showHideModal("lib-modal", false);
+    toggleModal("lib-modal", false);
   };
 
   return (
@@ -36,7 +36,7 @@ export default function AddToLibraryModal({ webtoon, domain, url }) {
       <div className="modal-content">
         <button
           className="buttonh closeBtn"
-          onClick={() => showHideModal("lib-modal", false)}
+          onClick={() => toggleModal("lib-modal", false)}
         >
           <Icon svgName="delete" />
         </button>
@@ -60,7 +60,7 @@ export default function AddToLibraryModal({ webtoon, domain, url }) {
         <PushButton label="Ok" onClick={handleAddMangaToLibrary} />
         <PushButton
           label="Cancel"
-          onClick={() => showHideModal("lib-modal", false)}
+          onClick={() => toggleModal("lib-modal", false)}
         />
         <br />
         {error && <span className="error-message">{error}</span>}

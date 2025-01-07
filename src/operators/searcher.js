@@ -21,7 +21,7 @@ export default async function searcher() {
         searchModuleTypes.some(
           (type) => type.name === module.type && type.selected
         ) &&
-        module.searchable &&
+        module.is_searchable &&
         module.selected
     )
     .map((item) => item.domain);

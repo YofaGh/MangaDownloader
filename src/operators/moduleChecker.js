@@ -3,7 +3,7 @@ import {
   removeFile,
   WebtoonType,
   getChapters,
-  showHideModal,
+  toggleModal,
   downloadImage,
   getDataDirPath,
   searchByKeyword,
@@ -18,7 +18,7 @@ export default async function moduleChecker(module, setStepStatuses) {
       return newStatuses;
     });
   };
-  showHideModal("checkModal", true);
+  toggleModal("checkModal", true);
   const sample = await getModuleSample(module.domain);
   let circle = 0,
     images = [],
@@ -71,7 +71,7 @@ export default async function moduleChecker(module, setStepStatuses) {
   updateStepStatus(circle, stat);
   stat = "dead";
   circle++;
-  if (module.searchable) {
+  if (module.is_searchable) {
     updateStepStatus(circle, "active");
     const results = await searchByKeyword(
       module.domain,

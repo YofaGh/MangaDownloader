@@ -35,8 +35,8 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
             let url: String = site["url"].to_string();
             let image: String = site["originalImage"]["url"].to_string();
             Ok(HashMap::from([
-                ("url".to_string(), url),
-                ("image".to_string(), image),
+                ("url".to_owned(), url),
+                ("image".to_owned(), image),
             ]))
         })
         .collect()
@@ -99,8 +99,8 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
             })?;
             for backlink in backlinks {
                 let mut map: HashMap<String, String> = HashMap::new();
-                map.insert("url".to_string(), backlink["backlink"].to_string());
-                map.insert("image".to_string(), backlink["url"].to_string());
+                map.insert("url".to_owned(), backlink["backlink"].to_string());
+                map.insert("image".to_owned(), backlink["url"].to_string());
                 results.push(map);
             }
         }
@@ -130,19 +130,19 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, AppError>
                     let Some(td_url) = td_a.attr("href") else {
                         return;
                     };
-                    let mut td_url: String = td_url.to_string();
+                    let mut td_url: String = td_url.to_owned();
                     if !td_url.contains("https:") {
                         td_url = format!("https:{td_url}");
                     }
                     let mut map: HashMap<String, String> = HashMap::new();
-                    map.insert("url".to_string(), td_url);
+                    map.insert("url".to_owned(), td_url);
                     td.find(Name("img")).next().map(|image: Node<'_>| {
-                        image.attr("src").and_then(|src| {
-                            let mut image_src: String = src.to_string();
+                        image.attr("src").and_then(|src: &str| {
+                            let mut image_src: String = src.to_owned();
                             if !image_src.contains("https:") {
                                 image_src = format!("https://iqdb.org{image_src}");
                             }
-                            map.insert("image".to_string(), image_src)
+                            map.insert("image".to_owned(), image_src)
                         });
                     });
                     results.push(map);
@@ -172,7 +172,7 @@ pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, AppEr
             .and_then(|result: Node<'_>| {
                 result.find(Name("a")).next().and_then(|a: Node<'_>| {
                     a.attr("href").map(|href: &str| {
-                        results.push(HashMap::from([("url".to_string(), href.to_string())]));
+                        results.push(HashMap::from([("url".to_owned(), href.to_owned())]));
                     })
                 })
             });
@@ -193,7 +193,7 @@ pub async fn upload(path: &str) -> Result<String, AppError> {
                 .file_name()
                 .and_then(|name: &OsStr| name.to_str())
                 .ok_or_else(|| AppError::FileOperation(format!("{path}: Invalid image filename")))?
-                .to_string(),
+                .to_owned(),
         ),
     );
     let response = client

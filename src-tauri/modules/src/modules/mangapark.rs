@@ -12,6 +12,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Mangapark {
@@ -80,7 +81,7 @@ impl Module for Mangapark {
                 "Genres",
                 info_box
                     .find(Name("span").and(Attr("q:key", "kd_0")))
-                    .map(|a: Node| a.text().trim().to_string())
+                    .map(|a: Node| a.text().trim().to_owned())
                     .collect::<Vec<String>>()
             );
         }
@@ -109,8 +110,8 @@ impl Module for Mangapark {
                         s.split('/').last().and_then(|url: &str| {
                             objs.get(i.wrapping_sub(1)).and_then(|name: &Value| {
                                 Some(HashMap::from([
-                                    ("url".to_string(), url.to_string()),
-                                    ("name".to_string(), self.rename_chapter(name.to_string())),
+                                    ("url".to_owned(), url.to_owned()),
+                                    ("name".to_owned(), self.rename_chapter(name.to_string())),
                                 ]))
                             })
                         })
@@ -144,7 +145,7 @@ impl Module for Mangapark {
             .filter_map(|item: &Value| {
                 item.as_str().and_then(|s: &str| {
                     if s.contains("/comic/") {
-                        Some(s.to_string())
+                        Some(s.to_owned())
                     } else {
                         None
                     }
@@ -190,7 +191,7 @@ impl Module for Mangapark {
                 let Some(ti) = manga.find(Name("h3")).next() else {
                     continue;
                 };
-                let title: String = ti.text().trim().to_string();
+                let title: String = ti.text().trim().to_owned();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
@@ -200,18 +201,14 @@ impl Module for Mangapark {
                 }) else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("url".to_string(), url.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "url", url, page);
                 manga
                     .find(Name("img"))
                     .next()
                     .and_then(|element: Node<'_>| {
                         element.attr("src").and_then(|thumbnail: &str| {
-                            result.insert("thumbnail".to_string(), thumbnail.to_string())
+                            result.insert("thumbnail".to_owned(), thumbnail.to_owned())
                         })
                     });
                 manga
@@ -219,7 +216,7 @@ impl Module for Mangapark {
                     .next()
                     .and_then(|element: Node<'_>| {
                         result.insert(
-                            "authors".to_string(),
+                            "authors".to_owned(),
                             element
                                 .text()
                                 .split("/")
@@ -233,7 +230,7 @@ impl Module for Mangapark {
                     .next()
                     .and_then(|element: Node<'_>| {
                         result.insert(
-                            "alternatives".to_string(),
+                            "alternatives".to_owned(),
                             element
                                 .text()
                                 .split("/")
@@ -247,7 +244,7 @@ impl Module for Mangapark {
                     .next()
                     .and_then(|element: Node<'_>| {
                         result.insert(
-                            "genres".to_string(),
+                            "genres".to_owned(),
                             element
                                 .text()
                                 .split(",")
@@ -262,7 +259,7 @@ impl Module for Mangapark {
                     .and_then(|element: Node<'_>| {
                         element.attr("href").and_then(|m: &str| {
                             m.split("/").last().and_then(|m: &str| {
-                                result.insert("latest_chapter".to_string(), m.to_string())
+                                result.insert("latest_chapter".to_owned(), m.to_owned())
                             })
                         })
                     });

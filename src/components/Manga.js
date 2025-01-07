@@ -6,7 +6,7 @@ import {
   getInfo,
   getChapters,
   WebtoonType,
-  showHideModal,
+  toggleModal,
   DownloadStatus,
 } from "../utils";
 import {
@@ -75,7 +75,7 @@ export default function Manga({ url, module }) {
       const webt = library.find((item) => item.id === id);
       removeFromLibrary(id);
       notifySuccess(`Removed ${webt.title} from Library`);
-    } else showHideModal("lib-modal", true);
+    } else toggleModal("lib-modal", true);
   };
 
   return webtoon ? (

@@ -135,9 +135,7 @@ fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
     let extension: &str = path
         .extension()
         .and_then(|ext: &OsStr| ext.to_str())
-        .ok_or_else(|| {
-            AppError::FileOperation("Failed to get file extension {path}".to_string())
-        })?;
+        .ok_or_else(|| AppError::FileOperation("Failed to get file extension {path}".to_owned()))?;
     copy(path, format!("{image_name}.{extension}"))
         .map(|_| ())
         .map_err(|err: Error| AppError::file("copy", path, err))

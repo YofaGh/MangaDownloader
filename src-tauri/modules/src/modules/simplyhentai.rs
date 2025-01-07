@@ -12,6 +12,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Simplyhentai {
@@ -177,17 +178,12 @@ impl Module for Simplyhentai {
                 else {
                     continue;
                 };
-                let code: String = code.to_string().replace("/g/", "").replace("/", "");
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title.text()),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("code".to_string(), code),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let code: String = code.replace("/g/", "").replace("/", "");
+                let mut result: HashMap<String, String> =
+                    search_map!(title.text(), self.base.domain, "code", code, page);
                 doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
-                    img.attr("src").and_then(|src: &str| {
-                        result.insert("thumbnail".to_string(), src.to_string())
-                    })
+                    img.attr("src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });
                 results.push(result);
             }

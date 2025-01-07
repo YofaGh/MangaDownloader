@@ -13,6 +13,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Luscious {
@@ -65,7 +66,7 @@ impl Module for Luscious {
                             strong.text().trim().trim_end_matches(':'),
                             box_element
                                 .find(Name("a"))
-                                .map(|a: Node| a.text().trim().to_string())
+                                .map(|a: Node| a.text().trim().to_owned())
                                 .collect::<Vec<String>>()
                         )
                     });
@@ -99,7 +100,7 @@ impl Module for Luscious {
         info_box
             .find(Name("span").and(Class("album-info-item")))
             .for_each(|box_element: Node<'_>| {
-                let text: String = box_element.text().trim().to_string();
+                let text: String = box_element.text().trim().to_owned();
                 if text.contains("pictures") {
                     insert!(info, "Pages", text.replace(" pictures", ""));
                 } else {
@@ -216,25 +217,23 @@ impl Module for Luscious {
                 .as_array()
                 .ok_or_else(|| AppError::parser(&url, "items"))?;
             for doujin in doujins {
-                let Some(title) = doujin.get("title") else {
+                let Some(title) = doujin
+                    .get("title")
+                    .and_then(|title: &Value| Some(title.to_string()))
+                else {
                     continue;
                 };
-                let title: String = title.to_string();
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
                     continue;
                 }
                 let Some(code) = doujin.get("id") else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("code".to_string(), code.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "code", code, page);
                 doujin["tags"].as_array().map(|tags: &Vec<Value>| {
                     result.insert(
-                        "tags".to_string(),
+                        "tags".to_owned(),
                         tags.iter()
                             .filter_map(|tag: &Value| {
                                 tag.get("text").map(|text: &Value| text.to_string())
@@ -245,7 +244,7 @@ impl Module for Luscious {
                 });
                 doujin["genres"].as_array().map(|tags: &Vec<Value>| {
                     result.insert(
-                        "genres".to_string(),
+                        "genres".to_owned(),
                         tags.iter()
                             .filter_map(|tag: &Value| {
                                 tag.get("text").map(|text: &Value| text.to_string())
@@ -255,7 +254,7 @@ impl Module for Luscious {
                     )
                 });
                 doujin["cover"].get("url").and_then(|cover: &Value| {
-                    result.insert("thumbnail".to_string(), cover.to_string())
+                    result.insert("thumbnail".to_owned(), cover.to_string())
                 });
                 results.push(result);
             }

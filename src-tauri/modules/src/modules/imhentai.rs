@@ -13,6 +13,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Imhentai {
@@ -84,7 +85,7 @@ impl Module for Imhentai {
             let values: Vec<String> = box_item
                 .find(Name("a"))
                 .filter_map(|a: Node| a.first_child())
-                .map(|a: Node<'_>| a.text().trim().to_string())
+                .map(|a: Node<'_>| a.text().trim().to_owned())
                 .collect();
             insert!(extras, key.text().trim_end_matches(':'), values);
         }
@@ -123,8 +124,7 @@ impl Module for Imhentai {
             .text();
         let json_str: String = script
             .replace("var g_th = $.parseJSON('", "")
-            .replace("');", "")
-            .to_string();
+            .replace("');", "");
         let images: IndexMap<String, String> = serde_json::from_str(&json_str)?;
         let image_urls: Vec<String> = images
             .into_iter()
@@ -184,13 +184,8 @@ impl Module for Imhentai {
                 if code.len() < 2 {
                     continue;
                 }
-                let code: String = code[1].to_string();
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("code".to_string(), code),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "code", code[1], page);
                 doujin
                     .find(Name("div").and(Class("inner_thumb")))
                     .next()
@@ -200,7 +195,7 @@ impl Module for Imhentai {
                             .next()
                             .and_then(|element: Node<'_>| {
                                 element.attr("data-src").and_then(|img: &str| {
-                                    result.insert("thumbnail".to_string(), img.to_string())
+                                    result.insert("thumbnail".to_owned(), img.to_owned())
                                 })
                             })
                     });
@@ -208,7 +203,7 @@ impl Module for Imhentai {
                     .find(Name("a").and(Class("thumb_cat")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        result.insert("category".to_string(), element.text())
+                        result.insert("category".to_owned(), element.text())
                     });
                 results.push(result);
             }

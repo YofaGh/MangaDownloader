@@ -1,6 +1,6 @@
 import { moduleChecker } from "../../operators";
 import { PushButton, StepsCircle, Icon } from "..";
-import { WebtoonType, showHideModal } from "../../utils";
+import { WebtoonType, toggleModal } from "../../utils";
 
 export default function ModuleCheckerModal({
   stepStatuses,
@@ -10,13 +10,13 @@ export default function ModuleCheckerModal({
   const circles = ["Getting Images", "Downloading an Image"];
   if (moduleToCheck.type === WebtoonType.MANGA)
     circles.unshift("Getting Chapters");
-  if (moduleToCheck.searchable) circles.push("Searching In Module");
+  if (moduleToCheck.is_searchable) circles.push("Searching In Module");
   return (
     <div id="checkModal" className="modal">
       <div className="modal-content">
         <button
           className="buttonh closeBtn"
-          onClick={() => showHideModal("checkModal", false)}
+          onClick={() => toggleModal("checkModal", false)}
         >
           <Icon svgName="delete" />
         </button>
@@ -30,7 +30,7 @@ export default function ModuleCheckerModal({
         />
         <PushButton
           label="Ok"
-          onClick={() => showHideModal("checkModal", false)}
+          onClick={() => toggleModal("checkModal", false)}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Truemanga {
@@ -90,7 +91,7 @@ impl Module for Truemanga {
                     .find(Name("strong"))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        let label: String = element.text().replace(":", "").trim().to_string();
+                        let label: String = element.text().trim().replace(":", "");
                         let links: Vec<Node> = box_elem.find(Name("a")).collect();
                         if links.len() <= 1 {
                             box_elem
@@ -137,7 +138,7 @@ impl Module for Truemanga {
                 .next()
                 .ok_or_else(|| AppError::parser(&url, "Invalid bookId format"))?
                 .trim()
-                .to_string()
+                .to_owned()
         };
         let (response, _) = self
             .send_simple_request(
@@ -153,8 +154,8 @@ impl Module for Truemanga {
                 tag.attr("value").and_then(|value: &str| {
                     value.split("/").last().and_then(|last: &str| {
                         Some(HashMap::from([
-                            ("url".to_string(), last.to_string()),
-                            ("name".to_string(), tag.text()),
+                            ("url".to_owned(), last.to_owned()),
+                            ("name".to_owned(), tag.text()),
                         ]))
                     })
                 })
@@ -175,9 +176,9 @@ impl Module for Truemanga {
             .next()
             .ok_or_else(|| AppError::parser(&url, "Script with chapImages not found"))?
             .text();
-        let mut imgs: String = script.replace("var chapImages = '", "").trim().to_string();
+        let mut imgs: String = script.replace("var chapImages = '", "").trim().to_owned();
         imgs.truncate(imgs.len() - 1);
-        let images: Vec<String> = imgs.split(",").map(|s: &str| s.to_string()).collect();
+        let images: Vec<String> = imgs.split(",").map(|s: &str| s.to_owned()).collect();
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
@@ -227,7 +228,7 @@ impl Module for Truemanga {
                 };
                 let Some(title) = ti
                     .attr("title")
-                    .and_then(|element: &str| Some(element.trim().to_string()))
+                    .and_then(|element: &str| Some(element.trim().to_owned()))
                 else {
                     continue;
                 };
@@ -240,26 +241,22 @@ impl Module for Truemanga {
                 else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("url".to_string(), url.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "url", url, page);
                 manga
                     .find(Name("img"))
                     .next()
                     .and_then(|element: Node<'_>| {
                         element.attr("data-src").and_then(|src: &str| {
-                            result.insert("thumbnail".to_string(), src.to_string())
+                            result.insert("thumbnail".to_owned(), src.to_owned())
                         })
                     });
                 manga
                     .find(Name("span").and(Class("latest-chapter")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        element.attr("title").and_then(|titlel: &str| {
-                            result.insert("latest_chapter".to_string(), titlel.to_string())
+                        element.attr("title").and_then(|title: &str| {
+                            result.insert("latest_chapter".to_owned(), title.to_owned())
                         })
                     });
                 manga
@@ -267,7 +264,7 @@ impl Module for Truemanga {
                     .next()
                     .and_then(|element: Node<'_>| {
                         result.insert(
-                            "genres".to_string(),
+                            "genres".to_owned(),
                             element
                                 .children()
                                 .map(|x: Node| x.text())
@@ -279,7 +276,7 @@ impl Module for Truemanga {
                     .find(Name("div").and(Class("summary")))
                     .next()
                     .and_then(|element: Node<'_>| {
-                        result.insert("summary".to_string(), element.text().trim().to_string())
+                        result.insert("summary".to_owned(), element.text().trim().to_owned())
                     });
                 results.push(result);
             }

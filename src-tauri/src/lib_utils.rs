@@ -44,7 +44,7 @@ pub fn unload_modules() -> Result<(), AppError> {
             })?;
     guard
         .take()
-        .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?
+        .ok_or_else(|| AppError::library("Failed to take guard".to_owned()))?
         .close()
         .map_err(|err: LibError| AppError::library(format!("Failed to unload modules: {}", err)))
 }
@@ -60,7 +60,7 @@ where
             })?;
     let lib: &Library = guard
         .as_ref()
-        .ok_or_else(|| AppError::library("Failed to take guard".to_string()))?;
+        .ok_or_else(|| AppError::library("Failed to take guard".to_owned()))?;
     let symbol: Symbol<T> = unsafe {
         lib.get(name.as_bytes())
             .map_err(|err: LibError| AppError::library(format!("Failed to get symbol: {}", err)))?

@@ -66,7 +66,7 @@ impl Module for Readonepiece {
                 Ok(image
                     .attr("src")
                     .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
-                    .to_string())
+                    .to_owned())
             })
             .collect::<Result<Vec<String>, AppError>>()?;
         Ok((images, Value::Bool(false)))
@@ -88,8 +88,8 @@ impl Module for Readonepiece {
                         let binding: String = group[1].replace(&format!("{manga}-"), "");
                         let chapter: &str = binding.as_str();
                         Some(HashMap::from([
-                            ("url".to_string(), chapter.to_string()),
-                            ("name".to_string(), self.rename_chapter(chapter.to_string())),
+                            ("url".to_owned(), chapter.to_owned()),
+                            ("name".to_owned(), self.rename_chapter(chapter.to_owned())),
                         ]))
                     })
                 })

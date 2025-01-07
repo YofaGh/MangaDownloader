@@ -12,6 +12,7 @@ use crate::{
     errors::AppError,
     insert,
     models::{BaseModule, Module},
+    search_map,
 };
 
 pub struct Nhentai {
@@ -161,16 +162,11 @@ impl Module for Nhentai {
                 }) else {
                     continue;
                 };
-                let mut result: HashMap<String, String> = HashMap::from([
-                    ("name".to_string(), title.to_string()),
-                    ("domain".to_string(), self.base.domain.to_string()),
-                    ("code".to_string(), code.to_string()),
-                    ("page".to_string(), page.to_string()),
-                ]);
+                let mut result: HashMap<String, String> =
+                    search_map!(title, self.base.domain, "code", code, page);
                 doujin.find(Name("img")).next().and_then(|img: Node<'_>| {
-                    img.attr("data-src").and_then(|src: &str| {
-                        result.insert("thumbnail".to_string(), src.to_string())
-                    })
+                    img.attr("data-src")
+                        .and_then(|src: &str| result.insert("thumbnail".to_owned(), src.to_owned()))
                 });
                 results.push(result);
             }

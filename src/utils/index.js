@@ -27,7 +27,7 @@ export {
   isUrlValid,
   fixFolderName,
   retrieveImage,
-  showHideModal,
+  toggleModal,
 } from "./assets";
 
 export {

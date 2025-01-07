@@ -39,7 +39,7 @@ pub async fn create_directory(path: String) -> Result<(), AppError> {
 pub async fn read_directory(path: String) -> Result<Vec<String>, AppError> {
     assets::read_directory(&path)?
         .into_iter()
-        .filter_map(|entry: DirEntry| entry.path().to_str().map(|path: &str| Ok(path.to_string())))
+        .filter_map(|entry: DirEntry| entry.path().to_str().map(|path: &str| Ok(path.to_owned())))
         .collect()
 }
 
@@ -152,6 +152,6 @@ pub async fn upload_image(path: String) -> String {
 pub async fn get_saucers_list() -> Vec<String> {
     vec!["yandex", "tineye", "iqdb", "saucenao"]
         .into_iter()
-        .map(|s: &str| s.to_string())
+        .map(|s: &str| s.to_owned())
         .collect()
 }

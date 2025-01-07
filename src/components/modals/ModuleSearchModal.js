@@ -1,5 +1,5 @@
 import { CheckBox, Icon } from "..";
-import { showHideModal } from "../../utils";
+import { toggleModal } from "../../utils";
 
 export default function AddToLibraryModal({
   depth,
@@ -12,7 +12,7 @@ export default function AddToLibraryModal({
       <div className="modal-content">
         <button
           className="buttonh closeBtn"
-          onClick={() => showHideModal("mod-Modal", false)}
+          onClick={() => toggleModal("mod-Modal", false)}
         >
           <Icon svgName="delete" />
         </button>

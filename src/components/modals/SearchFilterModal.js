@@ -1,4 +1,4 @@
-import { showHideModal } from "../../utils";
+import { toggleModal } from "../../utils";
 import { useSearchStore, useModulesStore } from "../../store";
 import { FilterToggleButton, PushButton, CheckBox, Icon } from "..";
 
@@ -19,7 +19,7 @@ export default function SearchFilterModal() {
       <div className="modal-content">
         <button
           className="buttonh closeBtn"
-          onClick={() => showHideModal("myModal", false)}
+          onClick={() => toggleModal("myModal", false)}
         >
           <Icon svgName="delete" />
         </button>
@@ -68,11 +68,12 @@ export default function SearchFilterModal() {
         </div>
         <div className="filter-types">
           {modules
-            .filter((module) => module.searchable)
-            .filter((module) =>
-              searchModuleTypes.some(
-                (type) => type.name === module.type && type.selected
-              )
+            .filter(
+              (module) =>
+                module.is_searchable &&
+                searchModuleTypes.some(
+                  (type) => type.name === module.type && type.selected
+                )
             )
             .map((module) => (
               <FilterToggleButton

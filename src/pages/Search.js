@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { searcher } from "../operators";
-import { showHideModal } from "../utils";
+import { toggleModal } from "../utils";
 import { useSettingsStore, useSearchStore } from "../store";
 import {
   SearchBar,
@@ -45,7 +45,7 @@ export default function Search() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (event.target === document.getElementById("myModal"))
-        showHideModal("myModal", false);
+        toggleModal("myModal", false);
     };
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
@@ -61,7 +61,7 @@ export default function Search() {
           <ExpandButton
             name="filter"
             dimension={20}
-            onClick={() => showHideModal("myModal", true)}
+            onClick={() => toggleModal("myModal", true)}
           />
           <SearchBar input={searchKeyword} setInput={setSearchKeyword} />
           <ExpandButton

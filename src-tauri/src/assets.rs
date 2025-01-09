@@ -14,7 +14,10 @@ use std::{
     thread::sleep,
     time::Duration,
 };
-use tauri::{path::BaseDirectory, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow};
+use tauri::{
+    path::BaseDirectory, utils::config::WindowConfig, AppHandle, Emitter, Error as TauriError,
+    Manager, WebviewWindow, WebviewWindowBuilder,
+};
 
 use crate::{
     errors::AppError,
@@ -134,11 +137,21 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
     if unloaded_modules {
         load_modules(&modules_path)?;
     }
+    let main_window_config: &WindowConfig = app
+        .config()
+        .app
+        .windows
+        .get(0)
+        .ok_or_else(|| AppError::window("get window config", "main", String::new()))?;
+    let main_window: WebviewWindow = WebviewWindowBuilder::from_config(&app, main_window_config)
+        .and_then(|window| window.build())
+        .map_err(|err: TauriError| AppError::window("build", "main: ", err.to_string()))?;
     splash_screen_window
         .close()
         .map_err(|err: TauriError| AppError::window("close", "splashscreen: ", err.to_string()))?;
-    app.get_webview_window("main")
-        .ok_or_else(|| AppError::window("get window", "main", String::new()))?
+    #[cfg(debug_assertions)]
+    main_window.open_devtools();
+    main_window
         .show()
         .map_err(|err: TauriError| AppError::window("show", "main: ", err.to_string()))
 }

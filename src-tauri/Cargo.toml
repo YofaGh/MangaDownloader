@@ -3,23 +3,34 @@ name = "mangadownloader"
 version = "1.0.0"
 description = "An app to download manga"
 authors = ["YofaGh"]
-license = ""
-repository = ""
-default-run = "mangadownloader"
 edition = "2021"
-rust-version = "1.83"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "tauri_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [workspace]
 members = ["modules"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc.0", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.0.0-rc.0", features = [] }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+scannedpdf = "0.1.0"
+libloading = "0.8.6"
+lazy_static = "1.5.0"
+rayon = "1.10.0"
+natord = "1.0.9"
+semver = "1.0.24"
 reqwest = { version = "0.12", default-features = false, features = [
     "multipart",
     "json",
@@ -29,26 +40,8 @@ reqwest = { version = "0.12", default-features = false, features = [
     "http2",
     "macos-system-configuration",
 ] }
-serde_json = "1.0.114"
-image = "0.24.5"
-rayon = "1.10.0"
-scannedpdf = "0.1.0"
-natord = "1.0.9"
-tauri-plugin-dialog = "2.0.0-rc.0"
-tauri-plugin-fs = "2.0.0-rc.0"
-tauri-plugin-http = "2.0.0-rc.0"
 select = "0.6.0"
-indexmap = { version = "1.9.3", features = ["serde"] }
-libloading = "0.8.5"
-semver = "1.0.23"
-lazy_static = "1.5.0"
-
-[features]
-# this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
-# If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.
-# DO NOT REMOVE!!
-custom-protocol = ["tauri/custom-protocol"]
-
-[lib]
-name = "app_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+indexmap = { version = "2.7.0", features = ["serde"] }
+image = "0.24.5"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"

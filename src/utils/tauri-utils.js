@@ -1,6 +1,6 @@
 import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { getCurrent } from "@tauri-apps/api/window";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   remove,
   readTextFile,
@@ -8,7 +8,7 @@ import {
   BaseDirectory,
 } from "@tauri-apps/plugin-fs";
 
-export const getAppWindow = () => getCurrent();
+export const getAppWindow = () => getCurrentWindow();
 
 export const chooseFile = async () => await open();
 

@@ -1,5 +1,4 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 mod assets;
 mod commands;
 mod errors;
@@ -14,9 +13,9 @@ use tauri::{generate_context, generate_handler, App, Builder, Manager};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     Builder::default()
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(generate_handler![
             merge,
             sauce,
@@ -41,8 +40,6 @@ pub fn run() {
         ])
         .setup(|app: &mut App| {
             load_up_checks(app.path().app_data_dir()?).expect("error while running load up checks");
-            #[cfg(debug_assertions)]
-            app.get_webview_window("main").unwrap().open_devtools();
             Ok(())
         })
         .run(generate_context!())

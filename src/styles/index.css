@@ -30,7 +30,7 @@
   padding-top: 10px;
   font-family: "MouldyCheeseRegular";
   src: local("MouldyCheeseRegular"),
-    url(../../public/assets/MouldyCheeseRegular.woff) format("woff");
+    url(/assets/MouldyCheeseRegular.woff) format("woff");
 }
 
 body {
@@ -41,6 +41,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
+  background-image: url("/assets/Artboard 1.png");
 }
 
 body a {

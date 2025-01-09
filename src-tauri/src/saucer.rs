@@ -6,8 +6,7 @@ use select::{
     predicate::{Attr, Class, Name, Predicate},
 };
 use serde_json::Value;
-use std::{collections::HashMap, ffi::OsStr, io::Error as IoError, path::PathBuf};
-use tokio::fs::read;
+use std::{collections::HashMap, ffi::OsStr, fs::read, io::Error as IoError, path::PathBuf};
 
 use crate::errors::AppError;
 
@@ -177,9 +176,8 @@ pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, AppEr
 pub async fn upload(path: &str) -> Result<String, AppError> {
     let client: Client = Client::builder().build()?;
     let path_buf: PathBuf = PathBuf::from(path);
-    let bytes: Vec<u8> = read(&path_buf)
-        .await
-        .map_err(|err: IoError| AppError::file("read", &path_buf, err))?;
+    let bytes: Vec<u8> =
+        read(&path_buf).map_err(|err: IoError| AppError::file("read", &path_buf, err))?;
     let form: multipart::Form = multipart::Form::new().part(
         "photo",
         multipart::Part::stream(bytes).file_name(

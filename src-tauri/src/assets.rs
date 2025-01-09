@@ -11,9 +11,10 @@ use std::{
     io::{Error as IoError, Write},
     path::PathBuf,
     process::Command,
+    thread::sleep,
+    time::Duration,
 };
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Error as TauriError, Manager, WebviewWindow};
-use tokio::time::{sleep, Duration};
 
 use crate::{
     errors::AppError,
@@ -120,14 +121,14 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
                         .map_err(|err: IoError| AppError::file("write to", &modules_path, err))?,
                     Err(_) => {
                         emit_status(&splash_screen_window, "Failed to update modules")?;
-                        sleep(Duration::from_secs(1)).await;
+                        sleep(Duration::from_secs(1));
                     }
                 }
             }
         }
         Err(_) => {
             emit_status(&splash_screen_window, "Failed to check for updates")?;
-            sleep(Duration::from_secs(1)).await;
+            sleep(Duration::from_secs(1));
         }
     }
     if unloaded_modules {
@@ -201,6 +202,7 @@ pub async fn open_folder(path: String) -> Result<(), AppError> {
             .args(["/select,", &path])
             .spawn()
             .map_err(|err: IoError| AppError::directory("open", &path, err))?;
+        return Ok(());
     }
     #[cfg(target_os = "macos")]
     {
@@ -208,24 +210,20 @@ pub async fn open_folder(path: String) -> Result<(), AppError> {
             .args(["-R", &path])
             .spawn()
             .map_err(|err: IoError| AppError::directory("open", &path, err))?;
+        return Ok(());
     }
     #[cfg(target_os = "linux")]
     {
-        let managers = ["xdg-open", "nautilus", "dolphin", "nemo", "thunar"];
-        let mut success = false;
+        let managers: [&str; 5] = ["xdg-open", "nautilus", "dolphin", "nemo", "thunar"];
         for manager in managers {
             if Command::new(manager).arg(&path).spawn().is_ok() {
-                success = true;
-                break;
+                return Ok(());
             }
         }
-        if !success {
-            return Err(AppError::DirectoryOperation(format!(
-                "No suitable file manager found",
-            )));
-        }
+        Err(AppError::DirectoryOperation(format!(
+            "No suitable file manager found",
+        )))
     }
-    Ok(())
 }
 
 pub fn get_dynamic_lib_extension() -> &'static str {

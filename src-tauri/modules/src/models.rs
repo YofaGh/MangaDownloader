@@ -1,19 +1,15 @@
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
-use futures::TryStreamExt;
-use reqwest::{header::HeaderMap, Client, Error as ReqwestError, Method, RequestBuilder, Response};
+use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
 use serde_json::Value;
 use std::{
     collections::HashMap,
-    io::{Error as IoError, ErrorKind as IoErrorKind},
+    fs::File,
+    io::{copy, Error as IoError, Write},
     thread,
     time::Duration,
 };
-use tokio::{
-    fs::File,
-    io::{copy, AsyncWriteExt},
-};
-use tokio_util::{bytes::Bytes, io::StreamReader};
+use tokio_util::bytes::Bytes;
 
 use crate::errors::AppError;
 
@@ -79,18 +75,12 @@ pub trait Module: Send + Sync {
                 None,
             )
             .await?;
-        let stream = response
-            .bytes_stream()
-            .map_err(|err: ReqwestError| IoError::new(IoErrorKind::Other, err.to_string()));
-        let mut reader = StreamReader::new(stream);
         let mut file: File = File::create(&image_name)
-            .await
             .map_err(|err: IoError| AppError::file("create", &image_name, err))?;
-        copy(&mut reader, &mut file)
-            .await
+        let bytes: Bytes = response.bytes().await?;
+        copy(&mut bytes.as_ref(), &mut file)
             .map_err(|err: IoError| AppError::file("copy", &image_name, err))?;
         file.flush()
-            .await
             .map_err(|err: IoError| AppError::file("flush", &image_name, err))?;
         Ok(Some(image_name))
     }

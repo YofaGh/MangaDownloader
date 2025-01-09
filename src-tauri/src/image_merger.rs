@@ -40,7 +40,7 @@ pub fn merge(
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut temp_height: u32 = 0;
     let mut max_width: u32 = 0;
-    for (image, filename) in images.into_iter() {
+    for (image, filename) in images {
         let image_height: u32 = image.height();
         let image_width: u32 = image.width();
         if temp_height + image_height < MAX_JPEG_HEIGHT {
@@ -87,7 +87,7 @@ pub fn merge_fit(
     let mut current_height: u32 = 0;
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut min_width: u32 = images[0].0.width();
-    for (image, filename) in images.into_iter() {
+    for (image, filename) in images {
         let image_height: u32 = image.height();
         let image_width: u32 = image.width();
         if image_width >= min_width

@@ -38,77 +38,70 @@ impl Module for Truemanga {
             .next()
             .ok_or_else(|| AppError::parser(&url, "book-info"))?;
         info_box
-            .find(Name("div").and(Class("img-cover")))
+            .find(Name("div").and(Class("img-cover")).descendant(Name("img")))
             .next()
             .and_then(|element: Node| {
-                element.find(Name("img")).next().and_then(|element: Node| {
-                    element
-                        .attr("data-src")
-                        .and_then(|src: &str| insert!(info, "Cover", src))
-                })
+                element
+                    .attr("data-src")
+                    .and_then(|src: &str| insert!(info, "Cover", src))
             });
         info_box
-            .find(Name("div").and(Attr("class", "name box")))
-            .next()
-            .and_then(|element: Node| {
-                element
-                    .find(Name("h1"))
-                    .next()
-                    .and_then(|element: Node| insert!(info, "Title", element.text().trim()));
-                element
-                    .find(Name("h2"))
-                    .next()
-                    .and_then(|element: Node| insert!(info, "Alternative", element.text().trim()))
+            .find(
+                Name("div")
+                    .and(Attr("class", "name box"))
+                    .descendant(Name("h1").or(Name("h2"))),
+            )
+            .for_each(|element: Node| {
+                if element.name() == Some("h1") {
+                    insert!(info, "Title", element.text().trim());
+                } else {
+                    insert!(info, "Alternative", element.text().trim());
+                };
             });
         document
-            .find(Name("div").and(Attr("class", "section-body summary")))
+            .find(
+                Name("div")
+                    .and(Attr("class", "section-body summary"))
+                    .descendant(Name("p")),
+            )
             .next()
-            .and_then(|element: Node| {
-                element
-                    .find(Name("p"))
-                    .next()
-                    .and_then(|element: Node| insert!(info, "Summary", element.text().trim()))
-            });
-        let Some(boxes) = document
-            .find(Name("div").and(Attr("class", "meta box mt-1 p-10")))
-            .next()
-        else {
+            .and_then(|element: Node| insert!(info, "Summary", element.text().trim()));
+        let boxes: Vec<Node> = document
+            .find(
+                Name("div")
+                    .and(Attr("class", "meta box mt-1 p-10"))
+                    .descendant(Name("p")),
+            )
+            .collect();
+        if boxes.is_empty() {
             return Ok(info);
         };
-        boxes.find(Name("p")).for_each(|box_elem: Node| {
+        boxes.into_iter().for_each(|box_elem: Node| {
             if box_elem.text().contains("Alt Name") {
                 box_elem
                     .find(Name("span"))
                     .next()
                     .and_then(|element: Node| insert!(info, "Status", element.text().trim()));
-            } else {
-                box_elem
-                    .find(Name("strong"))
-                    .next()
-                    .and_then(|element: Node| {
-                        let label: String = element.text().trim().replace(":", "");
-                        let links: Vec<Node> = box_elem.find(Name("a")).collect();
-                        if links.len() <= 1 {
-                            box_elem
-                                .find(Name("span"))
-                                .next()
-                                .and_then(|element: Node| {
-                                    insert!(extras, label, element.text().trim())
-                                })
-                        } else {
-                            insert!(
-                                extras,
-                                label,
-                                links
-                                    .iter()
-                                    .map(|link: &Node| {
-                                        link.text().trim().replace(" ", "").replace("\n,", "")
-                                    })
-                                    .collect::<Vec<String>>()
-                            )
-                        }
-                    });
+                return;
             }
+            box_elem
+                .find(Name("strong"))
+                .next()
+                .and_then(|element: Node| {
+                    let label: String = element.text().trim().replace(":", "");
+                    let links: Vec<String> = box_elem
+                        .find(Name("a"))
+                        .map(|link: Node| link.text().trim().replace(" ", "").replace("\n,", ""))
+                        .collect();
+                    if links.len() <= 1 {
+                        box_elem
+                            .find(Name("span"))
+                            .next()
+                            .and_then(|element: Node| insert!(extras, label, element.text().trim()))
+                    } else {
+                        insert!(extras, label, links)
+                    }
+                });
         });
         insert!(info, "Extras", extras);
         Ok(info)

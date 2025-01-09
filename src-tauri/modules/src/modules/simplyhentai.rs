@@ -31,6 +31,7 @@ impl Module for Simplyhentai {
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: HashMap<String, Value> = HashMap::new();
         let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut dates: HashMap<String, Value> = HashMap::new();
         document
             .find(Attr("id", "cover"))
             .next()
@@ -44,21 +45,13 @@ impl Module for Simplyhentai {
                     })
             });
         document
-            .find(Attr("id", "info"))
-            .next()
-            .and_then(|info_box: Node| {
-                info_box
-                    .find(Name("h1"))
-                    .next()
-                    .and_then(|title_element: Node| {
-                        insert!(info, "Title", title_element.text().trim())
-                    });
-                info_box
-                    .find(Name("h2"))
-                    .next()
-                    .and_then(|alternative_element: Node| {
-                        insert!(info, "Alternative", alternative_element.text().trim())
-                    })
+            .find(Attr("id", "info").descendant(Name("h1").or(Name("h2"))))
+            .for_each(|info_box: Node| {
+                if info_box.name() == Some("h1") {
+                    insert!(info, "Title", info_box.text().trim());
+                } else {
+                    insert!(info, "Alternative", info_box.text().trim());
+                };
             });
         document
             .find(Name("time"))
@@ -66,7 +59,7 @@ impl Module for Simplyhentai {
             .and_then(|uploaded_element: Node| {
                 uploaded_element
                     .attr("datetime")
-                    .and_then(|datetime: &str| insert!(info, "Uploaded", datetime))
+                    .and_then(|datetime: &str| insert!(dates, "Uploaded", datetime))
             });
         document
             .find(Name("section").and(Attr("id", "tags")))
@@ -84,28 +77,26 @@ impl Module for Simplyhentai {
                     })
             });
         document
-            .find(Name("section").and(Attr("id", "tags")))
-            .next()
-            .and_then(|box_: Node| {
-                box_.find(Class("tag-container").and(Class("field-name")))
-                    .into_iter()
-                    .for_each(|tag: Node| {
-                        if tag.text().contains("Pages:") || tag.text().contains("Uploaded:") {
-                            return;
-                        }
-                        tag.first_child().and_then(|first: Node| {
-                            let values: Vec<String> = tag
-                                .find(Name("a"))
-                                .filter_map(|link: Node| {
-                                    link.find(Name("span").and(Class("name")))
-                                        .next()
-                                        .and_then(|span: Node| Some(span.text()))
-                                })
-                                .collect();
-                            insert!(extras, first.text().trim(), values)
-                        });
-                    });
-                Some(())
+            .find(
+                Name("section")
+                    .and(Attr("id", "tags"))
+                    .descendant(Attr("class", "tag-container field-name ")),
+            )
+            .filter(|tag: &Node| {
+                !tag.text().contains("Pages:") && !tag.text().contains("Uploaded:")
+            })
+            .for_each(|tag: Node| {
+                tag.first_child().and_then(|first: Node| {
+                    let values: Vec<String> = tag
+                        .find(Name("a"))
+                        .filter_map(|link: Node| {
+                            link.find(Name("span").and(Class("name")))
+                                .next()
+                                .and_then(|span: Node| Some(span.text()))
+                        })
+                        .collect();
+                    insert!(extras, first.text().trim(), values)
+                });
             });
         insert!(info, "Extras", extras);
         Ok(info)

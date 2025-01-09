@@ -66,19 +66,12 @@ impl Module for Mangapark {
                     .ok()
                     .and_then(|rating: f64| insert!(info, "Rating", rating))
             });
-        if info_box
+        let genres: Vec<String> = info_box
             .find(Name("span").and(Attr("q:key", "kd_0")))
-            .next()
-            .is_some()
-        {
-            insert!(
-                extras,
-                "Genres",
-                info_box
-                    .find(Name("span").and(Attr("q:key", "kd_0")))
-                    .map(|a: Node| a.text().trim().to_owned())
-                    .collect::<Vec<String>>()
-            );
+            .map(|a: Node| a.text().trim().to_owned())
+            .collect();
+        if !genres.is_empty() {
+            insert!(extras, "Genres", genres);
         }
         insert!(info, "Extras", extras);
         Ok(info)
@@ -269,7 +262,7 @@ impl Mangapark {
             base: BaseModule {
                 type_: "Manga",
                 domain: "mangapark.to",
-                logo: "https://mangapark.to/public-assets/img/favicon.ico",
+                logo: "https://mangapark.to/static-assets/img/favicon.ico",
                 sample: HashMap::from([("manga", "77478-en-sakamoto-days")]),
                 is_searchable: true,
                 ..BaseModule::default()

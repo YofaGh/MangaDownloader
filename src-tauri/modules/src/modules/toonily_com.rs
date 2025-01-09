@@ -43,24 +43,21 @@ impl Module for Toonily {
                 .and_then(|src: &str| insert!(info, "Cover", src))
         });
         info_box
-            .find(Name("div").and(Class("post-title")))
-            .next()
-            .and_then(|element: Node| {
-                element.find(Name("h1")).next().and_then(|element: Node| {
-                    element
-                        .first_child()
-                        .and_then(|first: Node| insert!(info, "Title", first.text().trim()))
-                })
-            });
-        info_box
-            .find(Name("div").and(Class("post-status")))
+            .find(Name("div").and(Class("post-title")).descendant(Name("h1")))
             .next()
             .and_then(|element: Node| {
                 element
-                    .find(Name("div").and(Class("summary-content")))
-                    .nth(1)
-                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()))
+                    .first_child()
+                    .and_then(|first: Node| insert!(info, "Title", first.text().trim()))
             });
+        info_box
+            .find(
+                Name("div")
+                    .and(Class("post-status"))
+                    .descendant(Name("div").and(Class("summary-content"))),
+            )
+            .nth(1)
+            .and_then(|element: Node| insert!(info, "Status", element.text().trim()));
         document
             .find(Name("div").and(Class("summary__content")))
             .next()
@@ -76,44 +73,43 @@ impl Module for Toonily {
                     .ok()
                     .and_then(|rating: f64| insert!(info, "Rating", rating))
             });
+        let tags: Vec<String> = document
+            .find(
+                Name("div")
+                    .and(Class("wp-manga-tags-list"))
+                    .descendant(Name("a")),
+            )
+            .map(|a: Node| a.text().trim().replace('#', ""))
+            .collect();
+        if !tags.is_empty() {
+            insert!(extras, "Tags", tags);
+        };
         document
-            .find(Name("div").and(Class("wp-manga-tags-list")))
-            .next()
-            .and_then(|tags: Node| {
-                let tags: Vec<String> = tags
-                    .find(Name("a"))
-                    .map(|a: Node| a.text().trim().replace('#', ""))
-                    .collect();
-                insert!(extras, "Tags", tags)
-            });
-        document
-            .find(Name("div").and(Class("manga-info-row")))
-            .next()
-            .and_then(|element: Node| {
-                element
-                    .find(Name("div").and(Class("post-content_item")))
-                    .for_each(|box_elem: Node| {
-                        box_elem.find(Name("h5")).next().and_then(|box_str: Node| {
-                            if box_str.text().contains("Alt Name") {
-                                box_elem
-                                    .find(Name("div").and(Class("summary-content")))
-                                    .next()
-                                    .and_then(|element: Node| {
-                                        insert!(info, "Alternative", element.text().trim())
-                                    })
-                            } else {
-                                insert!(
-                                    extras,
-                                    box_str.text().replace("(s)", "s"),
-                                    box_elem
-                                        .find(Name("a"))
-                                        .map(|a: Node| a.text())
-                                        .collect::<Vec<_>>()
-                                )
-                            }
-                        });
-                    });
-                Some(())
+            .find(
+                Name("div")
+                    .and(Class("manga-info-row"))
+                    .descendant(Name("div").and(Class("post-content_item"))),
+            )
+            .for_each(|box_elem: Node| {
+                box_elem.find(Name("h5")).next().and_then(|box_str: Node| {
+                    if box_str.text().contains("Alt Name") {
+                        box_elem
+                            .find(Name("div").and(Class("summary-content")))
+                            .next()
+                            .and_then(|element: Node| {
+                                insert!(info, "Alternative", element.text().trim())
+                            })
+                    } else {
+                        insert!(
+                            extras,
+                            box_str.text().replace("(s)", "s"),
+                            box_elem
+                                .find(Name("a"))
+                                .map(|a: Node| a.text())
+                                .collect::<Vec<String>>()
+                        )
+                    }
+                });
             });
         insert!(info, "Extras", extras);
         Ok(info)
@@ -124,16 +120,18 @@ impl Module for Toonily {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         Ok(document
-            .find(Name("li").and(Class("wp-manga-chapter")))
-            .filter_map(|div: Node| {
-                div.find(Name("a")).next().and_then(|a: Node| {
-                    a.attr("href").and_then(|href: &str| {
-                        href.split('/').nth_back(1).and_then(|slash: &str| {
-                            Some(HashMap::from([
-                                ("url".to_owned(), slash.to_owned()),
-                                ("name".to_owned(), self.rename_chapter(slash.to_owned())),
-                            ]))
-                        })
+            .find(
+                Name("li")
+                    .and(Class("wp-manga-chapter"))
+                    .descendant(Name("a")),
+            )
+            .filter_map(|a: Node| {
+                a.attr("href").and_then(|href: &str| {
+                    href.split('/').nth_back(1).and_then(|slash: &str| {
+                        Some(HashMap::from([
+                            ("url".to_owned(), slash.to_owned()),
+                            ("name".to_owned(), self.rename_chapter(slash.to_owned())),
+                        ]))
                     })
                 })
             })

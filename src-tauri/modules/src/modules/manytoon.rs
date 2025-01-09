@@ -61,48 +61,32 @@ impl Module for Manytoon {
                     .ok()
                     .and_then(|rating: f64| insert!(info, "Rating", rating))
             });
-        let boxes: Vec<Node> = document
+        document
             .find(
                 Name("div")
                     .and(Class("post-content"))
                     .descendant(Name("div").and(Class("post-content_item"))),
             )
-            .collect();
-        for box_elem in boxes {
-            if box_elem.text().contains("Rating") {
-                continue;
-            }
-            if box_elem.text().contains("Alternative") {
-                box_elem
-                    .find(Name("div").and(Class("summary-content")))
-                    .next()
-                    .and_then(|element: Node| insert!(info, "Alternative", element.text().trim()));
-            } else {
-                let (Some(box_str), Some(info_key)) = (
-                    box_elem
-                        .find(Name("div").and(Class("summary-heading")))
-                        .next(),
+            .filter(|n: &Node| !n.text().contains("Rating"))
+            .for_each(|box_elem: Node| {
+                let (Some(info_v), Some(info_k)) = (
                     box_elem
                         .find(Name("div").and(Class("summary-content")))
                         .next(),
+                    box_elem
+                        .find(Name("div").and(Class("summary-heading")))
+                        .next(),
                 ) else {
-                    continue;
+                    return;
                 };
-                let box_str: String = box_str.text().trim().replace("(s)", "s");
-                if info_key.find(Name("a")).next().is_some() {
-                    insert!(
-                        extras,
-                        box_str,
-                        info_key
-                            .find(Name("a"))
-                            .map(|a: Node| a.text())
-                            .collect::<Vec<_>>()
-                    );
+                let info_k: String = info_k.text().trim().replace("(s)", "s");
+                let inf_a: Vec<String> = info_v.find(Name("a")).map(|a: Node| a.text()).collect();
+                if inf_a.is_empty() {
+                    insert!(extras, info_k, info_v.text().trim());
                 } else {
-                    insert!(extras, box_str, info_key.text().trim());
+                    insert!(extras, info_k, inf_a);
                 }
-            }
-        }
+            });
         let Some(info_box) = document.find(Name("div").and(Class("tab-summary"))).next() else {
             insert!(info, "Extras", extras);
             return Ok(info);

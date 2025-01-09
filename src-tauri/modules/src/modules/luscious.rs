@@ -73,10 +73,9 @@ impl Module for Luscious {
             });
         document
             .find(Name("div").and(Class("o-tag--secondary")))
-            .for_each(|box_element: Node| {
-                box_element
-                    .first_child()
-                    .and_then(|element: Node| insert!(extras, "Tags", element.text().trim()));
+            .filter_map(|box_element: Node| box_element.first_child())
+            .for_each(|element: Node| {
+                insert!(extras, "Tags", element.text().trim());
             });
         let Some(info_box) = document
             .find(Name("div").and(Class("album-info-wrapper")))
@@ -103,14 +102,15 @@ impl Module for Luscious {
                 let text: String = box_element.text().trim().to_owned();
                 if text.contains("pictures") {
                     insert!(info, "Pages", text.replace(" pictures", ""));
-                } else {
-                    if let (Some(strong), Some(date_str)) = (
-                        box_element.find(Name("strong")).next(),
-                        box_element.last_child(),
-                    ) {
-                        if let Ok(date) =
-                            NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
-                        {
+                    return;
+                }
+                if let (Some(strong), Some(date_str)) = (
+                    box_element.find(Name("strong")).next(),
+                    box_element.last_child(),
+                ) {
+                    NaiveDate::parse_from_str(date_str.text().trim(), "%B %dth, %Y")
+                        .ok()
+                        .and_then(|date: NaiveDate| {
                             date.and_hms_opt(0, 0, 0)
                                 .and_then(|datetime: NaiveDateTime| {
                                     insert!(
@@ -118,9 +118,8 @@ impl Module for Luscious {
                                         strong.text().trim_end_matches(':'),
                                         datetime.format("%Y-%m-%d %H:%M:%S").to_string()
                                     )
-                                });
-                        }
-                    }
+                                })
+                        });
                 }
             });
         insert!(info, "Extras", extras);

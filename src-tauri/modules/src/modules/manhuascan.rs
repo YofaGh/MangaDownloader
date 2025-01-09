@@ -79,46 +79,26 @@ impl Module for Manhuascan {
             return Ok(info);
         };
         box_node
-            .find(|n: &Node| n.text().contains("Status"))
-            .next()
-            .and_then(|n: Node| {
-                n.find(Name("i"))
+            .children()
+            .filter(|n: &Node| n.first_child().is_some())
+            .for_each(|element: Node| {
+                let key: String = element.first_child().unwrap().text().trim().to_string();
+                if key.contains("Status") {
+                    element
+                        .find(Name("i"))
+                        .next()
+                        .and_then(|element: Node| insert!(info, key, element.text().trim()));
+                    return;
+                }
+                element.find(Name("time")).next().and_then(|element: Node| {
+                    element
+                        .attr("datetime")
+                        .and_then(|v: &str| insert!(dates, key, v))
+                });
+                element
+                    .find(Name("a"))
                     .next()
-                    .and_then(|element: Node| insert!(info, "Status", element.text().trim()))
-            });
-        box_node
-            .find(|n: &Node| n.text().contains("Author"))
-            .next()
-            .and_then(|n: Node| {
-                n.find(Name("a"))
-                    .next()
-                    .and_then(|element: Node| insert!(extras, "Authors", element.text().trim()))
-            });
-        box_node
-            .find(|n: &Node| n.text().contains("Artist"))
-            .next()
-            .and_then(|n: Node| {
-                n.find(Name("a"))
-                    .next()
-                    .and_then(|element: Node| insert!(extras, "Artists", element.text().trim()))
-            });
-        box_node
-            .find(|n: &Node| n.text().contains("Posted"))
-            .next()
-            .and_then(|element: Node| {
-                element.find(Name("time")).next().and_then(|time: Node| {
-                    time.attr("datetime")
-                        .and_then(|v: &str| insert!(dates, "Posted On", v))
-                })
-            });
-        box_node
-            .find(|n: &Node| n.text().contains("Updated"))
-            .next()
-            .and_then(|element: Node| {
-                element.find(Name("time")).next().and_then(|time: Node| {
-                    time.attr("datetime")
-                        .and_then(|v: &str| insert!(dates, "Updated On", v))
-                })
+                    .and_then(|element: Node| insert!(extras, key, element.text().trim()));
             });
         insert!(info, "Extras", extras);
         insert!(info, "Dates", dates);
@@ -134,10 +114,7 @@ impl Module for Manhuascan {
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .find(Name("div").and(Attr("id", "readerarea")))
-            .next()
-            .ok_or_else(|| AppError::parser(&manga, "readerarea"))?
-            .find(Name("img"))
+            .find(Name("div").and(Attr("id", "readerarea")).descendant(Name("img")))
             .map(|img: Node| {
                 Ok(img
                     .attr("src")

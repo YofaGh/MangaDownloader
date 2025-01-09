@@ -50,43 +50,32 @@ impl Module for Imhentai {
             .find(Name("p").and(Class("subtitle")))
             .next()
             .and_then(|alt_element: Node| insert!(info, "Alt", alt_element.text().trim()));
-        document
-            .find(|n: &Node| n.name() == Some("li") && n.text().contains("Pages"))
-            .next()
-            .and_then(|pages_element: Node| {
-                insert!(info, "Pages", pages_element.text().replace("Pages: ", ""))
-            });
-        document
-            .find(|n: &Node| n.name() == Some("li") && n.text().contains("Posted"))
-            .next()
-            .and_then(|posted_element: Node| {
-                insert!(
-                    extras,
-                    "Posted",
-                    posted_element.text().replace("Posted: ", "")
-                )
-            });
-        let mut boxes: Vec<Node> = Vec::new();
-        if let Some(tag_box) = document
-            .find(Name("ul").and(Class("galleries_info")))
-            .next()
-        {
-            boxes = tag_box.find(Name("li")).collect();
-        }
-        for box_item in boxes {
-            if box_item.text().contains("Pages") || box_item.text().contains("Posted") {
-                continue;
+        document.find(Name("li")).for_each(|element: Node| {
+            if element.text().contains("Pages") {
+                insert!(info, "Pages", element.text().replace("Pages: ", ""));
+            } else if element.text().contains("Posted") {
+                insert!(extras, "Posted", element.text().replace("Posted: ", ""));
             }
-            let Some(key) = box_item.find(Name("span")).next() else {
-                continue;
-            };
-            let values: Vec<String> = box_item
-                .find(Name("a"))
-                .filter_map(|a: Node| a.first_child())
-                .map(|a: Node| a.text().trim().to_owned())
-                .collect();
-            insert!(extras, key.text().trim_end_matches(':'), values);
-        }
+        });
+        document
+            .find(
+                Name("ul")
+                    .and(Class("galleries_info"))
+                    .descendant(Name("li")),
+            )
+            .filter(|box_item: &Node| {
+                !box_item.text().contains("Pages") && !box_item.text().contains("Posted")
+            })
+            .for_each(|box_item: Node| {
+                box_item.find(Name("span")).next().and_then(|key: Node| {
+                    let values: Vec<String> = box_item
+                        .find(Name("a"))
+                        .filter_map(|a: Node| a.first_child())
+                        .map(|a: Node| a.text().trim().to_owned())
+                        .collect();
+                    insert!(extras, key.text().trim_end_matches(':'), values)
+                });
+            });
         insert!(info, "Extras", extras);
         Ok(info)
     }
@@ -185,13 +174,15 @@ impl Module for Imhentai {
                 let mut result: HashMap<String, String> =
                     search_map!(title, self.base.domain, "code", code[1], page);
                 doujin
-                    .find(Name("div").and(Class("inner_thumb")))
+                    .find(
+                        Name("div")
+                            .and(Class("inner_thumb"))
+                            .descendant(Name("img")),
+                    )
                     .next()
                     .and_then(|element: Node| {
-                        element.find(Name("img")).next().and_then(|element: Node| {
-                            element.attr("data-src").and_then(|img: &str| {
-                                result.insert("thumbnail".to_owned(), img.to_owned())
-                            })
+                        element.attr("data-src").and_then(|img: &str| {
+                            result.insert("thumbnail".to_owned(), img.to_owned())
                         })
                     });
                 doujin

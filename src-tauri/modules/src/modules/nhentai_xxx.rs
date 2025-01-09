@@ -64,7 +64,7 @@ impl Module for Nhentai {
             .next()
             .and_then(|uploaded_element: Node| {
                 insert!(
-                    info,
+                    extras,
                     "Uploaded",
                     uploaded_element.text().replace("Uploaded:", "").trim()
                 )
@@ -181,7 +181,7 @@ impl Nhentai {
             base: BaseModule {
                 type_: "Doujin",
                 domain: "nhentai.xxx",
-                logo: "https://nhentai.xxx/front/logo.svg",
+                logo: "https://nhentai.xxx/images/logo.svg",
                 sample: HashMap::from([("code", "1")]),
                 is_searchable: true,
                 is_coded: true,

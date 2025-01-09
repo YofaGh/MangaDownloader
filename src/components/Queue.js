@@ -1,5 +1,20 @@
 import { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  arrayMove,
+  useSortable,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { QCard, ActionButton } from ".";
 import { attemptToDownload } from "../operators";
 import {
@@ -33,13 +48,23 @@ export default function Queue() {
   const { download_path } = useSettingsStore((state) => state.settings);
   const notifySuccess = useNotificationStore((state) => state.notifySuccess);
 
-  function handleOnDragEnd(result) {
-    if (!result.destination) return;
-    const items = Array.from(queu);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setQueu(items);
-  }
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setQueu((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   const discardChanges = () => {
     setQueueEditable(false);
@@ -125,6 +150,7 @@ export default function Queue() {
         <div className="info-manage">Number of Items: 0</div>
       </div>
     );
+
   return (
     <div>
       <div className="manage">
@@ -173,42 +199,55 @@ export default function Queue() {
         )}
       </div>
       <div className="queue-list">
-        <DragDropContext onDragEnd={handleOnDragEnd}>
-          <Droppable droppableId="characters">
-            {(provided) => (
-              <ul
-                className="ul-queue"
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                {queu.map((webtoon, index) => (
-                  <Draggable
-                    index={index}
-                    key={webtoon.id}
-                    draggableId={webtoon.id}
-                    isDragDisabled={!queueEditable}
-                  >
-                    {(provided) => (
-                      <li
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <QCard
-                          webtoon={webtoon}
-                          removeWebtoonFromQueue={removeWebtoonFromQueue}
-                          setWebtoonStatus={setWebtoonStatus}
-                        />
-                      </li>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={queu.map((item) => item.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="ul-queue">
+              {queu.map((webtoon) => (
+                <SortableItem
+                  key={webtoon.id}
+                  id={webtoon.id}
+                  disabled={!queueEditable}
+                >
+                  <QCard
+                    webtoon={webtoon}
+                    removeWebtoonFromQueue={removeWebtoonFromQueue}
+                    setWebtoonStatus={setWebtoonStatus}
+                  />
+                </SortableItem>
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
+  );
+}
+
+function SortableItem({ id, disabled, children }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </li>
   );
 }

@@ -13,4 +13,4 @@
 > - After cloning the repository use ```yarn tauri dev``` to run the app.
 > - To build the executable files run ```yarn tauri build```.
 > - To build the modules library run ```cargo build -p modules --release --config modules\.cargo\config.toml```.
-> - use ```upx --best --lzma modules``` command to compress the binary file.
+> - use ```upx --best modules``` command to compress the binary file ( Add --lzma in windows for better compression ).

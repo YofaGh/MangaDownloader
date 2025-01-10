@@ -10,7 +10,6 @@ use std::{
     fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File},
     io::{Error as IoError, Write},
     path::PathBuf,
-    process::Command,
     thread::sleep,
     time::Duration,
 };
@@ -18,6 +17,7 @@ use tauri::{
     path::BaseDirectory, utils::config::WindowConfig, AppHandle, Emitter, Error as TauriError,
     Manager, WebviewWindow, WebviewWindowBuilder,
 };
+use tauri_plugin_opener::{reveal_item_in_dir, Error as OpenerError};
 
 use crate::{
     errors::AppError,
@@ -209,34 +209,9 @@ pub async fn open_folder(path: String) -> Result<(), AppError> {
             "Failed to open Directory: {path} does not exist",
         )));
     }
-    #[cfg(target_os = "windows")]
-    {
-        Command::new("explorer")
-            .args(["/select,", &path])
-            .spawn()
-            .map_err(|err: IoError| AppError::directory("open", &path, err))?;
-        return Ok(());
-    }
-    #[cfg(target_os = "macos")]
-    {
-        Command::new("open")
-            .args(["-R", &path])
-            .spawn()
-            .map_err(|err: IoError| AppError::directory("open", &path, err))?;
-        return Ok(());
-    }
-    #[cfg(target_os = "linux")]
-    {
-        let managers: [&str; 5] = ["xdg-open", "nautilus", "dolphin", "nemo", "thunar"];
-        for manager in managers {
-            if Command::new(manager).arg(&path).spawn().is_ok() {
-                return Ok(());
-            }
-        }
-        Err(AppError::DirectoryOperation(format!(
-            "No suitable file manager found",
-        )))
-    }
+    reveal_item_in_dir(path_buf).map_err(|err: OpenerError| {
+        AppError::DirectoryOperation(format!("Failed to open Directory: {path}: {err}"))
+    })
 }
 
 pub fn get_dynamic_lib_extension() -> &'static str {

@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use reqwest::{header, multipart, Client, RequestBuilder};
+use reqwest::{get, header, multipart, Client, RequestBuilder, Response};
 use select::{
     document::Document,
     node::Node,
@@ -11,11 +11,11 @@ use std::{collections::HashMap, ffi::OsStr, fs::read, io::Error as IoError, path
 use crate::errors::AppError;
 
 pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, AppError> {
-    let client: Client = Client::builder().build()?;
-    let request: RequestBuilder = client.get(&format!(
+    let response: Response = get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={url}"
-    ));
-    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    ))
+    .await?;
+    let document: Document = Document::from(response.text().await?.as_str());
     let data_raw: &str = document
         .find(Name("div").and(Attr("class", "cbir-section cbir-section_name_sites")))
         .find_map(|node: Node| {
@@ -102,9 +102,8 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, AppErro
 }
 
 pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, AppError> {
-    let client: Client = Client::builder().build()?;
-    let request: RequestBuilder = client.get(&format!("https://iqdb.org/?url={url}"));
-    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    let response: Response = get(&format!("https://iqdb.org/?url={url}")).await?;
+    let document: Document = Document::from(response.text().await?.as_str());
     let mut results: Vec<HashMap<String, String>> = Vec::new();
     let divs: Vec<Node> = document
         .find(Name("div").and(Attr("id", "pages")))
@@ -146,10 +145,9 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, AppError>
 }
 
 pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, AppError> {
-    let client: Client = Client::builder().build()?;
-    let request: RequestBuilder =
-        client.get(&format!("https://saucenao.com/search.php?db=999&url={url}"));
-    let document: Document = Document::from(request.send().await?.text().await?.as_str());
+    let response: Response =
+        get(&format!("https://saucenao.com/search.php?db=999&url={url}")).await?;
+    let document: Document = Document::from(response.text().await?.as_str());
     let divs: Vec<Node> = document
         .find(Name("div").and(Attr("id", "middle")))
         .next()

@@ -11,7 +11,7 @@ use std::{
 };
 use tokio_util::bytes::Bytes;
 
-use crate::errors::AppError;
+use crate::errors::Error;
 
 pub struct BaseModule {
     pub type_: &'static str,
@@ -48,7 +48,7 @@ pub trait Module: Send + Sync {
             .map(|(k, v)| (k.to_owned(), v.to_owned()))
             .collect()
     }
-    fn get_module_info(&self) -> Result<HashMap<String, Value>, AppError> {
+    fn get_module_info(&self) -> Result<HashMap<String, Value>, Error> {
         let base: &BaseModule = self.base();
         Ok(HashMap::from([
             ("type".to_owned(), Value::from(base.type_)),
@@ -62,7 +62,7 @@ pub trait Module: Send + Sync {
         &self,
         url: String,
         image_name: String,
-    ) -> Result<Option<String>, AppError> {
+    ) -> Result<Option<String>, Error> {
         let (response, _) = self
             .send_request(
                 &url,
@@ -76,15 +76,15 @@ pub trait Module: Send + Sync {
             )
             .await?;
         let mut file: File = File::create(&image_name)
-            .map_err(|err: IoError| AppError::file("create", &image_name, err))?;
+            .map_err(|err: IoError| Error::file("create", &image_name, err))?;
         let bytes: Bytes = response.bytes().await?;
         copy(&mut bytes.as_ref(), &mut file)
-            .map_err(|err: IoError| AppError::file("copy", &image_name, err))?;
+            .map_err(|err: IoError| Error::file("copy", &image_name, err))?;
         file.flush()
-            .map_err(|err: IoError| AppError::file("flush", &image_name, err))?;
+            .map_err(|err: IoError| Error::file("flush", &image_name, err))?;
         Ok(Some(image_name))
     }
-    async fn retrieve_image(&self, url: String) -> Result<String, AppError> {
+    async fn retrieve_image(&self, url: String) -> Result<String, Error> {
         let (response, _) = self
             .send_request(
                 &url,
@@ -101,23 +101,23 @@ pub trait Module: Send + Sync {
         let encoded_image: String = general_purpose::STANDARD.encode(image);
         Ok(format!("data:image/png;base64, {encoded_image}"))
     }
-    async fn get_webtoon_url(&self, _url: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, _url: String) -> Result<String, Error> {
         Ok(Default::default())
     }
-    async fn get_chapter_url(&self, _url: String, _chapter: String) -> Result<String, AppError> {
+    async fn get_chapter_url(&self, _url: String, _chapter: String) -> Result<String, Error> {
         Ok(Default::default())
     }
     async fn get_images(
         &self,
         _manga: String,
         _chapter: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    ) -> Result<(Vec<String>, Value), Error> {
         Ok(Default::default())
     }
-    async fn get_info(&self, _manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, _manga: String) -> Result<HashMap<String, Value>, Error> {
         Ok(Default::default())
     }
-    async fn get_chapters(&self, _manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, _manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
         Ok(Default::default())
     }
     async fn search_by_keyword(
@@ -126,7 +126,7 @@ pub trait Module: Send + Sync {
         _absolute: bool,
         _sleep_time: f64,
         _page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         Ok(Default::default())
     }
     fn rename_chapter(&self, chapter: String) -> String {
@@ -168,7 +168,7 @@ pub trait Module: Send + Sync {
         json: Option<Value>,
         params: Option<Value>,
         client: Option<Client>,
-    ) -> Result<(Response, Client), AppError> {
+    ) -> Result<(Response, Client), Error> {
         let client: Client = match client {
             Some(c) => c,
             None => Client::builder()
@@ -187,7 +187,7 @@ pub trait Module: Send + Sync {
         }
         let response: Response = request.send().await?;
         if !response.status().is_success() {
-            return Err(AppError::ReqwestError(format!(
+            return Err(Error::ReqwestError(format!(
                 "Received non-200 status code for {url}: {}",
                 response.status()
             )));
@@ -198,7 +198,7 @@ pub trait Module: Send + Sync {
         &self,
         url: &str,
         client: Option<Client>,
-    ) -> Result<(Response, Client), AppError> {
+    ) -> Result<(Response, Client), Error> {
         self.send_request(
             url,
             Method::GET,

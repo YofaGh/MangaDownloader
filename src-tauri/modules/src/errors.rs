@@ -7,7 +7,7 @@ use std::{
 };
 
 #[derive(Debug)]
-pub enum AppError {
+pub enum Error {
     DirectoryOperation(String),
     FileOperation(String),
     ImageError(String),
@@ -22,7 +22,7 @@ pub enum AppError {
     TauriError(String),
 }
 
-impl AppError {
+impl Error {
     pub fn file(action: &str, path: impl AsRef<Path>, err: IoError) -> Self {
         Self::FileOperation(format!(
             "Failed to {action} the file {}: {err}",
@@ -37,33 +37,33 @@ impl AppError {
     }
 }
 
-impl Display for AppError {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            AppError::DirectoryOperation(msg)
-            | AppError::FileOperation(msg)
-            | AppError::ImageError(msg)
-            | AppError::LibraryError(msg)
-            | AppError::Other(msg)
-            | AppError::ParserError(msg)
-            | AppError::PdfError(msg)
-            | AppError::ReqwestError(msg)
-            | AppError::SemverError(msg)
-            | AppError::RuntimeError(msg)
-            | AppError::SerdeJsonError(msg)
-            | AppError::TauriError(msg) => write!(f, "{msg}"),
+            Error::DirectoryOperation(msg)
+            | Error::FileOperation(msg)
+            | Error::ImageError(msg)
+            | Error::LibraryError(msg)
+            | Error::Other(msg)
+            | Error::ParserError(msg)
+            | Error::PdfError(msg)
+            | Error::ReqwestError(msg)
+            | Error::SemverError(msg)
+            | Error::RuntimeError(msg)
+            | Error::SerdeJsonError(msg)
+            | Error::TauriError(msg) => write!(f, "{msg}"),
         }
     }
 }
 
-impl From<ReqwestError> for AppError {
+impl From<ReqwestError> for Error {
     fn from(err: ReqwestError) -> Self {
-        AppError::ReqwestError(err.to_string())
+        Error::ReqwestError(err.to_string())
     }
 }
 
-impl From<SerdeJsonError> for AppError {
+impl From<SerdeJsonError> for Error {
     fn from(err: SerdeJsonError) -> Self {
-        AppError::SerdeJsonError(err.to_string())
+        Error::SerdeJsonError(err.to_string())
     }
 }

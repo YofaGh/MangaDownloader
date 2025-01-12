@@ -12,7 +12,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -27,13 +27,13 @@ impl Module for Toonily {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
         Ok(format!("https://toonily.com/webtoon/{manga}/"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, AppError> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
         Ok(format!("https://toonily.com/webtoon/{manga}/{chapter}/"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -42,7 +42,7 @@ impl Module for Toonily {
         let info_box: Node = document
             .find(Name("div").and(Class("tab-summary")))
             .next()
-            .ok_or_else(|| AppError::parser(&manga, "div tab_summary"))?;
+            .ok_or_else(|| Error::parser(&manga, "div tab_summary"))?;
         info_box.find(Name("img")).next().and_then(|element: Node| {
             element
                 .attr("data-src")
@@ -121,7 +121,7 @@ impl Module for Toonily {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -148,7 +148,7 @@ impl Module for Toonily {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    ) -> Result<(Vec<String>, Value), Error> {
         let url: String = format!("https://toonily.com/webtoon/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -161,11 +161,11 @@ impl Module for Toonily {
             .map(|img: Node| {
                 Ok(img
                     .attr("data-src")
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
+                    .ok_or_else(|| Error::parser(&url, "Invalid image attr"))?
                     .trim()
                     .to_owned())
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         let save_names: Vec<String> = images
             .iter()
             .enumerate()
@@ -173,10 +173,10 @@ impl Module for Toonily {
                 let extension: &str = img
                     .split('.')
                     .last()
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename extension"))?;
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename extension"))?;
                 Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((images, to_value(save_names)?))
     }
 
@@ -186,7 +186,7 @@ impl Module for Toonily {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut search_headers: HeaderMap = HeaderMap::new();

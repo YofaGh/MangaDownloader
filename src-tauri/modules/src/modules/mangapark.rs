@@ -9,7 +9,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -24,13 +24,13 @@ impl Module for Mangapark {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
         Ok(format!("https://mangapark.to/title/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, AppError> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
         Ok(format!("https://mangapark.to/title/{manga}/{chapter}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -39,7 +39,7 @@ impl Module for Mangapark {
         let info_box: Node = document
             .find(Attr("class", "flex flex-col md:flex-row"))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "info_box"))?;
+            .ok_or_else(|| Error::parser(&url, "info_box"))?;
         info_box.find(Name("img")).next().and_then(|cover: Node| {
             cover
                 .attr("src")
@@ -83,18 +83,18 @@ impl Module for Mangapark {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script: Node = document
             .find(Name("script").and(Attr("type", "qwik/json")))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "script"))?;
+            .ok_or_else(|| Error::parser(&url, "script"))?;
         let data: Value = serde_json::from_str(script.text().as_str())?;
         let objs: &Vec<Value> = data["objs"]
             .as_array()
-            .ok_or_else(|| AppError::parser(&url, "as array"))?;
+            .ok_or_else(|| Error::parser(&url, "as array"))?;
         let chapters: Vec<HashMap<String, String>> = objs
             .iter()
             .enumerate()
@@ -122,18 +122,18 @@ impl Module for Mangapark {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    ) -> Result<(Vec<String>, Value), Error> {
         let url: String = format!("https://mangapark.to/title/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script: Node = document
             .find(Name("script").and(Attr("type", "qwik/json")))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "script"))?;
+            .ok_or_else(|| Error::parser(&url, "script"))?;
         let data: Value = serde_json::from_str(script.text().as_str())?;
         let objs: &Vec<Value> = data["objs"]
             .as_array()
-            .ok_or_else(|| AppError::parser(&url, "as array"))?;
+            .ok_or_else(|| Error::parser(&url, "as array"))?;
         let images: Vec<String> = objs
             .iter()
             .filter_map(|item: &Value| {
@@ -153,10 +153,10 @@ impl Module for Mangapark {
                 let extension: &str = img
                     .split('.')
                     .last()
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?;
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?;
                 Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((images, to_value(save_names)?))
     }
 
@@ -166,7 +166,7 @@ impl Module for Mangapark {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

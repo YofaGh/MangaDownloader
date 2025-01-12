@@ -9,7 +9,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -24,13 +24,13 @@ impl Module for Manhuascan {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
         Ok(format!("https://manhuascan.us/manga/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, AppError> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
         Ok(format!("https://manhuascan.us/manga/{manga}/{chapter}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -115,23 +115,27 @@ impl Module for Manhuascan {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    ) -> Result<(Vec<String>, Value), Error> {
         let url: String = format!("https://manhuascan.us/manga/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
-            .find(Name("div").and(Attr("id", "readerarea")).descendant(Name("img")))
+            .find(
+                Name("div")
+                    .and(Attr("id", "readerarea"))
+                    .descendant(Name("img")),
+            )
             .map(|img: Node| {
                 Ok(img
                     .attr("src")
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?
+                    .ok_or_else(|| Error::parser(&url, "Invalid image attr"))?
                     .to_owned())
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((images, Value::Bool(false)))
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
         let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -156,7 +160,7 @@ impl Module for Manhuascan {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

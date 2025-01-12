@@ -9,7 +9,7 @@ use std::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum AppError {
+pub enum Error {
     DirectoryOperation(String),
     FileOperation(String),
     ImageError(String),
@@ -24,7 +24,7 @@ pub enum AppError {
     TauriError(String),
 }
 
-impl AppError {
+impl Error {
     pub fn directory(action: &str, path: &str, err: IoError) -> Self {
         Self::DirectoryOperation(format!("Failed to {action} the directory {path}: {err}"))
     }
@@ -51,40 +51,40 @@ impl AppError {
     }
 }
 
-impl Display for AppError {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let (error_type, msg) = match self {
-            AppError::DirectoryOperation(msg) => ("Directory operation error", msg),
-            AppError::FileOperation(msg) => ("File operation error", msg),
-            AppError::ImageError(msg) => ("Image error", msg),
-            AppError::LibraryError(msg) => ("Library error", msg),
-            AppError::Other(msg) => ("Other error", msg),
-            AppError::ParserError(msg) => ("Parser error", msg),
-            AppError::PdfError(msg) => ("PDF error", msg),
-            AppError::ReqwestError(msg) => ("Reqwest error", msg),
-            AppError::RuntimeError(msg) => ("Runtime error", msg),
-            AppError::SemverError(msg) => ("Semver error", msg),
-            AppError::SerdeJsonError(msg) => ("Serde JSON error", msg),
-            AppError::TauriError(msg) => ("Tauri error", msg),
+            Error::DirectoryOperation(msg) => ("Directory operation error", msg),
+            Error::FileOperation(msg) => ("File operation error", msg),
+            Error::ImageError(msg) => ("Image error", msg),
+            Error::LibraryError(msg) => ("Library error", msg),
+            Error::Other(msg) => ("Other error", msg),
+            Error::ParserError(msg) => ("Parser error", msg),
+            Error::PdfError(msg) => ("PDF error", msg),
+            Error::ReqwestError(msg) => ("Reqwest error", msg),
+            Error::RuntimeError(msg) => ("Runtime error", msg),
+            Error::SemverError(msg) => ("Semver error", msg),
+            Error::SerdeJsonError(msg) => ("Serde JSON error", msg),
+            Error::TauriError(msg) => ("Tauri error", msg),
         };
         write!(f, "{error_type}: {msg}")
     }
 }
 
-impl From<ReqwestError> for AppError {
+impl From<ReqwestError> for Error {
     fn from(err: ReqwestError) -> Self {
-        AppError::ReqwestError(err.to_string())
+        Error::ReqwestError(err.to_string())
     }
 }
 
-impl From<SemverError> for AppError {
+impl From<SemverError> for Error {
     fn from(err: SemverError) -> Self {
-        AppError::SemverError(err.to_string())
+        Error::SemverError(err.to_string())
     }
 }
 
-impl From<SerdeJsonError> for AppError {
+impl From<SerdeJsonError> for Error {
     fn from(err: SerdeJsonError) -> Self {
-        AppError::SerdeJsonError(err.to_string())
+        Error::SerdeJsonError(err.to_string())
     }
 }

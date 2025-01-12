@@ -2,7 +2,7 @@ mod errors;
 mod macros;
 mod models;
 mod modules;
-pub use errors::AppError;
+pub use errors::Error;
 use models::Module;
 use modules::*;
 use serde_json::Value;
@@ -11,7 +11,7 @@ use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn get_module(domain: String) -> Result<Box<dyn Module>, AppError> {
+fn get_module(domain: String) -> Result<Box<dyn Module>, Error> {
     match domain.as_str() {
         "hentaifox.com" => Ok(Box::new(hentaifox::Hentaifox::new())),
         "imhentai.xxx" => Ok(Box::new(imhentai::Imhentai::new())),
@@ -26,10 +26,7 @@ fn get_module(domain: String) -> Result<Box<dyn Module>, AppError> {
         "readonepiece.com" => Ok(Box::new(readonepiece::Readonepiece::new())),
         "toonily.com" => Ok(Box::new(toonily_com::Toonily::new())),
         "truemanga.com" => Ok(Box::new(truemanga::Truemanga::new())),
-        _ => Err(AppError::Other(format!(
-            "Domain {} is not supported",
-            domain
-        ))),
+        _ => Err(Error::Other(format!("Domain {} is not supported", domain))),
     }
 }
 
@@ -52,12 +49,12 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
 }
 
 #[no_mangle]
-pub fn get_version() -> Result<String, AppError> {
+pub fn get_version() -> Result<String, Error> {
     Ok(VERSION.to_owned())
 }
 
 #[no_mangle]
-pub fn get_modules() -> Result<Vec<HashMap<String, Value>>, AppError> {
+pub fn get_modules() -> Result<Vec<HashMap<String, Value>>, Error> {
     get_all_modules()
         .into_iter()
         .map(|module: Box<dyn Module>| module.get_module_info())
@@ -65,38 +62,35 @@ pub fn get_modules() -> Result<Vec<HashMap<String, Value>>, AppError> {
 }
 
 #[no_mangle]
-pub fn get_module_sample(domain: String) -> Result<HashMap<String, String>, AppError> {
+pub fn get_module_sample(domain: String) -> Result<HashMap<String, String>, Error> {
     Ok(get_module(domain)?.get_module_sample())
 }
 
 #[no_mangle]
-pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, AppError> {
+pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_info(manga))
 }
 
 #[no_mangle]
-pub fn get_webtoon_url(domain: String, manga: String) -> Result<String, AppError> {
+pub fn get_webtoon_url(domain: String, manga: String) -> Result<String, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_webtoon_url(manga))
 }
 
 #[no_mangle]
-pub fn get_chapter_url(domain: String, manga: String, chapter: String) -> Result<String, AppError> {
+pub fn get_chapter_url(domain: String, manga: String, chapter: String) -> Result<String, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_chapter_url(manga, chapter))
 }
 
 #[no_mangle]
-pub fn get_chapters(
-    domain: String,
-    manga: String,
-) -> Result<Vec<HashMap<String, String>>, AppError> {
+pub fn get_chapters(domain: String, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_chapters(manga))
 }
 
@@ -105,9 +99,9 @@ pub fn get_images(
     domain: String,
     manga: String,
     chapter: String,
-) -> Result<(Vec<String>, Value), AppError> {
+) -> Result<(Vec<String>, Value), Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_images(manga, chapter))
 }
 
@@ -118,9 +112,9 @@ pub fn search_by_keyword(
     absolute: bool,
     sleep_time: f64,
     page_limit: u32,
-) -> Result<Vec<HashMap<String, String>>, AppError> {
+) -> Result<Vec<HashMap<String, String>>, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.search_by_keyword(keyword, absolute, sleep_time, page_limit))
 }
 
@@ -129,15 +123,15 @@ pub fn download_image(
     domain: String,
     url: String,
     image_name: String,
-) -> Result<Option<String>, AppError> {
+) -> Result<Option<String>, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.download_image(url, image_name))
 }
 
 #[no_mangle]
-pub fn retrieve_image(domain: String, url: String) -> Result<String, AppError> {
+pub fn retrieve_image(domain: String, url: String) -> Result<String, Error> {
     Runtime::new()
-        .map_err(AppError::runtime)?
+        .map_err(Error::runtime)?
         .block_on(get_module(domain)?.retrieve_image(url))
 }

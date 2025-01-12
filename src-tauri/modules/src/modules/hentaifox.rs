@@ -10,7 +10,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -25,10 +25,10 @@ impl Module for Hentaifox {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
         Ok(format!("https://hentaifox.com/gallery/{code}"))
     }
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://hentaifox.com/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -44,7 +44,7 @@ impl Module for Hentaifox {
         let info_box: Node = document
             .find(Name("div").and(Class("info")))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "info_box"))?;
+            .ok_or_else(|| Error::parser(&url, "info_box"))?;
         info_box
             .find(Name("h1"))
             .next()
@@ -80,7 +80,7 @@ impl Module for Hentaifox {
         Ok(info)
     }
 
-    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), Error> {
         let image_formats: HashMap<&str, &str> = HashMap::from([
             ("j", "jpg"),
             ("p", "png"),
@@ -103,11 +103,11 @@ impl Module for Hentaifox {
             let (path, _) = src.rsplit_once("/")?;
             Some(path)
         })()
-        .ok_or_else(|| AppError::parser(&url, "failed to get path"))?;
+        .ok_or_else(|| Error::parser(&url, "failed to get path"))?;
         let script: String = document
             .find(|n: &Node| n.name() == Some("script") && n.text().contains("var g_th"))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "script var g_th"))?
+            .ok_or_else(|| Error::parser(&url, "script var g_th"))?
             .text();
         let json_str: String = script
             .replace("var g_th = $.parseJSON('", "")
@@ -121,9 +121,9 @@ impl Module for Hentaifox {
                     let extension: &&str = image_formats.get(format_key)?;
                     Some(format!("{path}/{key}.{extension}"))
                 })()
-                .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))
+                .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((image_urls, Value::Bool(false)))
     }
 
@@ -133,7 +133,7 @@ impl Module for Hentaifox {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

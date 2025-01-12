@@ -20,7 +20,7 @@ use tauri::{
 use tauri_plugin_opener::{reveal_item_in_dir, Error as OpenerError};
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     lib_utils::{get_modules_version, load_modules, unload_modules},
 };
 
@@ -51,7 +51,7 @@ impl Default for Settings {
     }
 }
 
-pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), AppError> {
+pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), Error> {
     save_file(
         &data_dir_path.join("settings.json"),
         to_value(Settings::default())?,
@@ -64,50 +64,50 @@ pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), AppError> {
     ];
     file_array
         .into_iter()
-        .try_for_each(|file: &str| -> Result<(), AppError> {
+        .try_for_each(|file: &str| -> Result<(), Error> {
             save_file(&data_dir_path.join(file), Value::Array(Vec::new()))
         })
 }
 
-pub fn remove_directory(path: String, recursive: bool) -> Result<(), AppError> {
+pub fn remove_directory(path: String, recursive: bool) -> Result<(), Error> {
     if !PathBuf::from(&path).exists() {
         return Ok(());
     }
     if recursive {
         return remove_dir_all(&path)
-            .map_err(|err: IoError| AppError::directory("remove", &path, err));
+            .map_err(|err: IoError| Error::directory("remove", &path, err));
     }
     if read_directory(&path)?.is_empty() {
-        return remove_dir(&path).map_err(|err: IoError| AppError::directory("remove", &path, err));
+        return remove_dir(&path).map_err(|err: IoError| Error::directory("remove", &path, err));
     }
     Ok(())
 }
 
-pub fn create_directory(path: &str) -> Result<(), AppError> {
-    create_dir_all(&path).map_err(|err: IoError| AppError::directory("create", path, err))
+pub fn create_directory(path: &str) -> Result<(), Error> {
+    create_dir_all(&path).map_err(|err: IoError| Error::directory("create", path, err))
 }
 
-pub fn read_directory(path: &str) -> Result<Vec<DirEntry>, AppError> {
+pub fn read_directory(path: &str) -> Result<Vec<DirEntry>, Error> {
     read_dir(path)
-        .map_err(|err: IoError| AppError::directory("read", path, err))?
+        .map_err(|err: IoError| Error::directory("read", path, err))?
         .into_iter()
         .map(|res: Result<DirEntry, IoError>| {
-            res.map_err(|err: IoError| AppError::directory("read", path, err))
+            res.map_err(|err: IoError| Error::directory("read", path, err))
         })
         .collect()
 }
 
-pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
+pub async fn update_checker(app: AppHandle) -> Result<(), Error> {
     let extension: &str = get_dynamic_lib_extension();
     let path: String = format!("resources/modules.{extension}");
     let modules_path: PathBuf = app
         .path()
         .resolve(path, BaseDirectory::Resource)
-        .map_err(|err: TauriError| AppError::Other(err.to_string()))?;
+        .map_err(|err: TauriError| Error::Other(err.to_string()))?;
     load_modules(&modules_path)?;
     let splash_screen_window: WebviewWindow = app
         .get_webview_window("splashscreen")
-        .ok_or_else(|| AppError::window("get window", "splashscreen", String::new()))?;
+        .ok_or_else(|| Error::window("get window", "splashscreen", String::new()))?;
     emit_status(&splash_screen_window, "Checking for updates")?;
     let current_version: Version = Version::parse(&get_modules_version()?)?;
     let mut unloaded_modules: bool = false;
@@ -121,7 +121,7 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
                 let path: String = format!("{GITHUB_URL}src-tauri/resources/modules.{extension}");
                 match get(path).await {
                     Ok(response) => write(&modules_path, response.bytes().await?.to_vec())
-                        .map_err(|err: IoError| AppError::file("write to", &modules_path, err))?,
+                        .map_err(|err: IoError| Error::file("write to", &modules_path, err))?,
                     Err(_) => {
                         emit_status(&splash_screen_window, "Failed to update modules")?;
                         sleep(Duration::from_secs(1));
@@ -142,21 +142,21 @@ pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {
         .app
         .windows
         .get(0)
-        .ok_or_else(|| AppError::window("get window config", "main", String::new()))?;
+        .ok_or_else(|| Error::window("get window config", "main", String::new()))?;
     let main_window: WebviewWindow = WebviewWindowBuilder::from_config(&app, main_window_config)
         .and_then(|window| window.build())
-        .map_err(|err: TauriError| AppError::window("build", "main: ", err.to_string()))?;
+        .map_err(|err: TauriError| Error::window("build", "main: ", err.to_string()))?;
     splash_screen_window
         .close()
-        .map_err(|err: TauriError| AppError::window("close", "splashscreen: ", err.to_string()))?;
+        .map_err(|err: TauriError| Error::window("close", "splashscreen: ", err.to_string()))?;
     #[cfg(debug_assertions)]
     main_window.open_devtools();
     main_window
         .show()
-        .map_err(|err: TauriError| AppError::window("show", "main: ", err.to_string()))
+        .map_err(|err: TauriError| Error::window("show", "main: ", err.to_string()))
 }
 
-fn save_file(path: &PathBuf, data: Value) -> Result<(), AppError> {
+fn save_file(path: &PathBuf, data: Value) -> Result<(), Error> {
     if path.exists() {
         return Ok(());
     }
@@ -164,18 +164,18 @@ fn save_file(path: &PathBuf, data: Value) -> Result<(), AppError> {
         .write(true)
         .create_new(true)
         .open(path)
-        .map_err(|err: IoError| AppError::file("open", &path, err))?;
+        .map_err(|err: IoError| Error::file("open", &path, err))?;
     file.write_all(to_string_pretty(&data)?.as_bytes())
-        .map_err(|err: IoError| AppError::file("write to", &path, err))?;
+        .map_err(|err: IoError| Error::file("write to", &path, err))?;
     file.flush()
-        .map_err(|err: IoError| AppError::file("flush", &path, err))
+        .map_err(|err: IoError| Error::file("flush", &path, err))
 }
 
-fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {
+fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), Error> {
     window
         .emit("updateStatus", message)
         .map_err(|err: TauriError| {
-            AppError::window(
+            Error::window(
                 &format!("emit message: {message}"),
                 window.label(),
                 err.to_string(),
@@ -183,7 +183,7 @@ fn emit_status(window: &WebviewWindow, message: &str) -> Result<(), AppError> {
         })
 }
 
-pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, AppError> {
+pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)>, Error> {
     let mut dirs: Vec<PathBuf> = read_directory(path_to_source)?
         .into_iter()
         .filter_map(|entry: DirEntry| {
@@ -202,15 +202,15 @@ pub fn detect_images(path_to_source: &str) -> Result<Vec<(DynamicImage, PathBuf)
         .collect()
 }
 
-pub async fn open_folder(path: String) -> Result<(), AppError> {
+pub async fn open_folder(path: String) -> Result<(), Error> {
     let path_buf: PathBuf = PathBuf::from(&path);
     if !path_buf.exists() {
-        return Err(AppError::DirectoryOperation(format!(
+        return Err(Error::DirectoryOperation(format!(
             "Failed to open Directory: {path} does not exist",
         )));
     }
     reveal_item_in_dir(path_buf).map_err(|err: OpenerError| {
-        AppError::DirectoryOperation(format!("Failed to open Directory: {path}: {err}"))
+        Error::DirectoryOperation(format!("Failed to open Directory: {path}: {err}"))
     })
 }
 

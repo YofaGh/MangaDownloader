@@ -10,7 +10,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -25,10 +25,10 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
         Ok(format!("https://www.luscious.net/albums/{code}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://www.luscious.net/albums/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -130,7 +130,7 @@ impl Module for Luscious {
         Ok(info)
     }
 
-    async fn get_images(&self, manga: String, _: String) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, manga: String, _: String) -> Result<(Vec<String>, Value), Error> {
         let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query\
         %2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture\
         %2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
@@ -149,10 +149,10 @@ impl Module for Luscious {
         let response: Value = response.json().await?;
         let total_pages: i64 = response["data"]["picture"]["list"]["info"]["total_pages"]
             .as_i64()
-            .ok_or_else(|| AppError::parser(&manga, "total_pages"))?;
+            .ok_or_else(|| Error::parser(&manga, "total_pages"))?;
         let mut images: Vec<String> = response["data"]["picture"]["list"]["items"]
             .as_array()
-            .ok_or_else(|| AppError::parser(&manga, "images"))?
+            .ok_or_else(|| Error::parser(&manga, "images"))?
             .iter()
             .map(|item: &Value| item["url_to_original"].to_string())
             .collect();
@@ -165,7 +165,7 @@ impl Module for Luscious {
             let response: Value = response.json().await?;
             let new_images: Vec<String> = response["data"]["picture"]["list"]["items"]
                 .as_array()
-                .ok_or_else(|| AppError::parser(&manga, "images"))?
+                .ok_or_else(|| Error::parser(&manga, "images"))?
                 .iter()
                 .map(|item: &Value| item["url_to_original"].to_string())
                 .collect();
@@ -180,7 +180,7 @@ impl Module for Luscious {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&\
         query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list\
         %28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
@@ -213,11 +213,11 @@ impl Module for Luscious {
             let response: Value = response.json().await?;
             total_pages = response["data"]["album"]["list"]["info"]["total_pages"]
                 .as_i64()
-                .ok_or_else(|| AppError::parser(&url, "total_pages"))?
+                .ok_or_else(|| Error::parser(&url, "total_pages"))?
                 as u32;
             let doujins: &Vec<Value> = response["data"]["album"]["list"]["items"]
                 .as_array()
-                .ok_or_else(|| AppError::parser(&url, "items"))?;
+                .ok_or_else(|| Error::parser(&url, "items"))?;
             for doujin in doujins {
                 let Some(title) = doujin
                     .get("title")

@@ -10,7 +10,7 @@ use std::{cmp::max, ffi::OsStr, fs::copy, io::Error as IoError, path::PathBuf};
 
 use crate::{
     assets::{create_directory, detect_images},
-    errors::AppError,
+    errors::Error,
 };
 
 const MAX_JPEG_HEIGHT: u32 = 65500;
@@ -19,10 +19,10 @@ pub fn merge_folder(
     path_to_source: &str,
     path_to_destination: &str,
     merge_method: &str,
-) -> Result<(), AppError> {
+) -> Result<(), Error> {
     let images: Vec<(DynamicImage, PathBuf)> = detect_images(path_to_source).unwrap_or_default();
     if images.is_empty() {
-        return Err(AppError::no_images(path_to_source));
+        return Err(Error::no_images(path_to_source));
     }
     create_directory(path_to_destination)?;
     if merge_method == "Normal" {
@@ -32,10 +32,7 @@ pub fn merge_folder(
     }
 }
 
-pub fn merge(
-    images: Vec<(DynamicImage, PathBuf)>,
-    path_to_destination: &str,
-) -> Result<(), AppError> {
+pub fn merge(images: Vec<(DynamicImage, PathBuf)>, path_to_destination: &str) -> Result<(), Error> {
     let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
     let mut temp_height: u32 = 0;
@@ -56,7 +53,7 @@ pub fn merge(
     }
     lists_to_merge.push((temp_list, max_width, temp_height));
     lists_to_merge.into_par_iter().enumerate().try_for_each(
-        |(index, (list_to_merge, max_width, total_height))| -> Result<(), AppError> {
+        |(index, (list_to_merge, max_width, total_height))| -> Result<(), Error> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
                 return copy_image(image_name, &list_to_merge[0].1);
@@ -82,7 +79,7 @@ pub fn merge(
 pub fn merge_fit(
     images: Vec<(DynamicImage, PathBuf)>,
     path_to_destination: &str,
-) -> Result<(), AppError> {
+) -> Result<(), Error> {
     let mut lists_to_merge: Vec<(Vec<(DynamicImage, PathBuf)>, u32, u32)> = vec![];
     let mut current_height: u32 = 0;
     let mut temp_list: Vec<(DynamicImage, PathBuf)> = vec![];
@@ -110,7 +107,7 @@ pub fn merge_fit(
     }
     lists_to_merge.push((temp_list, min_width, current_height));
     lists_to_merge.into_par_iter().enumerate().try_for_each(
-        |(index, (list_to_merge, min_width, total_height))| -> Result<(), AppError> {
+        |(index, (list_to_merge, min_width, total_height))| -> Result<(), Error> {
             let image_name: String = format!("{path_to_destination}/{:03}", index + 1);
             if list_to_merge.len() == 1 {
                 return copy_image(image_name, &list_to_merge[0].1);
@@ -131,21 +128,21 @@ pub fn merge_fit(
     )
 }
 
-fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
+fn copy_image(image_name: String, path: &PathBuf) -> Result<(), Error> {
     let extension: &str = path
         .extension()
         .and_then(|ext: &OsStr| ext.to_str())
-        .ok_or_else(|| AppError::FileOperation("Failed to get file extension {path}".to_owned()))?;
+        .ok_or_else(|| Error::FileOperation("Failed to get file extension {path}".to_owned()))?;
     copy(path, format!("{image_name}.{extension}"))
         .map(|_| ())
-        .map_err(|err: IoError| AppError::file("copy", path, err))
+        .map_err(|err: IoError| Error::file("copy", path, err))
 }
 
-fn save_image(image: RgbImage, image_name: String) -> Result<(), AppError> {
+fn save_image(image: RgbImage, image_name: String) -> Result<(), Error> {
     image
         .save(format!("{image_name}.jpg"))
         .map_err(|err: ImageError| {
-            AppError::ImageError(format!(
+            Error::ImageError(format!(
                 "Failed to save merged image {image_name}.jpg: {err}"
             ))
         })

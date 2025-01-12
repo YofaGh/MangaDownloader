@@ -9,7 +9,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -24,10 +24,10 @@ impl Module for Simplyhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
         Ok(format!("https://simplyhentai.org/g/{code}"))
     }
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://simplyhentai.org/g/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -104,7 +104,7 @@ impl Module for Simplyhentai {
         Ok(info)
     }
 
-    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), AppError> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), Error> {
         let url: String = format!("https://simplyhentai.org/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -113,20 +113,20 @@ impl Module for Simplyhentai {
             .map(|node: Node| {
                 let image: &str = node
                     .attr("src")
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image attr"))?;
+                    .ok_or_else(|| Error::parser(&url, "Invalid image attr"))?;
                 let imagen: String = image.replace("//t", "//i");
                 let name: &str = imagen
                     .rsplit_once("/")
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?
                     .0;
                 let ext: String = image
                     .rsplit('/')
                     .next()
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename extension"))?
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename extension"))?
                     .replace("t.", ".");
                 Ok(format!("{name}/{ext}"))
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((images, Value::Bool(false)))
     }
     async fn search_by_keyword(
@@ -135,7 +135,7 @@ impl Module for Simplyhentai {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

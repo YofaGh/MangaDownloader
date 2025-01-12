@@ -12,7 +12,7 @@ use serde_json::{to_value, Value};
 use std::collections::HashMap;
 
 use crate::{
-    errors::AppError,
+    errors::Error,
     insert,
     models::{BaseModule, Module},
     search_map,
@@ -27,13 +27,13 @@ impl Module for Truemanga {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, AppError> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
         Ok(format!("https://truemanga.com/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, AppError> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
         Ok(format!("https://truemanga.com/{manga}/{chapter}/"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
+    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -42,7 +42,7 @@ impl Module for Truemanga {
         let info_box: Node = document
             .find(Name("div").and(Class("book-info")))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "book-info"))?;
+            .ok_or_else(|| Error::parser(&url, "book-info"))?;
         info_box
             .find(Name("div").and(Class("img-cover")).descendant(Name("img")))
             .next()
@@ -113,7 +113,7 @@ impl Module for Truemanga {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, AppError> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let html: String = response.text().await?;
@@ -122,15 +122,15 @@ impl Module for Truemanga {
             let script: Node = document
                 .find(|tag: &Node| tag.name() == Some("script") && tag.text().contains("bookId"))
                 .next()
-                .ok_or_else(|| AppError::parser(&url, "Script with bookId not found"))?;
+                .ok_or_else(|| Error::parser(&url, "Script with bookId not found"))?;
             script
                 .text()
                 .split("bookId = ")
                 .nth(1)
-                .ok_or_else(|| AppError::parser(&url, "BookId not found in script"))?
+                .ok_or_else(|| Error::parser(&url, "BookId not found in script"))?
                 .split(';')
                 .next()
-                .ok_or_else(|| AppError::parser(&url, "Invalid bookId format"))?
+                .ok_or_else(|| Error::parser(&url, "Invalid bookId format"))?
                 .trim()
                 .to_owned()
         };
@@ -161,14 +161,14 @@ impl Module for Truemanga {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), AppError> {
+    ) -> Result<(Vec<String>, Value), Error> {
         let url: String = format!("https://truemanga.com/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let script: String = document
             .find(|tag: &Node| tag.name() == Some("script") && tag.text().contains("chapImages"))
             .next()
-            .ok_or_else(|| AppError::parser(&url, "Script with chapImages not found"))?
+            .ok_or_else(|| Error::parser(&url, "Script with chapImages not found"))?
             .text();
         let mut imgs: String = script.replace("var chapImages = '", "").trim().to_owned();
         imgs.truncate(imgs.len() - 1);
@@ -180,13 +180,13 @@ impl Module for Truemanga {
                 let extension: &str = img
                     .split('.')
                     .last()
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?
                     .split('?')
                     .next()
-                    .ok_or_else(|| AppError::parser(&url, "Invalid image filename format"))?;
+                    .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?;
                 Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect::<Result<Vec<String>, AppError>>()?;
+            .collect::<Result<Vec<String>, Error>>()?;
         Ok((images, to_value(save_names)?))
     }
 
@@ -196,7 +196,7 @@ impl Module for Truemanga {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, AppError> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;

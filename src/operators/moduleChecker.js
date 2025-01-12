@@ -1,4 +1,5 @@
 import {
+  joinPath,
   getImages,
   removeFile,
   WebtoonType,
@@ -49,14 +50,12 @@ export default async function moduleChecker(module, setStepStatuses) {
       chapter
     );
     if (images.length > 0) {
-      const data_dir_path = await getDataDirPath();
       stat = "done";
       image = images[0];
-      path = Array.isArray(save_names)
-        ? `${data_dir_path}/${save_names[0]}`
-        : `${data_dir_path}/${module.domain}_test.${
-            images[0].split(".").slice(-1)[0]
-          }`;
+      let image_name = Array.isArray(save_names)
+        ? `${save_names[0]}`
+        : `${module.domain}_test.${images[0].split(".").slice(-1)[0]}`;
+      path = await joinPath(await getDataDirPath(), image_name);
     }
   }
   updateStepStatus(circle, stat);

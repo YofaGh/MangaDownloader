@@ -13,8 +13,6 @@ export const getModules = async () => await invoke("get_modules");
 
 export const getSaucersList = async () => await invoke("get_saucers_list");
 
-export const getDataDirPath = async () => await invoke("get_data_dir_path");
-
 export const uploadImage = async (path) =>
   await invoke("upload_image", { path });
 

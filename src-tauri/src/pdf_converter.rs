@@ -1,5 +1,5 @@
 use image::DynamicImage;
-use scannedpdf::{create, Error, PageConfig, PageSize, PDF};
+use scannedpdf::{create, Error as PdfError, PageConfig, PageSize, PDF};
 use std::{fs::File, io::Error as IoError, path::PathBuf};
 
 use crate::{assets::detect_images, errors::AppError};
@@ -23,7 +23,7 @@ pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), AppError> {
                 .size(PageSize::Custom(image.width(), image.height()))
                 .quality(100);
             file.add_page_from_image(image, Some("Image".to_owned()), Some(config))
-                .map_err(|err: Error| {
+                .map_err(|err: PdfError| {
                     AppError::PdfError(format!("Failed to add page from image: {:?}", err))
                 })
         })?;

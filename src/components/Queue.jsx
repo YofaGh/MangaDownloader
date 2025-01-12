@@ -18,6 +18,7 @@ import {
 import { QCard, ActionButton } from ".";
 import { attemptToDownload } from "../operators";
 import {
+  joinPath,
   WebtoonType,
   fixFolderName,
   DownloadStatus,
@@ -98,15 +99,15 @@ export default function Queue() {
 
   const removeWebtoonFromQueue = async (webtoon) => {
     if (downloading && webtoon.id === downloading.id) stopDownloader();
-    let folderName = fixFolderName(webtoon.title);
+    let paths = [download_path, fixFolderName(webtoon.title)];
     let notifInfo = webtoon.title;
     if (webtoon.type === WebtoonType.MANGA) {
-      folderName += `/${webtoon.info}`;
+      paths.push(webtoon.info);
       notifInfo += ` - ${webtoon.info}`;
     }
     removeFromQueue(webtoon.id);
     notifySuccess(`Removed ${notifInfo} from queue`);
-    removeDirectory(`${download_path}/${folderName}`, true);
+    removeDirectory(await joinPath(...paths), true);
     attemptToDownload();
   };
 

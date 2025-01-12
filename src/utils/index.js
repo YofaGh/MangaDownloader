@@ -9,7 +9,6 @@ export {
   downloadImage,
   readDirectory,
   validateImage,
-  getDataDirPath,
   getSaucersList,
   getModuleSample,
   searchByKeyword,
@@ -25,19 +24,22 @@ export {
   convert,
   startUp,
   isUrlValid,
+  toggleModal,
   fixFolderName,
   retrieveImage,
-  toggleModal,
 } from "./assets";
 
 export {
   invoke,
+  openUrl,
+  joinPath,
   readFile,
   writeFile,
   chooseFile,
   removeFile,
   chooseFolder,
   getAppWindow,
+  getDataDirPath,
 } from "./tauri-utils";
 
 export {

@@ -9,6 +9,7 @@ import {
 import {
   merge,
   convert,
+  joinPath,
   getImages,
   WebtoonType,
   downloadImage,
@@ -31,6 +32,9 @@ export default function attemptToDownload() {
   });
 }
 
+const getImageName = (image, i) =>
+  `${String(i + 1).padStart(3, "0")}.${image.split(".").pop()}`;
+
 async function downloader(webtoon) {
   const settings = useSettingsStore.getState().settings;
   const { updateItemInQueue } = useQueueStore.getState();
@@ -41,16 +45,16 @@ async function downloader(webtoon) {
   );
   if (images.length === 0) return;
   let lastCorrupted = "";
-  let downloadPath = `${settings.download_path}\\${fixFolderName(
-    webtoon.title
-  )}`;
-  if (webtoon.type === WebtoonType.MANGA) downloadPath += `\\${webtoon.info}`;
+  let paths = [settings.download_path, fixFolderName(webtoon.title)];
+  if (webtoon.type === WebtoonType.MANGA) paths.push(webtoon.info);
+  let downloadPath = await joinPath(...paths);
   try {
     await createDirectory(downloadPath);
   } catch (error) {
     useDownloadingStore.getState().clearDownloading();
     updateItemInQueue(webtoon.id, { status: DownloadStatus.STOPPED });
     useNotificationStore.getState().notifyError(Object.values(error)[0]);
+    return;
   }
   updateItemInQueue(webtoon.id, { total: images.length });
   const existsImages = await readDirectory(downloadPath);
@@ -59,16 +63,13 @@ async function downloader(webtoon) {
     if (useDownloadingStore.getState().stopRequested) return;
     updateItemInQueue(webtoon.id, { image: i + 1 });
     let savePath = Array.isArray(saved_n)
-      ? `${downloadPath}\\${saved_n[i]}`
-      : `${downloadPath}\\${String(i + 1).padStart(3, "0")}.${images[i]
-          .split(".")
-          .pop()}`;
+      ? saved_n[i]
+      : getImageName(images[i], i);
+    savePath = `${downloadPath}/${savePath}`;
     if (!existsImages.includes(savePath)) {
       const response = await downloadImage(webtoon.module, images[i], savePath);
       if (response && response !== "") {
-        const isImageValid = await validateImage(
-          response.trim().replace(/"/g, "").replace(/\\\\/g, "\\")
-        );
+        const isImageValid = await validateImage(response);
         if (!isImageValid && lastCorrupted !== response) {
           lastCorrupted = response;
           continue;

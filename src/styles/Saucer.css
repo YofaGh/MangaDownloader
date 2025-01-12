@@ -90,7 +90,7 @@
   bottom: 0;
   margin-bottom: 0;
 }
-.sr-p a {
+.sr-p span {
   text-decoration: none;
   color: var(--cyan);
 }

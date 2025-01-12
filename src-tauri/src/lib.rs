@@ -34,7 +34,6 @@ pub fn run() {
             create_directory,
             get_saucers_list,
             remove_directory,
-            get_data_dir_path,
             get_module_sample,
             search_by_keyword,
         ])

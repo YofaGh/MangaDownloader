@@ -10,6 +10,7 @@ import {
 import {
   _merge,
   _convert,
+  joinPath,
   readFile,
   writeFile,
   DelayTimes,
@@ -38,30 +39,33 @@ export const convert = async (webtoon, openPath) => {
     useNotificationStore
       .getState()
       .notifySuccess(`Converted ${notifInfo} to PDF`);
-    if (openPath) await openFolder(`${webtoon.path}\\${pdfName}`);
+    if (openPath) await openFolder(await joinPath(webtoon.path, pdfName));
   } catch (error) {
     useNotificationStore
       .getState()
-      .notifyError(`Failed to convert: ${Object.values(error)[0]}`);
+      .notifyError(
+        `Failed to convert ${notifInfo}: ${Object.values(error)[0]}`
+      );
   }
 };
 
 export const merge = async (webtoon, openPath) => {
   const { download_path, merge_method } = useSettingsStore.getState().settings;
-  let path = `${download_path}\\Merged\\${fixFolderName(webtoon.title)}`;
+  let paths = [download_path, "Merged", fixFolderName(webtoon.title)];
   let notifInfo = webtoon.title;
   if (webtoon.type === WebtoonType.MANGA) {
-    path += `\\${webtoon.info}`;
+    paths.push(webtoon.info);
     notifInfo += ` - ${webtoon.info}`;
   }
   try {
+    let path = await joinPath(...paths);
     await _merge(webtoon.path, path, merge_method);
     useNotificationStore.getState().notifySuccess(`Merged ${notifInfo}`);
     if (openPath) await openFolder(path);
   } catch (error) {
     useNotificationStore
       .getState()
-      .notifyError(`Failed to merge: ${Object.values(error)[0]}`);
+      .notifyError(`Failed to merge ${notifInfo}: ${Object.values(error)[0]}`);
   }
 };
 

@@ -6,7 +6,7 @@ use rayon::{
     iter::{IndexedParallelIterator, ParallelIterator},
     prelude::IntoParallelIterator,
 };
-use std::{cmp::max, ffi::OsStr, fs::copy, io::Error, path::PathBuf};
+use std::{cmp::max, ffi::OsStr, fs::copy, io::Error as IoError, path::PathBuf};
 
 use crate::{
     assets::{create_directory, detect_images},
@@ -138,7 +138,7 @@ fn copy_image(image_name: String, path: &PathBuf) -> Result<(), AppError> {
         .ok_or_else(|| AppError::FileOperation("Failed to get file extension {path}".to_owned()))?;
     copy(path, format!("{image_name}.{extension}"))
         .map(|_| ())
-        .map_err(|err: Error| AppError::file("copy", path, err))
+        .map_err(|err: IoError| AppError::file("copy", path, err))
 }
 
 fn save_image(image: RgbImage, image_name: String) -> Result<(), AppError> {

@@ -1,19 +1,12 @@
 use image::open;
 use serde_json::Value;
-use std::{collections::HashMap, fs::DirEntry, path::PathBuf};
-use tauri::{command, AppHandle, Error as TauriError, Manager};
+use std::{collections::HashMap, fs::DirEntry};
+use tauri::{command, AppHandle};
 
 use crate::{
     assets, errors::AppError, image_merger::merge_folder, lib_utils, pdf_converter::convert_folder,
     saucer,
 };
-
-#[command(async)]
-pub async fn get_data_dir_path(app: AppHandle) -> Result<PathBuf, AppError> {
-    app.path()
-        .app_data_dir()
-        .map_err(|err: TauriError| AppError::TauriError(err.to_string()))
-}
 
 #[command(async)]
 pub async fn update_checker(app: AppHandle) -> Result<(), AppError> {

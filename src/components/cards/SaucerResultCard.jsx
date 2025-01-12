@@ -1,4 +1,5 @@
 import { Image } from "..";
+import { openUrl } from "../../utils";
 
 export default function SaucerResult({ result }) {
   return (
@@ -11,10 +12,10 @@ export default function SaucerResult({ result }) {
           </p>
         </div>
         <p className="sr-p">
-          <a href={result.url} target="_blank" rel="noreferrer">
+          <span href={() => openUrl(result.url)}>
             {result.url.slice(0, 67)}
             {result.url.length > 67 ? "..." : ""}
-          </a>
+          </span>
         </p>
         <div></div>
       </div>

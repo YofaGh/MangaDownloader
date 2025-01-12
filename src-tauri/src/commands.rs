@@ -72,6 +72,22 @@ pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
 }
 
 #[command(async)]
+pub async fn get_webtoon_url(domain: String, url: String) -> String {
+    lib_utils::get_webtoon_url(domain, url)
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
+}
+
+#[command(async)]
+pub async fn get_chapter_url(domain: String, url: String, chapter: String) -> String {
+    lib_utils::get_chapter_url(domain, url, chapter)
+        .await
+        .map_err(|err: AppError| println!("{}", err))
+        .unwrap_or_default()
+}
+
+#[command(async)]
 pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
     lib_utils::get_chapters(domain, url)
         .await

@@ -31,6 +31,8 @@ pub fn run() {
             validate_image,
             read_directory,
             update_checker,
+            get_webtoon_url,
+            get_chapter_url,
             create_directory,
             get_saucers_list,
             remove_directory,

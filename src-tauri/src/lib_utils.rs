@@ -14,6 +14,8 @@ lazy_static! {
 }
 
 type GetVersionFn = fn() -> Result<String, AppError>;
+type GetWebtoonUrlFn = fn(String, String) -> Result<String, AppError>;
+type GetChapterUrlFn = fn(String, String, String) -> Result<String, AppError>;
 type GetModulesFn = fn() -> Result<Vec<HashMap<String, Value>>, AppError>;
 type GetModuleSampleFn = fn(String) -> Result<HashMap<String, String>, AppError>;
 type GetInfoFn = fn(String, String) -> Result<HashMap<String, Value>, AppError>;
@@ -74,6 +76,18 @@ pub fn get_modules_version() -> Result<String, AppError> {
 
 pub async fn get_modules() -> Result<Vec<HashMap<String, Value>>, AppError> {
     with_symbol("get_modules", |f: Symbol<'_, GetModulesFn>| f())?
+}
+
+pub async fn get_webtoon_url(domain: String, url: String) -> Result<String, AppError> {
+    with_symbol("get_webtoon_url", |f: Symbol<'_, GetWebtoonUrlFn>| {
+        f(domain, url)
+    })?
+}
+
+pub async fn get_chapter_url(domain: String, url: String, chapter: String) -> Result<String, AppError> {
+    with_symbol("get_chapter_url", |f: Symbol<'_, GetChapterUrlFn>| {
+        f(domain, url, chapter)
+    })?
 }
 
 pub async fn get_info(domain: String, url: String) -> Result<HashMap<String, Value>, AppError> {

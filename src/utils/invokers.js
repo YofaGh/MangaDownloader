@@ -46,8 +46,14 @@ export const getChapters = async (domain, url) =>
 export const retrieveImage = async (domain, url) =>
   await invoke("retrieve_image", { domain, url });
 
+export const getWebtoonUrl = async (domain, url) =>
+  await invoke("get_webtoon_url", { domain, url });
+
 export const getImages = async (domain, manga, chapter) =>
   await invoke("get_images", { domain, manga, chapter });
+
+export const getChapterUrl = async (domain, url, chapter) =>
+  await invoke("get_chapter_url", { domain, url, chapter });
 
 export const removeDirectory = async (path, recursive) => {
   await baseInvoker("remove_directory", { path, recursive });

@@ -101,6 +101,12 @@ pub trait Module: Send + Sync {
         let encoded_image: String = general_purpose::STANDARD.encode(image);
         Ok(format!("data:image/png;base64, {encoded_image}"))
     }
+    async fn get_webtoon_url(&self, _url: String) -> Result<String, AppError> {
+        Ok(Default::default())
+    }
+    async fn get_chapter_url(&self, _url: String, _chapter: String) -> Result<String, AppError> {
+        Ok(Default::default())
+    }
     async fn get_images(
         &self,
         _manga: String,

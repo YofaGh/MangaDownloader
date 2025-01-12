@@ -6,6 +6,8 @@ export {
   openFolder,
   getChapters,
   uploadImage,
+  getChapterUrl,
+  getWebtoonUrl,
   downloadImage,
   readDirectory,
   validateImage,

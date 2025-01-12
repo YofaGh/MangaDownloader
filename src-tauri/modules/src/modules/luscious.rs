@@ -25,6 +25,9 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+    async fn get_webtoon_url(&self, code: String) -> Result<String, AppError> {
+        Ok(format!("https://www.luscious.net/albums/{code}"))
+    }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://www.luscious.net/albums/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;

@@ -24,7 +24,9 @@ impl Module for Nhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-
+    async fn get_webtoon_url(&self, code: String) -> Result<String, AppError> {
+        Ok(format!("https://nhentai.net/g/{code}/"))
+    }
     async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://nhentai.net/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;

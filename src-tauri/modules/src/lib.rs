@@ -77,6 +77,20 @@ pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>,
 }
 
 #[no_mangle]
+pub fn get_webtoon_url(domain: String, manga: String) -> Result<String, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain)?.get_webtoon_url(manga))
+}
+
+#[no_mangle]
+pub fn get_chapter_url(domain: String, manga: String, chapter: String) -> Result<String, AppError> {
+    Runtime::new()
+        .map_err(AppError::runtime)?
+        .block_on(get_module(domain)?.get_chapter_url(manga, chapter))
+}
+
+#[no_mangle]
 pub fn get_chapters(
     domain: String,
     manga: String,

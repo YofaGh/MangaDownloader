@@ -24,6 +24,12 @@ impl Module for Mangapark {
     fn base(&self) -> &BaseModule {
         &self.base
     }
+    async fn get_webtoon_url(&self, manga: String) -> Result<String, AppError> {
+        Ok(format!("https://mangapark.to/title/{manga}"))
+    }
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, AppError> {
+        Ok(format!("https://mangapark.to/title/{manga}/{chapter}"))
+    }
     async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, AppError> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;

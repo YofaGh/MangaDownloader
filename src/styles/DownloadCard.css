@@ -1,5 +1,5 @@
 .queue-card {
-  width: 810px;
+  width: 880px;
   height: 100px;
   border-radius: 50px;
   border-color: var(--cyan);
@@ -10,7 +10,7 @@
 .statusg {
   display: flex;
   background-color: var(--gray);
-  min-width: 350px;
+  min-width: 250px;
   height: 100px;
   color: var(--cyan);
   text-align: center;
@@ -51,7 +51,7 @@
   justify-content: space-around;
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
-  min-width: 220px;
+  min-width: 320px;
   border-color: var(--cyan);
   border-style: solid;
 }

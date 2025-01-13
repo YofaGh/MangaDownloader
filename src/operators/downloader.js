@@ -47,7 +47,7 @@ async function downloader(webtoon) {
   let lastCorrupted = "";
   let paths = [settings.download_path, fixFolderName(webtoon.title)];
   if (webtoon.type === WebtoonType.MANGA) paths.push(webtoon.info);
-  let downloadPath = await joinPath(...paths);
+  let downloadPath = (await joinPath(...paths)).replace(/\\/g, '/');
   try {
     await createDirectory(downloadPath);
   } catch (error) {
@@ -57,7 +57,7 @@ async function downloader(webtoon) {
     return;
   }
   updateItemInQueue(webtoon.id, { total: images.length });
-  const existsImages = await readDirectory(downloadPath);
+  const existsImages = (await readDirectory(downloadPath)).map(path => path.replace(/\\/g, '/'));
   let i = 0;
   while (i < images.length) {
     if (useDownloadingStore.getState().stopRequested) return;

@@ -1,12 +1,6 @@
 import { Link } from "react-router-dom";
 import { ActionButton } from "..";
-import {
-  DownloadStatus,
-  openUrl,
-  getChapterUrl,
-  getWebtoonUrl,
-  WebtoonType,
-} from "../../utils";
+import { DownloadStatus, showInBrowser } from "../../utils";
 
 export default function QCard({
   webtoon,
@@ -19,14 +13,6 @@ export default function QCard({
   const webtoonLink = `/${webtoon.module}/webtoon/${
     webtoon.manga || webtoon.doujin
   }`;
-
-  const showInBrowser = async () => {
-    let url =
-      webtoon.type === WebtoonType.MANGA
-        ? getChapterUrl(webtoon.module, webtoon.manga, webtoon.chapter)
-        : getWebtoonUrl(webtoon.module, webtoon.doujin);
-    openUrl(await url);
-  };
 
   return (
     <div className="queue-card">
@@ -48,7 +34,7 @@ export default function QCard({
         <ActionButton
           svgName="maximize"
           tooltip="Show in browser"
-          onClick={showInBrowser}
+          onClick={() => showInBrowser(webtoon)}
         />
         <Link to={webtoonLink}>
           <ActionButton svgName="about" tooltip="Go to Webtoon" />

@@ -9,6 +9,7 @@ import {
 } from "../store";
 import {
   _merge,
+  openUrl,
   _convert,
   joinPath,
   readFile,
@@ -17,6 +18,8 @@ import {
   getModules,
   openFolder,
   WebtoonType,
+  getChapterUrl,
+  getWebtoonUrl,
   _retrieveImage,
   DownloadStatus,
 } from ".";
@@ -77,6 +80,14 @@ export const retrieveImage = async (url, domain, defImage) => {
   } catch {
     return defImage;
   }
+};
+
+export const showInBrowser = async (webtoon) => {
+  let url =
+    webtoon.type === WebtoonType.MANGA
+      ? getChapterUrl(webtoon.module, webtoon.manga, webtoon.chapter)
+      : getWebtoonUrl(webtoon.module, webtoon.doujin);
+  openUrl(await url);
 };
 
 export const isUrlValid = (url) => {

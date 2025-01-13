@@ -1,51 +1,16 @@
 import { Link } from "react-router-dom";
 import { ActionButton } from "..";
-import { useQueueStore } from "../../store";
-import { attemptToDownload } from "../../operators";
-import {
-  convert,
-  merge,
-  openFolder,
-  openUrl,
-  getChapterUrl,
-  getWebtoonUrl,
-  WebtoonType,
-  DownloadStatus,
-} from "../../utils";
+import { convert, merge, openFolder, showInBrowser } from "../../utils";
 
-export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
-  const { addToQueue } = useQueueStore();
+export default function DCard({
+  webtoon,
+  removeWebtoon,
+  deleteFolder,
+  restart,
+}) {
   const webtoonLink = `/${webtoon.module}/webtoon/${
     webtoon.manga || webtoon.doujin
   }`;
-  const showInBrowser = async () => {
-    let url =
-      webtoon.type === WebtoonType.MANGA
-        ? getChapterUrl(webtoon.module, webtoon.manga, webtoon.chapter)
-        : getWebtoonUrl(webtoon.module, webtoon.doujin);
-    openUrl(await url);
-  };
-
-  const restart = () => {
-    removeWebtoon(webtoon.id);
-    let info =
-      webtoon.type === WebtoonType.MANGA
-        ? {
-            manga: webtoon.manga,
-            info: webtoon.info,
-            chapter: webtoon.chapter,
-          }
-        : { doujin: webtoon.doujin, info: webtoon.doujin };
-    addToQueue({
-      type: webtoon.type,
-      id: webtoon.id,
-      title: webtoon.title,
-      module: webtoon.module,
-      status: DownloadStatus.STARTED,
-      ...info,
-    });
-    attemptToDownload();
-  };
 
   return (
     <div className="queue-card">
@@ -73,7 +38,7 @@ export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
         <ActionButton
           svgName="maximize"
           tooltip="Show in browser"
-          onClick={showInBrowser}
+          onClick={() => showInBrowser(webtoon)}
         />
         <Link to={webtoonLink}>
           <ActionButton svgName="about" tooltip="Go to Webtoon" />
@@ -81,7 +46,7 @@ export default function DCard({ webtoon, removeWebtoon, deleteFolder }) {
         <ActionButton
           svgName="restart"
           tooltip="Download Again"
-          onClick={restart}
+          onClick={() => restart(webtoon)}
         />
         <ActionButton
           svgName="folder"

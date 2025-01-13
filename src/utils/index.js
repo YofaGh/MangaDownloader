@@ -28,6 +28,7 @@ export {
   isUrlValid,
   toggleModal,
   fixFolderName,
+  showInBrowser,
   retrieveImage,
 } from "./assets";
 

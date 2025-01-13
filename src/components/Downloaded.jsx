@@ -1,10 +1,12 @@
 import { DCard, ActionButton } from ".";
-import { removeDirectory } from "../utils";
-import { useDownloadedStore } from "../store";
+import { attemptToDownload } from "../operators";
+import { useDownloadedStore, useQueueStore } from "../store";
+import { removeDirectory, WebtoonType, DownloadStatus } from "../utils";
 
 export default function Downloaded() {
   const { downloaded, removeFromDownloaded, removeAllDownloaded } =
     useDownloadedStore();
+  const addToQueue = useQueueStore((state) => state.addToQueue);
 
   const deleteAllWebtoons = () => {
     downloaded.forEach((webtoon) => removeDirectory(webtoon.path, true));
@@ -14,6 +16,27 @@ export default function Downloaded() {
   const deleteFolder = (webtoon) => {
     removeDirectory(webtoon.path, true);
     removeFromDownloaded(webtoon.id);
+  };
+
+  const restart = (webtoon) => {
+    let info =
+      webtoon.type === WebtoonType.MANGA
+        ? {
+            manga: webtoon.manga,
+            info: webtoon.info,
+            chapter: webtoon.chapter,
+          }
+        : { doujin: webtoon.doujin, info: webtoon.doujin };
+    removeFromDownloaded(webtoon.id);
+    addToQueue({
+      type: webtoon.type,
+      id: webtoon.id,
+      title: webtoon.title,
+      module: webtoon.module,
+      status: DownloadStatus.STARTED,
+      ...info,
+    });
+    attemptToDownload();
   };
 
   if (downloaded.length === 0) {
@@ -49,6 +72,7 @@ export default function Downloaded() {
                 webtoon={webtoon}
                 deleteFolder={deleteFolder}
                 removeWebtoon={removeFromDownloaded}
+                restart={restart}
               />
             </li>
           ))}

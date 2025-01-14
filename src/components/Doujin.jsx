@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { attemptToDownload } from "../operators";
 import { useQueueStore, useNotificationStore } from "../store";
-import { getInfo, WebtoonType, DownloadStatus } from "../utils";
+import { getInfo, WebtoonType, DownloadStatus, showInBrowser } from "../utils";
 import {
   Icon,
   Image,
@@ -29,7 +29,7 @@ export default function Doujin({ url, module }) {
       id: `${module}_$_${url}_$_`,
       title: webtoon.Title,
       info: url,
-      module: module,
+      module,
       doujin: url,
       status,
     });
@@ -58,6 +58,12 @@ export default function Doujin({ url, module }) {
                 title={webtoon.Title}
                 cover={webtoon.Cover}
               />
+              <button
+                className="buttonh buttonht"
+                onClick={() => showInBrowser({ module, manga: url })}
+              >
+                <Icon svgName="maximize" />
+              </button>
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>
           </div>

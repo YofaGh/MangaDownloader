@@ -8,10 +8,7 @@ export default function Webtoon() {
   const moduleType = useModulesStore((state) => state.modules).find(
     (m) => m.domain === module
   ).type;
+  const WebtoonComponent = moduleType === WebtoonType.MANGA ? Manga : Doujin;
 
-  return moduleType === WebtoonType.MANGA ? (
-    <Manga module={module} url={url} />
-  ) : (
-    <Doujin module={module} url={url} />
-  );
+  return <WebtoonComponent module={module} url={url} />;
 }

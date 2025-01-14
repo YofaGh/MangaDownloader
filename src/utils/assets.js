@@ -83,10 +83,9 @@ export const retrieveImage = async (url, domain, defImage) => {
 };
 
 export const showInBrowser = async (webtoon) => {
-  let url =
-    webtoon.type === WebtoonType.MANGA
-      ? getChapterUrl(webtoon.module, webtoon.manga, webtoon.chapter)
-      : getWebtoonUrl(webtoon.module, webtoon.doujin);
+  let url = webtoon.chapter
+    ? getChapterUrl(webtoon.module, webtoon.manga, webtoon.chapter)
+    : getWebtoonUrl(webtoon.module, webtoon.manga || webtoon.doujin);
   openUrl(await url);
 };
 

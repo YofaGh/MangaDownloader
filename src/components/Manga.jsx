@@ -7,6 +7,7 @@ import {
   getChapters,
   WebtoonType,
   toggleModal,
+  showInBrowser,
   DownloadStatus,
 } from "../utils";
 import {
@@ -109,6 +110,12 @@ export default function Manga({ url, module }) {
               />
               <button className="buttonh buttonht" onClick={updateLibrary}>
                 <Icon svgName={isInLibrary ? "library" : "add_to_library"} />
+              </button>
+              <button
+                className="buttonh buttonht"
+                onClick={() => showInBrowser({ module, manga: url })}
+              >
+                <Icon svgName="maximize" />
               </button>
             </div>
             <div className="alternatives">{webtoon.Alternative}</div>

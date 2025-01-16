@@ -3,7 +3,7 @@ import { useNotificationStore } from "../store";
 
 const baseInvoker = async (fn, args) => {
   try {
-    await invoke(fn, args);
+    return await invoke(fn, args);
   } catch (error) {
     useNotificationStore.getState().notifyError(Object.values(error)[0]);
   }
@@ -55,9 +55,8 @@ export const getImages = async (domain, manga, chapter) =>
 export const getChapterUrl = async (domain, url, chapter) =>
   await invoke("get_chapter_url", { domain, url, chapter });
 
-export const removeDirectory = async (path, recursive) => {
+export const removeDirectory = async (path, recursive) =>
   await baseInvoker("remove_directory", { path, recursive });
-};
 
 export const downloadImage = async (domain, url, imageName) =>
   await invoke("download_image", { domain, url, imageName });

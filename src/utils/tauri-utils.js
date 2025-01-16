@@ -8,7 +8,7 @@ import {
   BaseDirectory,
 } from "@tauri-apps/plugin-fs";
 import { openUrl as tauriOpenUrl } from "@tauri-apps/plugin-opener";
-import { join, appDataDir } from "@tauri-apps/api/path"; 
+import { join, appDataDir } from "@tauri-apps/api/path";
 
 export const getAppWindow = () => getCurrentWindow();
 

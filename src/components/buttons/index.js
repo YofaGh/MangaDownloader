@@ -5,6 +5,7 @@ export { default as ActionButton } from "./ActionButton";
 export { default as FilterButton } from "./FilterButton";
 export { default as ExpandButton } from "./ExpandButton";
 export { default as ChapterButton } from "./ChapterButton";
+export { default as SideBarButton } from "./SideBarButton";
 export { default as DownloadButton } from "./DownloadButton";
 export { default as FavoriteButton } from "./FavoriteButton";
 export { default as FilterToggleButton } from "./FilterToggleButton";

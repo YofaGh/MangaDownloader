@@ -1,5 +1,5 @@
 import { attemptToDownload } from "../operators";
-import { Wcard, HomeButton } from "../components";
+import { Wcard, Icon } from "../components";
 import { getChapters, DownloadStatus, WebtoonType } from "../utils";
 import { useQueueStore, useLibraryStore, useNotificationStore } from "../store";
 
@@ -38,16 +38,23 @@ export default function Library() {
     attemptToDownload();
   };
 
+  const updateAllWebtoons = async () => {
+    for (const webtoon of library) {
+      await updateWebtoonLibrary(webtoon);
+    }
+  };
+
   return (
     <div>
       <div className="container">
         <div className="top-header">
           Library
-          <HomeButton
-            svgName="download"
-            label="Update All"
-            onClick={() => library.forEach(updateWebtoonLibrary)}
-          />
+          <button className="playstore-button" onClick={updateAllWebtoons}>
+            <Icon svgName="download" className="iconn" />
+            <span className="texts">
+              <span className="text-2">Update All</span>
+            </span>
+          </button>
         </div>
         <div className="f-container">
           {library.map((webtoon) => (

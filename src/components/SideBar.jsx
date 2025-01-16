@@ -1,54 +1,21 @@
-import { Link } from "react-router-dom";
-import { Icon } from ".";
+import { SideBarButton } from ".";
 
 export default function SideBar() {
   return (
     <div className="sidebar">
-      <Link to={{ pathname: "/" }}>
-        <button className="buttonh">
-          <Icon svgName="home" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "library" }}>
-        <button className="buttonh">
-          <Icon svgName="library" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "search" }}>
-        <button className="buttonh">
-          <Icon svgName="search" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "download" }}>
-        <button className="buttonh">
-          <Icon svgName="dPage" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "modules" }}>
-        <button className="buttonh">
-          <Icon svgName="module" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "favorites" }}>
-        <button className="buttonh">
-          <Icon svgName="heart" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "saucer" }}>
-        <button className="buttonh">
-          <Icon svgName="saucer" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "about" }} style={{ marginTop: "auto" }}>
-        <button className="buttonh">
-          <Icon svgName="about" />
-        </button>
-      </Link>
-      <Link to={{ pathname: "settings" }} style={{ marginBottom: "40px" }}>
-        <button className="buttonh buttonhg">
-          <Icon svgName="settings" />
-        </button>
-      </Link>
+      <SideBarButton svgName="home" pathName="/" />
+      <SideBarButton svgName="library" />
+      <SideBarButton svgName="search" />
+      <SideBarButton svgName="dPage" pathName="download" />
+      <SideBarButton svgName="module" pathName="modules" />
+      <SideBarButton svgName="heart" pathName="favorites" />
+      <SideBarButton svgName="saucer" />
+      <SideBarButton svgName="about" style={{ marginTop: "auto" }} />
+      <SideBarButton
+        svgName="settings"
+        style={{ marginBottom: "40px" }}
+        className="buttonh buttonhg"
+      />
     </div>
   );
 }

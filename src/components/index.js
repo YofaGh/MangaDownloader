@@ -38,6 +38,7 @@ export {
   FilterButton,
   ExpandButton,
   ChapterButton,
+  SideBarButton,
   DownloadButton,
   FavoriteButton,
   FilterToggleButton,

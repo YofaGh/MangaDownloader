@@ -7,8 +7,8 @@ import { useDownloadingStore, useDownloadedStore } from "../store";
 export default function TopBar() {
   const navigate = useNavigate();
   const appWindow = getAppWindow();
-  const { downloaded } = useDownloadedStore();
-  const { downloading } = useDownloadingStore();
+  const downloaded = useDownloadedStore(state => state.downloaded);
+  const downloading = useDownloadingStore(state => state.downloading);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   let downloadLabel, item;
   if (downloading) {

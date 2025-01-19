@@ -223,7 +223,7 @@ pub fn get_dynamic_lib_extension() -> &'static str {
     {
         "dylib"
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     {
         "so"
     }

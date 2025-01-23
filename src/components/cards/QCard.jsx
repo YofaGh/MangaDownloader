@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ActionButton } from "..";
 import { DownloadStatus, showInBrowser } from "../../utils";
@@ -13,10 +14,14 @@ export default function QCard({
   const webtoonLink = `/${webtoon.module}/webtoon/${
     webtoon.manga || webtoon.doujin
   }`;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="queue-card">
-      <div className="infog">
+      <div
+        className={`infog ${isExpanded ? "expanded" : ""}`}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="card-titlee">{webtoon.title}</div>
         <div className="card-info">{webtoon.info}</div>
         <div className="card-domain">{webtoon.module}</div>

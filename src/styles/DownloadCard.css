@@ -1,17 +1,18 @@
 .queue-card {
   width: 880px;
-  height: 100px;
+  min-height: 100px;
   border-radius: 50px;
   border-color: var(--cyan);
   display: flex;
   margin-top: 8px;
+  height: max-content;
 }
 
 .statusg {
   display: flex;
   background-color: var(--gray);
   min-width: 250px;
-  height: 100px;
+  height: auto;
   color: var(--cyan);
   text-align: center;
   align-items: center;
@@ -32,6 +33,12 @@
   color: var(--cyan);
   border-color: var(--cyan);
   border-style: solid;
+  overflow: auto;
+}
+.infog.expanded {
+  min-height: 100px;
+  height: max-content;
+  overflow: hidden;
 }
 .card-titlee {
   margin-top: 17px;
@@ -46,7 +53,7 @@
 .button-containerrr {
   display: flex;
   background-color: var(--cyan);
-  height: 100px;
+  height: auto;
   align-items: center;
   justify-content: space-around;
   border-top-right-radius: 20px;

@@ -52,6 +52,8 @@ impl Default for Settings {
 }
 
 pub fn load_up_checks(data_dir_path: PathBuf) -> Result<(), Error> {
+    create_dir_all(&data_dir_path)
+        .map_err(|err: IoError| Error::directory("create", &data_dir_path, err))?;
     save_file(
         &data_dir_path.join("settings.json"),
         to_value(Settings::default())?,

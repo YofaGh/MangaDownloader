@@ -25,8 +25,11 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn directory(action: &str, path: &str, err: IoError) -> Self {
-        Self::DirectoryOperation(format!("Failed to {action} the directory {path}: {err}"))
+    pub fn directory(action: &str, path: impl AsRef<Path>, err: IoError) -> Self {
+        Self::DirectoryOperation(format!(
+            "Failed to {action} the directory {}: {err}",
+            path.as_ref().to_string_lossy().to_string()
+        ))
     }
     pub fn file(action: &str, path: impl AsRef<Path>, err: IoError) -> Self {
         Self::FileOperation(format!(

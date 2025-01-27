@@ -130,12 +130,10 @@ export const startUp = async () => {
       setter(data);
     })
   );
-  (async () => {
-    const response = await getModules();
-    useModulesStore
-      .getState()
-      .setModules(response.map((module) => ({ ...module, selected: true })));
-  })();
+  const response = await getModules();
+  useModulesStore
+    .getState()
+    .setModules(response.map((module) => ({ ...module, selected: true })));
   if (!useSettingsStore.getState().settings.download_path)
     toggleModal("browse-modal", true);
   const storeConfigs = [

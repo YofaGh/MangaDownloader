@@ -12,6 +12,7 @@ use crate::{
     errors::Error,
     insert,
     models::{BaseModule, Module},
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Readonepiece {
@@ -23,19 +24,19 @@ impl Module for Readonepiece {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String> {
         Ok(format!("https://ww9.readonepiece.com/manga/{manga}/"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
         Ok(format!(
             "https://ww9.readonepiece.com/chapter/{manga}-{chapter}"
         ))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
         document
             .find(Name("div").and(Attr("class", "py-4 px-6 mb-3")))
             .next()
@@ -61,7 +62,7 @@ impl Module for Readonepiece {
         &self,
         manga: String,
         chapter: String,
-    ) -> Result<(Vec<String>, Value), Error> {
+    ) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{manga}-{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -73,11 +74,11 @@ impl Module for Readonepiece {
                     .ok_or_else(|| Error::parser(&url, "Invalid image attr"))?
                     .to_owned())
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, Value::Bool(false)))
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
         let url: String = format!("https://ww9.readonepiece.com/manga/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());

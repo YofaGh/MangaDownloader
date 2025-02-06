@@ -1,35 +1,40 @@
 use image::open;
 use serde_json::Value;
-use std::{collections::HashMap, fs::DirEntry};
+use std::fs::DirEntry;
 use tauri::{command, AppHandle};
 
 use crate::{
-    assets, errors::Error, image_merger::merge_folder, lib_utils, pdf_converter::convert_folder,
+    assets,
+    errors::Error,
+    image_merger::merge_folder,
+    lib_utils,
+    pdf_converter::convert_folder,
     saucer,
+    types::{BasicHashMap, ValueHashMap, Result},
 };
 
 #[command(async)]
-pub async fn update_checker(app: AppHandle) -> Result<(), Error> {
+pub async fn update_checker(app: AppHandle) -> Result<()> {
     assets::update_checker(app).await
 }
 
 #[command(async)]
-pub async fn open_folder(path: String) -> Result<(), Error> {
+pub async fn open_folder(path: String) -> Result<()> {
     assets::open_folder(path).await
 }
 
 #[command(async)]
-pub async fn remove_directory(path: String, recursive: bool) -> Result<(), Error> {
+pub async fn remove_directory(path: String, recursive: bool) -> Result<()> {
     assets::remove_directory(path, recursive)
 }
 
 #[command(async)]
-pub async fn create_directory(path: String) -> Result<(), Error> {
+pub async fn create_directory(path: String) -> Result<()> {
     assets::create_directory(&path)
 }
 
 #[command(async)]
-pub async fn read_directory(path: String) -> Result<Vec<String>, Error> {
+pub async fn read_directory(path: String) -> Result<Vec<String>> {
     assets::read_directory(&path)?
         .into_iter()
         .filter_map(|entry: DirEntry| entry.path().to_str().map(|path: &str| Ok(path.to_owned())))
@@ -41,12 +46,12 @@ pub fn merge(
     path_to_source: &str,
     path_to_destination: &str,
     merge_method: &str,
-) -> Result<(), Error> {
+) -> Result<()> {
     merge_folder(path_to_source, path_to_destination, merge_method)
 }
 
 #[command(async)]
-pub fn convert(path: &str, pdf_name: &str) -> Result<(), Error> {
+pub fn convert(path: &str, pdf_name: &str) -> Result<()> {
     convert_folder(path, pdf_name)
 }
 
@@ -56,7 +61,7 @@ pub fn validate_image(path: String) -> bool {
 }
 
 #[command(async)]
-pub async fn get_modules() -> Vec<HashMap<String, Value>> {
+pub async fn get_modules() -> Vec<ValueHashMap> {
     lib_utils::get_modules()
         .await
         .map_err(|err: Error| println!("{}", err))
@@ -64,7 +69,7 @@ pub async fn get_modules() -> Vec<HashMap<String, Value>> {
 }
 
 #[command(async)]
-pub async fn get_info(domain: String, url: String) -> HashMap<String, Value> {
+pub async fn get_info(domain: String, url: String) -> ValueHashMap {
     lib_utils::get_info(domain, url)
         .await
         .map_err(|err: Error| println!("{}", err))
@@ -88,7 +93,7 @@ pub async fn get_chapter_url(domain: String, url: String, chapter: String) -> St
 }
 
 #[command(async)]
-pub async fn get_chapters(domain: String, url: String) -> Vec<HashMap<String, String>> {
+pub async fn get_chapters(domain: String, url: String) -> Vec<BasicHashMap> {
     lib_utils::get_chapters(domain, url)
         .await
         .map_err(|err: Error| println!("{}", err))
@@ -118,7 +123,7 @@ pub async fn search_by_keyword(
     sleep_time: f64,
     page_limit: u32,
     absolute: bool,
-) -> Vec<HashMap<String, String>> {
+) -> Vec<BasicHashMap> {
     lib_utils::search_by_keyword(domain, keyword, sleep_time, page_limit, absolute)
         .await
         .map_err(|err: Error| println!("{}", err))
@@ -134,7 +139,7 @@ pub async fn retrieve_image(domain: String, url: String) -> String {
 }
 
 #[command(async)]
-pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
+pub async fn get_module_sample(domain: String) -> BasicHashMap {
     lib_utils::get_module_sample(domain)
         .await
         .map_err(|err: Error| println!("{}", err))
@@ -142,7 +147,7 @@ pub async fn get_module_sample(domain: String) -> HashMap<String, String> {
 }
 
 #[command(async)]
-pub async fn sauce(saucer: String, url: String) -> Vec<HashMap<String, String>> {
+pub async fn sauce(saucer: String, url: String) -> Vec<BasicHashMap> {
     saucer::sauce(saucer, url)
         .await
         .map_err(|err: Error| println!("{}", err))

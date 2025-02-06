@@ -14,6 +14,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Imhentai {
@@ -25,15 +26,15 @@ impl Module for Imhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String> {
         Ok(format!("https://imhentai.xxx/gallery/{code}"))
     }
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, code: String) -> Result<ValueHashMap> {
         let url: String = format!("https://imhentai.xxx/gallery/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
         document
             .find(
                 Name("div")
@@ -83,7 +84,7 @@ impl Module for Imhentai {
         Ok(info)
     }
 
-    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value)> {
         let image_formats: HashMap<&str, &str> = HashMap::from([
             ("j", "jpg"),
             ("p", "png"),
@@ -126,7 +127,7 @@ impl Module for Imhentai {
                 })()
                 .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((image_urls, Value::Bool(false)))
     }
 
@@ -136,8 +137,8 @@ impl Module for Imhentai {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -174,7 +175,7 @@ impl Module for Imhentai {
                 if code.len() < 2 {
                     continue;
                 }
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "code", code[1], page);
                 doujin
                     .find(

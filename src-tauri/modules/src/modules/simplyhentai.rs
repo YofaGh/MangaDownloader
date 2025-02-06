@@ -13,6 +13,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Simplyhentai {
@@ -24,16 +25,16 @@ impl Module for Simplyhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String> {
         Ok(format!("https://simplyhentai.org/g/{code}"))
     }
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, code: String) -> Result<ValueHashMap> {
         let url: String = format!("https://simplyhentai.org/g/{code}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
-        let mut dates: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
+        let mut dates: ValueHashMap = HashMap::new();
         document
             .find(Attr("id", "cover"))
             .next()
@@ -94,7 +95,7 @@ impl Module for Simplyhentai {
                         .filter_map(|link: Node| {
                             link.find(Name("span").and(Class("name")))
                                 .next()
-                                .and_then(|span: Node| Some(span.text()))
+                                .map(|span: Node| span.text())
                         })
                         .collect();
                     insert!(extras, first.text().trim(), values)
@@ -104,7 +105,7 @@ impl Module for Simplyhentai {
         Ok(info)
     }
 
-    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://simplyhentai.org/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -126,7 +127,7 @@ impl Module for Simplyhentai {
                     .replace("t.", ".");
                 Ok(format!("{name}/{ext}"))
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, Value::Bool(false)))
     }
     async fn search_by_keyword(
@@ -135,8 +136,8 @@ impl Module for Simplyhentai {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -172,7 +173,7 @@ impl Module for Simplyhentai {
                     continue;
                 };
                 let code: String = code.replace("/g/", "").replace("/", "");
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title.text(), self.base.domain, "code", code, page);
                 doujin.find(Name("img")).next().and_then(|img: Node| {
                     img.attr("src")

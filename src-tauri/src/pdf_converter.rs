@@ -1,10 +1,10 @@
 use image::DynamicImage;
-use scannedpdf::{create, Error as PdfError, PageConfig, PageSize, PDF};
+use scannedpdf::{create, Error as PdfErr, PageConfig, PageSize, PDF};
 use std::{fs::File, io::Error as IoError, path::PathBuf};
 
-use crate::{assets::detect_images, errors::Error};
+use crate::{assets::detect_images, errors::Error, types::Result};
 
-pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), Error> {
+pub fn convert_folder(path: &str, pdf_name: &str) -> Result<()> {
     let images: Vec<DynamicImage> = detect_images(path)
         .unwrap_or_default()
         .into_iter()
@@ -18,13 +18,13 @@ pub fn convert_folder(path: &str, pdf_name: &str) -> Result<(), Error> {
         .map_err(|err: IoError| Error::file("create", &path_buf, err))?;
     images
         .into_iter()
-        .try_for_each(|image: DynamicImage| -> Result<(), Error> {
+        .try_for_each(|image: DynamicImage| -> Result<()> {
             let config: PageConfig = PageConfig::new()
                 .size(PageSize::Custom(image.width(), image.height()))
                 .quality(100);
             file.add_page_from_image(image, Some("Image".to_owned()), Some(config))
-                .map_err(|err: PdfError| {
-                    Error::PdfError(format!("Failed to add page from image: {:?}", err))
+                .map_err(|err: PdfErr| {
+                    Error::PdfErr(format!("Failed to add page from image: {:?}", err))
                 })
         })?;
     file.finish()

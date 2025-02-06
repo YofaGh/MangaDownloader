@@ -13,6 +13,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Manhuascan {
@@ -24,19 +25,19 @@ impl Module for Manhuascan {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String> {
         Ok(format!("https://manhuascan.us/manga/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
         Ok(format!("https://manhuascan.us/manga/{manga}/{chapter}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
-        let mut dates: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
+        let mut dates: ValueHashMap = HashMap::new();
         document
             .find(Name("img").and(Attr("class", "attachment- size- wp-post-image")))
             .next()
@@ -111,11 +112,7 @@ impl Module for Manhuascan {
         Ok(info)
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        chapter: String,
-    ) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://manhuascan.us/manga/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -131,11 +128,11 @@ impl Module for Manhuascan {
                     .ok_or_else(|| Error::parser(&url, "Invalid image attr"))?
                     .to_owned())
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, Value::Bool(false)))
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
         let url: String = format!("https://manhuascan.us/manga/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -143,11 +140,11 @@ impl Module for Manhuascan {
             .find(Name("div").and(Class("eph-num")).descendant(Name("a")))
             .filter_map(|a: Node| {
                 a.attr("href").and_then(|href: &str| {
-                    href.split("/").last().and_then(|last: &str| {
-                        Some(HashMap::from([
+                    href.split("/").last().map(|last: &str| {
+                        HashMap::from([
                             ("url".to_owned(), last.to_owned()),
                             ("name".to_owned(), self.rename_chapter(last.to_owned())),
-                        ]))
+                        ])
                     })
                 })
             })
@@ -160,8 +157,8 @@ impl Module for Manhuascan {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -177,7 +174,7 @@ impl Module for Manhuascan {
             }
             let document: Document = Document::from(response.text().await?.as_str());
             let mangas: Vec<Node> = document.find(Name("div").and(Class("bsx"))).collect();
-            if mangas.len() == 0 {
+            if mangas.is_empty() {
                 break;
             }
             for manga in mangas {
@@ -202,7 +199,7 @@ impl Module for Manhuascan {
                 else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "url", url, page);
                 manga
                     .find(Name("div").and(Class("adds")).descendant(Name("a")))

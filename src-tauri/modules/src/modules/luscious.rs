@@ -14,6 +14,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Luscious {
@@ -25,16 +26,16 @@ impl Module for Luscious {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String> {
         Ok(format!("https://www.luscious.net/albums/{code}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://www.luscious.net/albums/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
-        let mut dates: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
+        let mut dates: ValueHashMap = HashMap::new();
         document
             .find(
                 Name("div")
@@ -130,7 +131,7 @@ impl Module for Luscious {
         Ok(info)
     }
 
-    async fn get_images(&self, manga: String, _: String) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, manga: String, _: String) -> Result<(Vec<String>, Value)> {
         let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=PictureListInsideAlbum&query=%2520query\
         %2520PictureListInsideAlbum%28%2524input%253A%2520PictureListInput%21%29%2520%257B%2520picture\
         %2520%257B%2520list%28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
@@ -180,7 +181,7 @@ impl Module for Luscious {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
+    ) -> Result<Vec<BasicHashMap>> {
         let data: &str = "https://apicdn.luscious.net/graphql/nobatch/?operationName=AlbumList&\
         query=%2520query%2520AlbumList%28%2524input%253A%2520AlbumListInput%21%29%2520%257B%2520album%2520%257B%2520list\
         %28input%253A%2520%2524input%29%2520%257B%2520info%2520%257B%2520...\
@@ -196,7 +197,7 @@ impl Module for Luscious {
         %22%2C%22value%22%3A%22__keyword__%22%7D%5D%2C%22page%22%3A__page__number__%7D%7D";
         let mut total_pages: u32 = 1000;
         let mut page: u32 = 1;
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut client: Option<Client> = None;
         while page <= page_limit {
             if page > total_pages {
@@ -219,10 +220,7 @@ impl Module for Luscious {
                 .as_array()
                 .ok_or_else(|| Error::parser(&url, "items"))?;
             for doujin in doujins {
-                let Some(title) = doujin
-                    .get("title")
-                    .and_then(|title: &Value| Some(title.to_string()))
-                else {
+                let Some(title) = doujin.get("title").map(|title: &Value| title.to_string()) else {
                     continue;
                 };
                 if absolute && !title.to_lowercase().contains(&keyword.to_lowercase()) {
@@ -231,7 +229,7 @@ impl Module for Luscious {
                 let Some(code) = doujin.get("id") else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "code", code, page);
                 doujin["tags"].as_array().map(|tags: &Vec<Value>| {
                     result.insert(

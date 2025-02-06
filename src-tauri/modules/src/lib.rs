@@ -2,16 +2,16 @@ mod errors;
 mod macros;
 mod models;
 mod modules;
-pub use errors::Error;
-use models::Module;
+mod types;
+use errors::Error;
 use modules::*;
 use serde_json::Value;
-use std::collections::HashMap;
 use tokio::runtime::Runtime;
+use types::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn get_module(domain: String) -> Result<Box<dyn Module>, Error> {
+fn get_module(domain: String) -> Result<BoxModule> {
     match domain.as_str() {
         "hentaifox.com" => Ok(Box::new(hentaifox::Hentaifox::new())),
         "imhentai.xxx" => Ok(Box::new(imhentai::Imhentai::new())),
@@ -30,7 +30,7 @@ fn get_module(domain: String) -> Result<Box<dyn Module>, Error> {
     }
 }
 
-fn get_all_modules() -> Vec<Box<dyn Module>> {
+fn get_all_modules() -> Vec<BoxModule> {
     vec![
         Box::new(hentaifox::Hentaifox::new()),
         Box::new(imhentai::Imhentai::new()),
@@ -49,57 +49,53 @@ fn get_all_modules() -> Vec<Box<dyn Module>> {
 }
 
 #[no_mangle]
-pub fn get_version() -> Result<String, Error> {
+pub fn get_version() -> Result<String> {
     Ok(VERSION.to_owned())
 }
 
 #[no_mangle]
-pub fn get_modules() -> Result<Vec<HashMap<String, Value>>, Error> {
+pub fn get_modules() -> Result<Vec<ValueHashMap>> {
     get_all_modules()
         .into_iter()
-        .map(|module: Box<dyn Module>| module.get_module_info())
+        .map(|module: BoxModule| module.get_module_info())
         .collect()
 }
 
 #[no_mangle]
-pub fn get_module_sample(domain: String) -> Result<HashMap<String, String>, Error> {
+pub fn get_module_sample(domain: String) -> Result<BasicHashMap> {
     Ok(get_module(domain)?.get_module_sample())
 }
 
 #[no_mangle]
-pub fn get_info(domain: String, manga: String) -> Result<HashMap<String, Value>, Error> {
+pub fn get_info(domain: String, manga: String) -> Result<ValueHashMap> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_info(manga))
 }
 
 #[no_mangle]
-pub fn get_webtoon_url(domain: String, manga: String) -> Result<String, Error> {
+pub fn get_webtoon_url(domain: String, manga: String) -> Result<String> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_webtoon_url(manga))
 }
 
 #[no_mangle]
-pub fn get_chapter_url(domain: String, manga: String, chapter: String) -> Result<String, Error> {
+pub fn get_chapter_url(domain: String, manga: String, chapter: String) -> Result<String> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_chapter_url(manga, chapter))
 }
 
 #[no_mangle]
-pub fn get_chapters(domain: String, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub fn get_chapters(domain: String, manga: String) -> Result<Vec<BasicHashMap>> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_chapters(manga))
 }
 
 #[no_mangle]
-pub fn get_images(
-    domain: String,
-    manga: String,
-    chapter: String,
-) -> Result<(Vec<String>, Value), Error> {
+pub fn get_images(domain: String, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.get_images(manga, chapter))
@@ -112,25 +108,21 @@ pub fn search_by_keyword(
     absolute: bool,
     sleep_time: f64,
     page_limit: u32,
-) -> Result<Vec<HashMap<String, String>>, Error> {
+) -> Result<Vec<BasicHashMap>> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.search_by_keyword(keyword, absolute, sleep_time, page_limit))
 }
 
 #[no_mangle]
-pub fn download_image(
-    domain: String,
-    url: String,
-    image_name: String,
-) -> Result<Option<String>, Error> {
+pub fn download_image(domain: String, url: String, image_name: String) -> Result<Option<String>> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.download_image(url, image_name))
 }
 
 #[no_mangle]
-pub fn retrieve_image(domain: String, url: String) -> Result<String, Error> {
+pub fn retrieve_image(domain: String, url: String) -> Result<String> {
     Runtime::new()
         .map_err(Error::runtime)?
         .block_on(get_module(domain)?.retrieve_image(url))

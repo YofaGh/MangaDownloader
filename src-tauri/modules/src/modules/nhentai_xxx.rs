@@ -13,6 +13,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Nhentai {
@@ -24,15 +25,15 @@ impl Module for Nhentai {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, code: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, code: String) -> Result<String> {
         Ok(format!("https://nhentai.xxx/g/{code}/"))
     }
-    async fn get_info(&self, code: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, code: String) -> Result<ValueHashMap> {
         let url: String = format!("https://nhentai.xxx/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
         document
             .find(Class("cover").descendant(Name("img")))
             .next()
@@ -52,8 +53,7 @@ impl Module for Nhentai {
             });
         document
             .find(Name("li"))
-            .filter(|n: &Node| n.text().contains("Pages:"))
-            .next()
+            .find(|n: &Node| n.text().contains("Pages:"))
             .and_then(|pages_element: Node| {
                 insert!(
                     info,
@@ -63,8 +63,7 @@ impl Module for Nhentai {
             });
         document
             .find(Name("li"))
-            .filter(|n: &Node| n.text().contains("Uploaded:"))
-            .next()
+            .find(|n: &Node| n.text().contains("Uploaded:"))
             .and_then(|uploaded_element: Node| {
                 insert!(
                     extras,
@@ -74,7 +73,6 @@ impl Module for Nhentai {
             });
         document
             .find(Name("li").and(Class("tags")))
-            .into_iter()
             .for_each(|tag_box: Node| {
                 tag_box.first_child().and_then(|key: Node| {
                     let values: Vec<String> = tag_box
@@ -88,7 +86,7 @@ impl Module for Nhentai {
         Ok(info)
     }
 
-    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, code: String, _: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://nhentai.xxx/g/{code}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -114,7 +112,7 @@ impl Module for Nhentai {
                     .replace("t.", ".");
                 Ok(format!("{name}/{ext}"))
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, Value::Bool(false)))
     }
 
@@ -124,8 +122,8 @@ impl Module for Nhentai {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -163,7 +161,7 @@ impl Module for Nhentai {
                 }) else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "code", code, page);
                 doujin.find(Name("img")).next().and_then(|img: Node| {
                     img.attr("data-src")

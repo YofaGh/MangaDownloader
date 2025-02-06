@@ -13,6 +13,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Mangapark {
@@ -24,18 +25,18 @@ impl Module for Mangapark {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String> {
         Ok(format!("https://mangapark.to/title/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
         Ok(format!("https://mangapark.to/title/{manga}/{chapter}"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
         let info_box: Node = document
             .find(Attr("class", "flex flex-col md:flex-row"))
             .next()
@@ -83,7 +84,7 @@ impl Module for Mangapark {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
         let url: String = format!("https://mangapark.to/title/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -95,18 +96,18 @@ impl Module for Mangapark {
         let objs: &Vec<Value> = data["objs"]
             .as_array()
             .ok_or_else(|| Error::parser(&url, "as array"))?;
-        let chapters: Vec<HashMap<String, String>> = objs
+        let chapters: Vec<BasicHashMap> = objs
             .iter()
             .enumerate()
             .filter_map(|(i, item)| {
                 item.as_str().and_then(|s: &str| {
                     if s.contains(&format!("{manga}/")) {
                         s.split('/').last().and_then(|url: &str| {
-                            objs.get(i.wrapping_sub(1)).and_then(|name: &Value| {
-                                Some(HashMap::from([
+                            objs.get(i.wrapping_sub(1)).map(|name: &Value| {
+                                HashMap::from([
                                     ("url".to_owned(), url.to_owned()),
                                     ("name".to_owned(), self.rename_chapter(name.to_string())),
-                                ]))
+                                ])
                             })
                         })
                     } else {
@@ -118,11 +119,7 @@ impl Module for Mangapark {
         Ok(chapters)
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        chapter: String,
-    ) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://mangapark.to/title/{manga}/{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -156,7 +153,7 @@ impl Module for Mangapark {
                     .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?;
                 Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, to_value(save_names)?))
     }
 
@@ -166,8 +163,8 @@ impl Module for Mangapark {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -195,7 +192,7 @@ impl Module for Mangapark {
                 }) else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "url", url, page);
                 manga.find(Name("img")).next().and_then(|element: Node| {
                     element.attr("src").and_then(|thumbnail: &str| {

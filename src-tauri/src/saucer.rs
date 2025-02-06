@@ -8,9 +8,12 @@ use select::{
 use serde_json::Value;
 use std::{collections::HashMap, ffi::OsStr, fs::read, io::Error as IoError, path::PathBuf};
 
-use crate::errors::Error;
+use crate::{
+    errors::Error,
+    types::{BasicHashMap, Result},
+};
 
-pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub async fn yandex(url: String) -> Result<Vec<BasicHashMap>> {
     let response: Response = get(&format!(
         "https://yandex.com/images/search?rpt=imageview&url={url}"
     ))
@@ -24,12 +27,12 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Error> 
                 .and_then(|node: Node| node.attr("data-state"))
         })
         .ok_or_else(|| Error::parser(&url, "data-state attribute"))?;
-    let data: IndexMap<String, Value> = serde_json::from_str(&data_raw)?;
+    let data: IndexMap<String, Value> = serde_json::from_str(data_raw)?;
     let sites: &Vec<Value> = data["sites"]
         .as_array()
-        .ok_or_else(|| Error::SerdeJsonError(format!("{url}: saucer: unable to find sites")))?;
+        .ok_or_else(|| Error::SerdeJsonErr(format!("{url}: saucer: unable to find sites")))?;
     sites
-        .into_iter()
+        .iter()
         .map(|site: &Value| {
             Ok(HashMap::from([
                 ("url".to_owned(), site["url"].to_string()),
@@ -39,7 +42,7 @@ pub async fn yandex(url: String) -> Result<Vec<HashMap<String, String>>, Error> 
         .collect()
 }
 
-pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub async fn tineye(url: String) -> Result<Vec<BasicHashMap>> {
     let data: String = format!("------WebKitFormBoundaryVxauFLsZbD7Cr1Fa\n\
     Content-Disposition: form-data; name=\"url\"\n\n{url}\n------WebKitFormBoundaryVxauFLsZbD7Cr1Fa--");
     let mut headers: header::HeaderMap = header::HeaderMap::new();
@@ -56,12 +59,12 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Error> 
         .headers(headers.to_owned())
         .body(data.to_owned());
     let mut response: Value = request.send().await?.json().await?;
-    let total_pages: i64 = response["total_pages"].as_i64().ok_or_else(|| {
-        Error::SerdeJsonError(format!("{url}: saucer: unable to find total_pages"))
-    })?;
+    let total_pages: i64 = response["total_pages"]
+        .as_i64()
+        .ok_or_else(|| Error::SerdeJsonErr(format!("{url}: saucer: unable to find total_pages")))?;
     let mut matches: Vec<Value> = response["matches"]
         .as_array()
-        .ok_or_else(|| Error::SerdeJsonError(format!("{url}: saucer: unable to find matches")))?
+        .ok_or_else(|| Error::SerdeJsonErr(format!("{url}: saucer: unable to find matches")))?
         .to_vec();
     for i in 2..=total_pages {
         response = client
@@ -76,21 +79,21 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Error> 
             response["matches"]
                 .as_array()
                 .ok_or_else(|| {
-                    Error::SerdeJsonError(format!("{url}: saucer: unable to find matches"))
+                    Error::SerdeJsonErr(format!("{url}: saucer: unable to find matches"))
                 })?
                 .to_vec(),
         );
     }
-    let mut results: Vec<HashMap<String, String>> = Vec::new();
+    let mut results: Vec<BasicHashMap> = Vec::new();
     for match_ in matches {
-        let domains: &Vec<Value> = match_["domains"].as_array().ok_or_else(|| {
-            Error::SerdeJsonError(format!("{url}: saucer: unable to find domains"))
-        })?;
+        let domains: &Vec<Value> = match_["domains"]
+            .as_array()
+            .ok_or_else(|| Error::SerdeJsonErr(format!("{url}: saucer: unable to find domains")))?;
         for domain in domains {
             let backlinks: &Vec<Value> = domain["backlinks"].as_array().ok_or_else(|| {
-                Error::SerdeJsonError(format!("{url}: saucer: unable to find backlinks"))
+                Error::SerdeJsonErr(format!("{url}: saucer: unable to find backlinks"))
             })?;
-            backlinks.into_iter().for_each(|backlink: &Value| {
+            backlinks.iter().for_each(|backlink: &Value| {
                 results.push(HashMap::from([
                     ("url".to_owned(), backlink["backlink"].to_string()),
                     ("image".to_owned(), backlink["url"].to_string()),
@@ -101,19 +104,18 @@ pub async fn tineye(url: String) -> Result<Vec<HashMap<String, String>>, Error> 
     Ok(results)
 }
 
-pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub async fn iqdb(url: String) -> Result<Vec<BasicHashMap>> {
     let response: Response = get(&format!("https://iqdb.org/?url={url}")).await?;
     let document: Document = Document::from(response.text().await?.as_str());
-    let mut results: Vec<HashMap<String, String>> = Vec::new();
+    let mut results: Vec<BasicHashMap> = Vec::new();
     let divs: Vec<Node> = document
         .find(Name("div").and(Attr("id", "pages")))
-        .find_map(|node: Node| {
-            Some(
-                node.find(Name("div"))
-                    .filter(|div: &Node| !div.text().contains("Your image"))
-                    .collect(),
-            )
+        .map(|node: Node| {
+            node.find(Name("div"))
+                .filter(|div: &Node| !div.text().contains("Your image"))
+                .collect()
         })
+        .next()
         .ok_or_else(|| Error::parser(&url, "images"))?;
     divs.into_iter().for_each(|div: Node| {
         div.find(Name("td").and(Class("image")))
@@ -126,9 +128,9 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
                     if !td_url.contains("https:") {
                         td_url = format!("https:{td_url}");
                     }
-                    let mut map: HashMap<String, String> = HashMap::new();
+                    let mut map: BasicHashMap = HashMap::new();
                     map.insert("url".to_owned(), td_url);
-                    td.find(Name("img")).next().map(|image: Node| {
+                    if let Some(image) = td.find(Name("img")).next() {
                         image.attr("src").and_then(|src: &str| {
                             let mut image_src: String = src.to_owned();
                             if !image_src.contains("https:") {
@@ -136,7 +138,7 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
                             }
                             map.insert("image".to_owned(), image_src)
                         });
-                    });
+                    }
                     results.push(map);
                 })
             });
@@ -144,16 +146,16 @@ pub async fn iqdb(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
     Ok(results)
 }
 
-pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub async fn saucenao(url: String) -> Result<Vec<BasicHashMap>> {
     let response: Response =
         get(&format!("https://saucenao.com/search.php?db=999&url={url}")).await?;
     let document: Document = Document::from(response.text().await?.as_str());
     let divs: Vec<Node> = document
         .find(Name("div").and(Attr("id", "middle")))
         .next()
-        .and_then(|node: Node| Some(node.find(Name("div").and(Class("result"))).collect()))
+        .map(|node: Node| node.find(Name("div").and(Class("result"))).collect())
         .ok_or_else(|| Error::parser(&url, "images"))?;
-    let mut results: Vec<HashMap<String, String>> = Vec::new();
+    let mut results: Vec<BasicHashMap> = Vec::new();
     for div in divs {
         if div.text().contains("Low similarity results have been") {
             break;
@@ -171,7 +173,7 @@ pub async fn saucenao(url: String) -> Result<Vec<HashMap<String, String>>, Error
     Ok(results)
 }
 
-pub async fn upload(path: &str) -> Result<String, Error> {
+pub async fn upload(path: &str) -> Result<String> {
     let client: Client = Client::builder().build()?;
     let path_buf: PathBuf = PathBuf::from(path);
     let bytes: Vec<u8> =
@@ -198,11 +200,11 @@ pub async fn upload(path: &str) -> Result<String, Error> {
                 .next()
                 .and_then(|node: Node| node.attr("href"))
         })
-        .ok_or_else(|| Error::parser(&path, "link"))?;
+        .ok_or_else(|| Error::parser(path, "link"))?;
     Ok(format!("https:{link}"))
 }
 
-pub async fn sauce(saucer: String, url: String) -> Result<Vec<HashMap<String, String>>, Error> {
+pub async fn sauce(saucer: String, url: String) -> Result<Vec<BasicHashMap>> {
     match saucer.as_str() {
         "yandex" => yandex(url).await,
         "tineye" => tineye(url).await,

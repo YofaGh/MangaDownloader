@@ -11,8 +11,9 @@ use std::collections::HashMap;
 use crate::{
     errors::Error,
     insert,
-    models::{BaseModule, Module},
+    models::{BaseModule, Module, RequestConfig},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Manytoon {
@@ -24,18 +25,18 @@ impl Module for Manytoon {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String> {
         Ok(format!("https://manytoon.com/comic/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
         Ok(format!("https://manytoon.com/comic/{manga}/{chapter}/"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://manytoon.com/comic/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
         document
             .find(Name("div").and(Class("post-title")).descendant(Name("h1")))
             .next()
@@ -119,7 +120,7 @@ impl Module for Manytoon {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
         let url: String = format!("https://manytoon.com/comic/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let data: Value = {
@@ -138,13 +139,13 @@ impl Module for Manytoon {
         let (response, _) = self
             .send_request(
                 "https://manytoon.com/wp-admin/admin-ajax.php",
-                Method::POST,
-                HeaderMap::default(),
-                Some(true),
-                Some(data),
-                None,
-                None,
-                Some(client),
+                RequestConfig {
+                    method: Method::POST,
+                    headers: HeaderMap::default(),
+                    client: Some(client),
+                    data: Some(data),
+                    ..Default::default()
+                },
             )
             .await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -156,22 +157,18 @@ impl Module for Manytoon {
             )
             .filter_map(|div: Node| {
                 div.attr("href").and_then(|href: &str| {
-                    href.split('/').nth_back(1).and_then(|last: &str| {
-                        Some(HashMap::from([
+                    href.split('/').nth_back(1).map(|last: &str| {
+                        HashMap::from([
                             ("url".to_owned(), last.to_owned()),
                             ("name".to_owned(), self.rename_chapter(last.to_owned())),
-                        ]))
+                        ])
                     })
                 })
             })
             .collect())
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        chapter: String,
-    ) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://manytoon.com/comic/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -188,7 +185,7 @@ impl Module for Manytoon {
                     .trim()
                     .to_owned())
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, Value::Bool(false)))
     }
 
@@ -198,8 +195,8 @@ impl Module for Manytoon {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -231,7 +228,7 @@ impl Module for Manytoon {
                 else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "url", url, page);
                 manga.find(Name("img")).next().and_then(|element: Node| {
                     element

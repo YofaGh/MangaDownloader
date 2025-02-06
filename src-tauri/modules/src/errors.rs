@@ -1,5 +1,5 @@
-use reqwest::Error as ReqwestError;
-use serde_json::Error as SerdeJsonError;
+use reqwest::Error as ReqwestErr;
+use serde_json::Error as SerdeJsonErr;
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     io::Error as IoError,
@@ -10,30 +10,30 @@ use std::{
 pub enum Error {
     DirectoryOperation(String),
     FileOperation(String),
-    ImageError(String),
-    LibraryError(String),
+    ImageErr(String),
+    LibraryErr(String),
     Other(String),
-    ParserError(String),
-    PdfError(String),
-    ReqwestError(String),
-    RuntimeError(String),
-    SemverError(String),
-    SerdeJsonError(String),
-    TauriError(String),
+    ParserErr(String),
+    PdfErr(String),
+    ReqwestErr(String),
+    RuntimeErr(String),
+    SemverErr(String),
+    SerdeJsonErr(String),
+    TauriErr(String),
 }
 
 impl Error {
     pub fn file(action: &str, path: impl AsRef<Path>, err: IoError) -> Self {
         Self::FileOperation(format!(
             "Failed to {action} the file {}: {err}",
-            path.as_ref().to_string_lossy().to_string()
+            path.as_ref().to_string_lossy()
         ))
     }
     pub fn parser(url: &str, attr: &str) -> Self {
-        Self::ParserError(format!("Failed to parse html {url}: {attr}"))
+        Self::ParserErr(format!("Failed to parse html {url}: {attr}"))
     }
     pub fn runtime(err: IoError) -> Self {
-        Self::RuntimeError(format!("Runtime error: Failed to execute runtime: {err}"))
+        Self::RuntimeErr(format!("Runtime error: Failed to execute runtime: {err}"))
     }
 }
 
@@ -42,28 +42,28 @@ impl Display for Error {
         match self {
             Error::DirectoryOperation(msg)
             | Error::FileOperation(msg)
-            | Error::ImageError(msg)
-            | Error::LibraryError(msg)
+            | Error::ImageErr(msg)
+            | Error::LibraryErr(msg)
             | Error::Other(msg)
-            | Error::ParserError(msg)
-            | Error::PdfError(msg)
-            | Error::ReqwestError(msg)
-            | Error::SemverError(msg)
-            | Error::RuntimeError(msg)
-            | Error::SerdeJsonError(msg)
-            | Error::TauriError(msg) => write!(f, "{msg}"),
+            | Error::ParserErr(msg)
+            | Error::PdfErr(msg)
+            | Error::ReqwestErr(msg)
+            | Error::SemverErr(msg)
+            | Error::RuntimeErr(msg)
+            | Error::SerdeJsonErr(msg)
+            | Error::TauriErr(msg) => write!(f, "{msg}"),
         }
     }
 }
 
-impl From<ReqwestError> for Error {
-    fn from(err: ReqwestError) -> Self {
-        Error::ReqwestError(err.to_string())
+impl From<ReqwestErr> for Error {
+    fn from(err: ReqwestErr) -> Self {
+        Error::ReqwestErr(err.to_string())
     }
 }
 
-impl From<SerdeJsonError> for Error {
-    fn from(err: SerdeJsonError) -> Self {
-        Error::SerdeJsonError(err.to_string())
+impl From<SerdeJsonErr> for Error {
+    fn from(err: SerdeJsonErr) -> Self {
+        Error::SerdeJsonErr(err.to_string())
     }
 }

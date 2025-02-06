@@ -16,6 +16,7 @@ use crate::{
     insert,
     models::{BaseModule, Module},
     search_map,
+    types::{BasicHashMap, Result, ValueHashMap},
 };
 
 pub struct Truemanga {
@@ -27,18 +28,18 @@ impl Module for Truemanga {
     fn base(&self) -> &BaseModule {
         &self.base
     }
-    async fn get_webtoon_url(&self, manga: String) -> Result<String, Error> {
+    async fn get_webtoon_url(&self, manga: String) -> Result<String> {
         Ok(format!("https://truemanga.com/{manga}"))
     }
-    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String, Error> {
+    async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
         Ok(format!("https://truemanga.com/{manga}/{chapter}/"))
     }
-    async fn get_info(&self, manga: String) -> Result<HashMap<String, Value>, Error> {
+    async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
-        let mut info: HashMap<String, Value> = HashMap::new();
-        let mut extras: HashMap<String, Value> = HashMap::new();
+        let mut info: ValueHashMap = HashMap::new();
+        let mut extras: ValueHashMap = HashMap::new();
         let info_box: Node = document
             .find(Name("div").and(Class("book-info")))
             .next()
@@ -113,7 +114,7 @@ impl Module for Truemanga {
         Ok(info)
     }
 
-    async fn get_chapters(&self, manga: String) -> Result<Vec<HashMap<String, String>>, Error> {
+    async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
         let url: String = format!("https://truemanga.com/{manga}");
         let (response, client) = self.send_simple_request(&url, None).await?;
         let html: String = response.text().await?;
@@ -146,22 +147,18 @@ impl Module for Truemanga {
             .find(Name("option"))
             .filter_map(|tag: Node| {
                 tag.attr("value").and_then(|value: &str| {
-                    value.split("/").last().and_then(|last: &str| {
-                        Some(HashMap::from([
+                    value.split("/").last().map(|last: &str| {
+                        HashMap::from([
                             ("url".to_owned(), last.to_owned()),
                             ("name".to_owned(), tag.text()),
-                        ]))
+                        ])
                     })
                 })
             })
             .collect())
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        chapter: String,
-    ) -> Result<(Vec<String>, Value), Error> {
+    async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://truemanga.com/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
@@ -186,7 +183,7 @@ impl Module for Truemanga {
                     .ok_or_else(|| Error::parser(&url, "Invalid image filename format"))?;
                 Ok(format!("{:03}.{extension}", i + 1))
             })
-            .collect::<Result<Vec<String>, Error>>()?;
+            .collect::<Result<Vec<String>>>()?;
         Ok((images, to_value(save_names)?))
     }
 
@@ -196,8 +193,8 @@ impl Module for Truemanga {
         absolute: bool,
         sleep_time: f64,
         page_limit: u32,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        let mut results: Vec<HashMap<String, String>> = Vec::new();
+    ) -> Result<Vec<BasicHashMap>> {
+        let mut results: Vec<BasicHashMap> = Vec::new();
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
@@ -222,7 +219,7 @@ impl Module for Truemanga {
                 };
                 let Some(title) = ti
                     .attr("title")
-                    .and_then(|element: &str| Some(element.trim().to_owned()))
+                    .map(|element: &str| element.trim().to_owned())
                 else {
                     continue;
                 };
@@ -235,7 +232,7 @@ impl Module for Truemanga {
                 else {
                     continue;
                 };
-                let mut result: HashMap<String, String> =
+                let mut result: BasicHashMap =
                     search_map!(title, self.base.domain, "url", url, page);
                 manga.find(Name("img")).next().and_then(|element: Node| {
                     element

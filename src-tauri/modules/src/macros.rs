@@ -18,3 +18,16 @@ macro_rules! search_map {
         ])
     }};
 }
+
+#[macro_export]
+macro_rules! create_module_registry {
+    ($(($domain:expr, $module:ty)),* $(,)?) => {
+        static MODULE_REGISTRY: LazyLock<HashMap<&str, fn() -> BoxModule>> = LazyLock::new(|| {
+            let mut m = HashMap::<&str, fn() -> BoxModule>::new();
+            $(
+                m.insert($domain, || <$module>::new().into());
+            )*
+            m
+        });
+    };
+}

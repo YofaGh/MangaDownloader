@@ -199,3 +199,9 @@ pub trait Module: Send + Sync {
         thread::sleep(Duration::from_millis((sleep_time * 1000.0) as u64));
     }
 }
+
+impl<T: Module + 'static> From<T> for BoxModule {
+    fn from(module: T) -> Self {
+        Box::new(module)
+    }
+}

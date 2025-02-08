@@ -1,11 +1,11 @@
 use crate::prelude::*;
 
-pub struct Nhentai {
+pub struct NhentaiNet {
     base: BaseModule,
 }
 
 #[async_trait]
-impl Module for Nhentai {
+impl Module for NhentaiNet {
     fn base(&self) -> &BaseModule {
         &self.base
     }
@@ -164,7 +164,7 @@ impl Module for Nhentai {
     }
 }
 
-impl Nhentai {
+impl NhentaiNet {
     pub fn new() -> Self {
         Self {
             base: BaseModule {

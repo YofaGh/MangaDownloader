@@ -177,7 +177,7 @@ impl Module for Toonily {
         let mut client: Option<Client> = None;
         while page <= page_limit {
             let url: String = format!("https://toonily.com/search/{keyword}/page/{page}/");
-            let (response, new_client) = self
+            let (response, new_client) = match self
                 .send_request(
                     &url,
                     RequestConfig {
@@ -187,7 +187,11 @@ impl Module for Toonily {
                         ..Default::default()
                     },
                 )
-                .await?;
+                .await
+            {
+                Ok(result) => result,
+                Err(_) => return Ok(results),
+            };
             client = Some(new_client);
             if !response.status().is_success() {
                 break;

@@ -189,7 +189,10 @@ impl Module for Manytoon {
         while page <= page_limit {
             let url: String =
                 format!("https://manytoon.com/page/{page}/?s={keyword}&post_type=wp-manga");
-            let (response, new_client) = self.send_simple_request(&url, client).await?;
+            let (response, new_client) = match self.send_simple_request(&url, client).await {
+                Ok(result) => result,
+                Err(_) => return Ok(results),
+            };
             client = Some(new_client);
             if !response.status().is_success() {
                 break;

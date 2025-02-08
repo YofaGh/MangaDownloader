@@ -117,12 +117,11 @@ impl Module for NhentaiNet {
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let (response, new_client) = self
-                .send_simple_request(
-                    &format!("https://nhentai.net/search?q={keyword}&page={page}"),
-                    client,
-                )
-                .await?;
+            let url: String = format!("https://nhentai.net/search?q={keyword}&page={page}");
+            let (response, new_client) = match self.send_simple_request(&url, client).await {
+                Ok(result) => result,
+                Err(_) => return Ok(results),
+            };
             client = Some(new_client);
             let document: Document = Document::from(response.text().await?.as_str());
             let doujins: Vec<Node> = document

@@ -191,7 +191,10 @@ impl Module for Luscious {
             let url: String = data
                 .replace("__keyword__", &keyword)
                 .replace("__page__number__", &page.to_string());
-            let (response, new_client) = self.send_simple_request(&url, client).await?;
+            let (response, new_client) = match self.send_simple_request(&url, client).await {
+                Ok(result) => result,
+                Err(_) => return Ok(results),
+            };
             client = Some(new_client);
             if !response.status().is_success() {
                 break;

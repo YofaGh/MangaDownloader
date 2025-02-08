@@ -124,12 +124,11 @@ impl Module for Hentaifox {
         let mut page: u32 = 1;
         let mut client: Option<Client> = None;
         while page <= page_limit {
-            let (response, new_client) = self
-                .send_simple_request(
-                    &format!("https://hentaifox.com/search/?q={keyword}&page={page}"),
-                    client,
-                )
-                .await?;
+            let url: String = format!("https://hentaifox.com/search/?q={keyword}&page={page}");
+            let (response, new_client) = match self.send_simple_request(&url, client).await {
+                Ok(result) => result,
+                Err(_) => return Ok(results),
+            };
             client = Some(new_client);
             if !response.status().is_success() {
                 break;

@@ -4,13 +4,8 @@ use std::fs::DirEntry;
 use tauri::{command, AppHandle};
 
 use crate::{
-    assets,
-    errors::Error,
-    image_merger::merge_folder,
-    lib_utils,
-    pdf_converter::convert_folder,
-    saucer,
-    types::{BasicHashMap, ValueHashMap, Result},
+    assets, image_merger::merge_folder, lib_utils, pdf_converter::convert_folder,
+    prelude::*, saucer,
 };
 
 #[command(async)]
@@ -42,11 +37,7 @@ pub async fn read_directory(path: String) -> Result<Vec<String>> {
 }
 
 #[command(async)]
-pub fn merge(
-    path_to_source: &str,
-    path_to_destination: &str,
-    merge_method: &str,
-) -> Result<()> {
+pub fn merge(path_to_source: &str, path_to_destination: &str, merge_method: &str) -> Result<()> {
     merge_folder(path_to_source, path_to_destination, merge_method)
 }
 

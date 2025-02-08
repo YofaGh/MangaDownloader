@@ -2,6 +2,7 @@ mod errors;
 mod macros;
 mod models;
 mod modules;
+mod prelude;
 mod types;
 use errors::Error;
 use modules::*;

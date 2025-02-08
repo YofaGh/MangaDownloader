@@ -2,7 +2,7 @@ use image::DynamicImage;
 use scannedpdf::{create, Error as PdfErr, PageConfig, PageSize, PDF};
 use std::{fs::File, io::Error as IoError, path::PathBuf};
 
-use crate::{assets::detect_images, errors::Error, types::Result};
+use crate::{assets::detect_images, prelude::*};
 
 pub fn convert_folder(path: &str, pdf_name: &str) -> Result<()> {
     let images: Vec<DynamicImage> = detect_images(path)

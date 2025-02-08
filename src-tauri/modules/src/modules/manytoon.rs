@@ -1,20 +1,7 @@
-use async_trait::async_trait;
-use reqwest::{header::HeaderMap, Client, Method};
-use select::{
-    document::Document,
-    node::Node,
-    predicate::{Attr, Class, Name, Predicate},
-};
-use serde_json::{json, to_value, Value};
-use std::collections::HashMap;
+use reqwest::{header::HeaderMap, Method};
+use serde_json::json;
 
-use crate::{
-    errors::Error,
-    insert,
-    models::{BaseModule, Module, RequestConfig},
-    search_map,
-    types::{BasicHashMap, Result, ValueHashMap},
-};
+use crate::prelude::*;
 
 pub struct Manytoon {
     base: BaseModule,

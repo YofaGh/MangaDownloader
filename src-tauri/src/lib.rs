@@ -7,6 +7,7 @@ mod lib_utils;
 mod pdf_converter;
 mod saucer;
 mod types;
+mod prelude;
 use assets::load_up_checks;
 use commands::*;
 use tauri::{generate_context, generate_handler, App, Builder, Manager};

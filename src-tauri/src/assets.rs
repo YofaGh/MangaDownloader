@@ -20,9 +20,8 @@ use tauri::{
 use tauri_plugin_opener::{reveal_item_in_dir, Error as OpenerError};
 
 use crate::{
-    errors::Error,
     lib_utils::{get_modules_version, load_modules, unload_modules},
-    types::{ImageVec, Result},
+    prelude::*,
 };
 
 const GITHUB_URL: &str = "https://raw.githubusercontent.com/YofaGh/MangaDownloader/master/";

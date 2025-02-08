@@ -6,7 +6,7 @@ use std::{
     sync::{Mutex, MutexGuard, PoisonError},
 };
 
-use crate::{errors::Error, types::*};
+use crate::prelude::*;
 
 lazy_static! {
     static ref LIB: Mutex<Option<Library>> = Mutex::new(None);

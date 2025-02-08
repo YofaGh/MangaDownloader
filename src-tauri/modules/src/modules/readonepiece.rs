@@ -1,19 +1,6 @@
-use async_trait::async_trait;
 use reqwest::header::HeaderMap;
-use select::{
-    document::Document,
-    node::Node,
-    predicate::{Attr, Class, Name, Predicate},
-};
-use serde_json::{to_value, Value};
-use std::collections::HashMap;
 
-use crate::{
-    errors::Error,
-    insert,
-    models::{BaseModule, Module},
-    types::{BasicHashMap, Result, ValueHashMap},
-};
+use crate::prelude::*;
 
 pub struct Readonepiece {
     base: BaseModule,
@@ -58,11 +45,7 @@ impl Module for Readonepiece {
         Ok(info)
     }
 
-    async fn get_images(
-        &self,
-        manga: String,
-        chapter: String,
-    ) -> Result<(Vec<String>, Value)> {
+    async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
         let url: String = format!("https://ww9.readonepiece.com/chapter/{manga}-{chapter}");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());

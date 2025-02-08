@@ -1,9 +1,6 @@
-use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
-use reqwest::{header::HeaderMap, Client, Method, RequestBuilder, Response};
-use serde_json::Value;
+use reqwest::{header::HeaderMap, Method, RequestBuilder, Response};
 use std::{
-    collections::HashMap,
     fs::File,
     io::{copy, Error as IoError, Write},
     thread,
@@ -11,7 +8,7 @@ use std::{
 };
 use tokio_util::bytes::Bytes;
 
-use crate::{errors::Error, types::*};
+use crate::prelude::*;
 
 pub struct BaseModule {
     pub type_: &'static str,
@@ -68,11 +65,7 @@ pub trait Module: Send + Sync {
             ("is_coded".to_owned(), Value::Bool(base.is_coded)),
         ]))
     }
-    async fn download_image(
-        &self,
-        url: String,
-        image_name: String,
-    ) -> Result<Option<String>> {
+    async fn download_image(&self, url: String, image_name: String) -> Result<Option<String>> {
         let (response, _) = self
             .send_request(
                 &url,
@@ -113,11 +106,7 @@ pub trait Module: Send + Sync {
     async fn get_chapter_url(&self, _url: String, _chapter: String) -> Result<String> {
         Ok(Default::default())
     }
-    async fn get_images(
-        &self,
-        _manga: String,
-        _chapter: String,
-    ) -> Result<(Vec<String>, Value)> {
+    async fn get_images(&self, _manga: String, _chapter: String) -> Result<(Vec<String>, Value)> {
         Ok(Default::default())
     }
     async fn get_info(&self, _manga: String) -> Result<ValueHashMap> {
@@ -164,11 +153,7 @@ pub trait Module: Send + Sync {
             }
         }
     }
-    async fn send_request(
-        &self,
-        url: &str,
-        config: RequestConfig,
-    ) -> Result<(Response, Client)> {
+    async fn send_request(&self, url: &str, config: RequestConfig) -> Result<(Response, Client)> {
         let client: Client = match config.client {
             Some(c) => c,
             None => Client::builder()

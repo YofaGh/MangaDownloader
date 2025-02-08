@@ -10,8 +10,7 @@ use std::{cmp::max, ffi::OsStr, fs::copy, io::Error as IoError, path::PathBuf};
 
 use crate::{
     assets::{create_directory, detect_images},
-    errors::Error,
-    types::{ImageVec, Result},
+    prelude::*,
 };
 
 const MAX_JPEG_HEIGHT: u32 = 65500;

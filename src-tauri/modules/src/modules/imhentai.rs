@@ -1,21 +1,6 @@
-use async_trait::async_trait;
 use indexmap::IndexMap;
-use reqwest::Client;
-use select::{
-    document::Document,
-    node::Node,
-    predicate::{Attr, Class, Name, Predicate},
-};
-use serde_json::{to_value, Value};
-use std::collections::HashMap;
 
-use crate::{
-    errors::Error,
-    insert,
-    models::{BaseModule, Module},
-    search_map,
-    types::{BasicHashMap, Result, ValueHashMap},
-};
+use crate::prelude::*;
 
 pub struct Imhentai {
     base: BaseModule,

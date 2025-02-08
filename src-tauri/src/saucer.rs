@@ -8,10 +8,7 @@ use select::{
 use serde_json::Value;
 use std::{collections::HashMap, ffi::OsStr, fs::read, io::Error as IoError, path::PathBuf};
 
-use crate::{
-    errors::Error,
-    types::{BasicHashMap, Result},
-};
+use crate::prelude::*;
 
 pub async fn yandex(url: String) -> Result<Vec<BasicHashMap>> {
     let response: Response = get(&format!(

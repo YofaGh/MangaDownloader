@@ -25,7 +25,7 @@ pub fn get_version() -> Result<String> {
 pub fn get_modules() -> Result<Vec<ValueHashMap>> {
     get_all_modules()
         .into_iter()
-        .map(|module: BoxModule| module.get_module_info())
+        .map(|module: &BoxModule| module.get_module_info())
         .collect()
 }
 

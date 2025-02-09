@@ -20,16 +20,12 @@ create_module_registry!(
     ("truemanga.com", Truemanga)
 );
 
-pub fn get_module(domain: String) -> Result<BoxModule> {
-    MODULE_REGISTRY
+pub fn get_module(domain: String) -> Result<&'static BoxModule> {
+    MODULE_INSTANCES
         .get(domain.as_str())
-        .map(|f: &fn() -> BoxModule| f())
         .ok_or_else(|| Error::Other(format!("Domain {} is not supported", domain)))
 }
 
-pub fn get_all_modules() -> Vec<BoxModule> {
-    MODULE_REGISTRY
-        .values()
-        .map(|f: &fn() -> BoxModule| f())
-        .collect()
+pub fn get_all_modules() -> Vec<&'static BoxModule> {
+    MODULE_INSTANCES.values().collect()
 }

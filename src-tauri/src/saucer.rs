@@ -5,8 +5,7 @@ use select::{
     node::Node,
     predicate::{Attr, Class, Name, Predicate},
 };
-use serde_json::Value;
-use std::{collections::HashMap, ffi::OsStr, fs::read, io::Error as IoError, path::PathBuf};
+use std::{collections::HashMap, fs::read};
 
 use crate::prelude::*;
 

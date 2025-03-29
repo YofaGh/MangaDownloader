@@ -6,7 +6,7 @@ use rayon::{
     iter::{IndexedParallelIterator, ParallelIterator},
     prelude::IntoParallelIterator,
 };
-use std::{cmp::max, ffi::OsStr, fs::copy, io::Error as IoError, path::PathBuf};
+use std::{cmp::max, fs::copy};
 
 use crate::{
     assets::{create_directory, detect_images},

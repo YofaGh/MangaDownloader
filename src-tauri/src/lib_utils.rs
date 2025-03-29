@@ -1,10 +1,6 @@
 use lazy_static::lazy_static;
 use libloading::{Error as LibError, Library, Symbol};
-use serde_json::Value;
-use std::{
-    path::PathBuf,
-    sync::{Mutex, MutexGuard, PoisonError},
-};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use crate::prelude::*;
 

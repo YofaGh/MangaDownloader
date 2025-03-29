@@ -1,6 +1,5 @@
 use image::DynamicImage;
 use scannedpdf::{create, Error as PdfErr, PageConfig, PageSize, PDF};
-use std::{fs::File, io::Error as IoError, path::PathBuf};
 
 use crate::{assets::detect_images, prelude::*};
 

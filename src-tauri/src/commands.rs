@@ -1,6 +1,4 @@
 use image::open;
-use serde_json::Value;
-use std::fs::DirEntry;
 use tauri::{command, AppHandle};
 
 use crate::{

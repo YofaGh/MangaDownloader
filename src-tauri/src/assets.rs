@@ -4,12 +4,10 @@ use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use reqwest::get;
 use semver::Version;
 use serde::Serialize;
-use serde_json::{to_string_pretty, to_value, Value};
+use serde_json::{to_string_pretty, to_value};
 use std::{
-    ffi::OsStr,
-    fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, write, DirEntry, File},
-    io::{Error as IoError, Write},
-    path::PathBuf,
+    fs::{create_dir_all, read_dir, remove_dir, remove_dir_all, write},
+    io::Write,
     thread::sleep,
     time::Duration,
 };

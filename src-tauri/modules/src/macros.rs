@@ -21,11 +21,14 @@ macro_rules! search_map {
 
 #[macro_export]
 macro_rules! create_module_registry {
-    ($(($domain:expr, $module:ty)),* $(,)?) => {
+    ($($module:ty),* $(,)?) => {
         static MODULE_INSTANCES: LazyLock<HashMap<&'static str, BoxModule>> = LazyLock::new(|| {
             HashMap::from([
                 $(
-                    ($domain, <$module>::new().into()),
+                    {
+                        let module = <$module>::new();
+                        (module.base().domain, module.into())
+                    },
                 )*
             ])
         });

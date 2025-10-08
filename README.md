@@ -177,3 +177,10 @@ To add support for a new website:
 2. Implement the required traits for content extraction
 3. Add the module to the registry
 4. Submit a pull request with documentation
+
+## Examples
+
+![Home Page](examples/HomePage.png?raw=true)
+![Download Manager](examples/DownloadManager.png?raw=true)
+![Search Page](examples/SearchPage.png?raw=true)
+![Manga Page](examples/MangaPage.png?raw=true)

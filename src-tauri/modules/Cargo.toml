@@ -1,6 +1,6 @@
 [package]
 name = "modules"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2021"
 description = "modules for Manga Downloader"
 authors = ["YofaGh"]

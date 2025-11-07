@@ -15,13 +15,13 @@ impl Module for Toonily {
         &self.base
     }
     async fn get_webtoon_url(&self, manga: String) -> Result<String> {
-        Ok(format!("https://toonily.com/webtoon/{manga}/"))
+        Ok(format!("https://toonily.com/serie/{manga}/"))
     }
     async fn get_chapter_url(&self, manga: String, chapter: String) -> Result<String> {
-        Ok(format!("https://toonily.com/webtoon/{manga}/{chapter}/"))
+        Ok(format!("https://toonily.com/serie/{manga}/{chapter}/"))
     }
     async fn get_info(&self, manga: String) -> Result<ValueHashMap> {
-        let url: String = format!("https://toonily.com/webtoon/{manga}/");
+        let url: String = format!("https://toonily.com/serie/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let mut info: ValueHashMap = HashMap::new();
@@ -109,7 +109,7 @@ impl Module for Toonily {
     }
 
     async fn get_chapters(&self, manga: String) -> Result<Vec<BasicHashMap>> {
-        let url: String = format!("https://toonily.com/webtoon/{manga}/");
+        let url: String = format!("https://toonily.com/serie/{manga}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         Ok(document
@@ -132,7 +132,7 @@ impl Module for Toonily {
     }
 
     async fn get_images(&self, manga: String, chapter: String) -> Result<(Vec<String>, Value)> {
-        let url: String = format!("https://toonily.com/webtoon/{manga}/{chapter}/");
+        let url: String = format!("https://toonily.com/serie/{manga}/{chapter}/");
         let (response, _) = self.send_simple_request(&url, None).await?;
         let document: Document = Document::from(response.text().await?.as_str());
         let images: Vec<String> = document
